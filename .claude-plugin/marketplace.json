@@ -1,0 +1,15 @@
+{
+  "name": "pm-chief-of-staff",
+  "description": "Chief of Staff pessoal pra gente de produto no Claude Code: setup conversacional que constrói seu segundo cérebro de trabalho, mais sementes de skills que viram suas no primeiro segundo.",
+  "owner": {
+    "name": "Pedro Menezes",
+    "url": "https://github.com/pe-menezes"
+  },
+  "plugins": [
+    {
+      "name": "pm-chief-of-staff",
+      "source": "./",
+      "description": "Chief of Staff pessoal pra quem trabalha com produto: discovery em blocos, memória em camadas, skills que são suas."
+    }
+  ]
+}
