@@ -58,7 +58,9 @@ O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem sem
 
 ## Onde ficam meus dados?
 
-**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
+**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não roda código nem instala nada: é conversa e arquivos markdown. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
+
+Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de outras pessoas. Antes de colar material da empresa, cheque a política de IA dela (os planos Team e Enterprise do Claude têm controles próprios de dados).
 
 ## Atualizações
 
@@ -66,6 +68,12 @@ O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem sem
 * **Manual:** `/plugin marketplace update pm-chief-of-staff` quando quiser checar.
 
 Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu CLAUDE.md nunca são tocados.**
+
+## Problemas comuns
+
+* **`/pm-chief-of-staff:setup` aparece como "Unknown command":** rode `/reload-plugins` (o passo 2 da instalação termina nele) ou feche e abra a sessão.
+* **O discovery caiu no meio (sessão fechou, contexto acabou):** abra a pasta de novo e rode o setup; ele encontra o `setup-notas.md` que foi gravando e retoma do bloco onde parou.
+* **Plantei uma skill e o comando (`/abrir-dia`) não aparece:** skill plantada registra quando a sessão abre. Numa sessão nova ela está lá, e o gatilho por frase ("bom dia") funciona igual.
 
 ## Não tem Claude Code? (plano B)
 
@@ -77,6 +85,10 @@ O arquivo [`PROMPT.md`](PROMPT.md) tem a versão colável do setup: cola no Clau
 2. **Você tem que ler tudo.** Erro que você não pega propaga. Sua responsabilidade é intransferível.
 3. **Ele é thought partner, não assistente obediente.** Franqueza acima de validação, diagnóstico antes de sugestão, e anti-padrões nomeados na hora (executar sem questionar, escalar sem recomendação, showcase sem "e daí", otimismo ingênuo, e os de liderança pra quem lidera: Super-Líder, babá de luxo, feedback genérico, decisão dura adiada).
 4. **Os arquivos são a memória.** O que não está escrito não existe amanhã.
+
+## Bug ou semente que falta
+
+[Abra uma issue](../../issues/new/choose): tem template pra bug e pra pedido de semente. Pedido de semente é o que vira catálogo novo, e a fila é pública.
 
 ## Licença
 
