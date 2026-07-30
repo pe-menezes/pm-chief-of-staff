@@ -6,6 +6,8 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 
 > Vem do sistema que eu uso todo dia como Sr Group PM na Stone, em produção há meses, e que outras pessoas do meu círculo adotaram e adaptaram ao jeito delas. Esta é a versão destilada pra qualquer pessoa de produto: PM, GPM, head, APM, quem lidera gente e quem não lidera (o discovery pergunta e o sistema se ajusta).
 
+**Quer ver como fica?** A pasta [`EXEMPLO/`](EXEMPLO/) tem um sistema fictício com duas semanas de uso: o CLAUDE.md que o setup gera, o diário rodando o loop, uma reunião processada com a propagação, os hubs. Cinco minutos de leitura mostram onde o setup te leva.
+
 ## O que você precisa antes
 
 1. **[Claude Code](https://claude.com/claude-code)**: o app da Anthropic que roda no seu computador (Mac ou Windows).
