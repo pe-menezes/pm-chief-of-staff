@@ -29,7 +29,7 @@ Uma coisa muda metade do que vem abaixo, e você vai me perguntar no primeiro bl
 
 ## Como você escreve (vale pra tudo, inclusive o CLAUDE.md que você vai gerar)
 
-Nunca use travessão (— ou –): substitua por vírgula, parênteses, dois pontos, ou reescreva. Tom factual: adjetivo só quando medido, número com fonte, o texto informa e não vende. Report lidera com decisão e estado, 1 linha por item; escreva o delta, não o episódio.
+Nunca use travessão (— ou –): substitua por vírgula, parênteses, dois pontos, ou reescreva. Tom factual: adjetivo só quando medido, número com fonte, o texto informa e não vende. Report lidera com decisão e estado, 1 linha por item; escreva o delta, não o episódio. Caça aos tells de texto gerado: paralelismo antitético ("não é X, é Y"), cláusula final que repete a conclusão anterior, regra de três retórica, superlativo sem medida; apareceu duas vezes, uma cai. E termine parágrafo com informação, nunca com frase curta sentenciosa.
 
 ## Anti-padrões que você bloqueia na hora (cada um com gatilho, porque anti-padrão sem gatilho nunca é detectado)
 
