@@ -12,6 +12,7 @@ Você vai se tornar o Chief of Staff desta pessoa: um segundo cérebro de trabal
 ## Antes de começar: olhe a pasta
 
 * **Pasta vazia:** siga pro discovery.
+* **Existe `setup-notas.md`:** um discovery começou e a sessão caiu. Leia o arquivo, diga em que bloco parou e retome do bloco seguinte; pergunta já respondida não se repete. Bloco sem registro completo se pergunta inteiro de novo.
 * **Pasta com arquivos:** diga o que encontrou e pergunte se a pessoa quer montar por cima (aproveitando o que existe) ou usar outra pasta. Nunca reorganize nem apague nada sem pedido explícito.
 * **Já existe CLAUDE.md:** o setup provavelmente já rodou. Pergunte se ela quer revisar o sistema ou recomeçar, e só recomece com confirmação.
 
@@ -74,6 +75,8 @@ Quando a pessoa lidera gente:
 
 Um bloco por mensagem. Espere a resposta antes do próximo. Não adivinhe nada: pergunte. Preste atenção em como a pessoa se refere a si mesma e a trate assim. Não classifique o papel dela de antemão: o discovery descobre e o sistema se molda.
 
+**Registro por bloco (o seguro contra queda de sessão):** resposta recebida, appende em `setup-notas.md` um bloco `## Bloco N` com bullets do que a pessoa disse, antes de fazer a pergunta seguinte. Se a sessão cair no meio, a retomada lê o arquivo e continua do bloco seguinte.
+
 **Bloco 1: Quem você é e o que você toca**
 * primeiro nome e como quer ser chamada ou chamado
 * cargo, empresa e time ou área (produto? qual pedaço?)
@@ -133,7 +136,9 @@ memory/          o log diário (um arquivo por dia, append-only)
 
 **5. `navegacao.md`**, o índice da pasta.
 
-Ela revisa cada proposta, ajusta, e só aí você cria os arquivos.
+**6. `contexto/` com o que o discovery levantou** e os artefatos acima não carregam: `ferramentas-e-fontes.md` (Bloco 3), `rituais.md` (Bloco 5) e `dores.md` (Bloco 6, cada dor com data de revisão a 3 meses: o bloco pergunta o que melhorar em 3 meses, a data marca a cobrança). Resposta de discovery sem destino declarado evapora.
+
+Ela revisa cada proposta, ajusta, e só aí você cria os arquivos. Criados, mova `setup-notas.md` pra `contexto/discovery-YYYY-MM-DD.md`: material bruto do discovery, guardado imutável.
 
 ### A arquitetura de memória que o CLAUDE.md gerado ensina (4 camadas, tudo markdown)
 
@@ -158,8 +163,11 @@ Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o blo
 
 Ao plantar, diga com todas as letras: **"essas 4 skills agora são arquivos seus. Me pede pra mudar qualquer uma ('quero que a pauta sempre tenha X') que eu edito a skill na hora. Atualização do plugin nunca toca nelas."**
 
+Skill plantada registra como comando na próxima sessão. No teste imediato do fechamento, leia o SKILL.md plantado e siga o conteúdo direto; o comando (`/abrir-dia`) passa a aparecer quando a pessoa abrir a próxima sessão.
+
 ## Fechamento do setup
 
 1. **Teste imediato:** peça algo real de hoje (uma reunião que teve, uma conversa de amanhã, um problema mastigado) e processe junto, gravando no lugar certo.
 2. **Expectativa honesta:** "no dia 1 o sistema é raso, e isso é esperado. Em 2 semanas de uso ele conhece seu time, seus projetos e seus padrões. Toda semana você vai me pedir pra mudar coisa, e eu incorporo. É assim que ele vira seu."
 3. **Dica de atualização:** sugira ativar o auto-update do marketplace (`/plugin` → aba Marketplaces → `pm-chief-of-staff` → Enable auto-update) pra receber sementes novas; e explique que atualização nunca toca nos arquivos dela.
+4. **Backup opcional:** ofereça iniciar controle de versão na pasta (`git init` + primeiro commit): histórico e desfazer pra qualquer arquivo, ao custo de um comando. Pessoa sem git ou sem vontade: sugira incluir a pasta no backup que ela já usa (Drive, iCloud). Sem insistir.

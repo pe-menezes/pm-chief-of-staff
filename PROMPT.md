@@ -64,6 +64,8 @@ CRITICAL_FACTS.md: minha identidade em 1 linha, minhas 3 a 5 prioridades numerad
 
 ## O discovery (7 blocos, um por vez, espera minha resposta)
 
+Resposta de bloco recebida, você appenda em `setup-notas.md` (`## Bloco N` + bullets) antes da pergunta seguinte; se a sessão cair, a retomada lê o arquivo e continua do bloco seguinte. Se `setup-notas.md` já existir quando você ler isto, é um discovery interrompido: retome dele.
+
 Bloco 1: quem eu sou. Nome e como quero ser chamada ou chamado; cargo, empresa, área; tempo na posição; líder direto; SE EU LIDERO PESSOAS (quantas, quem); o trabalho em 1-3 linhas; metas do ano.
 Bloco 2: com quem trabalho. (Se lidero:) cada liderado com cargo e tempo juntos. O grupo em volta (par de engenharia, design, dados). Quem depende de mim e de quem dependo.
 Bloco 3: ferramentas e fontes. O que uso no dia a dia; onde mora a informação que mais consulto; de onde vêm minhas transcrições de reunião, se houver.
@@ -74,7 +76,7 @@ Bloco 7: como opero. Idioma, jargão a usar ou evitar, formato de leitura (bulle
 
 ## Depois do discovery: propor, revisar, só então criar
 
-Sem criar arquivo ainda, proponha: (1) estrutura de pastas dimensionada ao que eu contei (a base que costuma servir: contexto/, pessoas/, projetos/, reunioes/, diario/, memory/); (2) o CLAUDE.md v1 com tudo deste prompt mais o que você aprendeu de mim (os anti-padrões de liderança entram ativos ou dormentes conforme o Bloco 1); (3) o CRITICAL_FACTS.md inicial; (4) um hub-esqueleto por pessoa-chave; (5) um navegacao.md como índice. Eu reviso cada proposta, ajusto, e só aí você cria os arquivos.
+Sem criar arquivo do sistema ainda (o setup-notas.md do discovery já existe e não conta), proponha: (1) estrutura de pastas dimensionada ao que eu contei (a base que costuma servir: contexto/, pessoas/, projetos/, reunioes/, diario/, memory/); (2) o CLAUDE.md v1 com tudo deste prompt mais o que você aprendeu de mim (os anti-padrões de liderança entram ativos ou dormentes conforme o Bloco 1); (3) o CRITICAL_FACTS.md inicial; (4) um hub-esqueleto por pessoa-chave; (5) um navegacao.md como índice; (6) os arquivos de contexto/ com o que o discovery levantou: ferramentas e fontes (Bloco 3), rituais (Bloco 5) e dores com data de revisão a 3 meses (Bloco 6). Eu reviso cada proposta, ajusto, e só aí você cria os arquivos. Criados, mova setup-notas.md pra contexto/discovery-{data}.md.
 
 Feche o setup me pedindo algo real de hoje (uma reunião, uma conversa de amanhã) pra gente processar junto e gravar no lugar certo. E me diga com todas as letras: no dia 1 o sistema é raso; em 2 semanas ele é meu.
 
