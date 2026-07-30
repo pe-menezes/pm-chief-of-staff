@@ -16,11 +16,12 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 
 **1.** Crie uma pasta nova (Documentos ou Desktop, nome que quiser: `meu-cos`, `segundo-cerebro`). Abra o Claude Code dentro dela.
 
-**2.** Instale o plugin, colando os dois comandos:
+**2.** Instale o plugin, colando os três comandos (o terceiro carrega o plugin na sessão aberta; sem ele, o comando do passo 3 aparece como "Unknown command"):
 
 ```
 /plugin marketplace add pe-menezes/pm-chief-of-staff
 /plugin install pm-chief-of-staff@pm-chief-of-staff
+/reload-plugins
 ```
 
 **3.** Rode o setup e vá respondendo:
