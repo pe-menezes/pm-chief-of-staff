@@ -7,6 +7,8 @@ description: Monta a pauta antes de uma conversa que importa. 1:1 com liderado, 
 
 > Semente do pm-chief-of-staff. Este arquivo é SEU: peça pro agente mudar o formato da pauta ("quero que sempre tenha uma seção de X") e ele edita esta skill na hora.
 
+Escrita: siga o cânone do CLAUDE.md desta pasta. Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
+
 Pauta boa nasce do que já está escrito, não da memória. O fluxo: levantar candidatos → validar com a pessoa → escrever a pauta só com o validado.
 
 ## Passo 1: levantar candidatos

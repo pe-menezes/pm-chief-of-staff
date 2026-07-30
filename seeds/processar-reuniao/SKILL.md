@@ -7,6 +7,8 @@ description: Transforma uma reunião que aconteceu em nota estruturada e propaga
 
 > Semente do pm-chief-of-staff. Este arquivo é SEU: peça pro agente mudar o formato da nota ou as regras de propagação e ele edita esta skill na hora.
 
+Escrita: siga o cânone do CLAUDE.md desta pasta. Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
+
 O valor não é resumir: é extrair o que muda o estado do sistema (decisão, task, sinal sobre pessoa ou projeto) e colocar cada coisa no lugar onde vai ser encontrada. Uma reunião processada e propagada vale mais que dez transcrições guardadas.
 
 ## Passo 1: receber o material

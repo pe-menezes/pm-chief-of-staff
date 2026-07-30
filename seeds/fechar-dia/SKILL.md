@@ -7,6 +7,8 @@ description: Fecha o dia de trabalho. Avalia as 3 do dia, classifica o que não 
 
 > Semente do pm-chief-of-staff. Este arquivo é SEU: peça pro agente mudar qualquer passo e ele edita esta skill na hora.
 
+Escrita: siga o cânone do CLAUDE.md desta pasta. Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
+
 Par do `abrir-dia`: a abertura propõe as 3, este fechamento avalia (fecharam? por que não? o que fazer amanhã?) e grava a resposta onde a abertura lê de manhã. Sem fechamento, as 3 são propostas nunca avaliadas e o sistema não aprende se erra na priorização ou na execução. Leva 5 minutos. Um dia 0/3 é dado, não falha moral.
 
 ## Fluxo

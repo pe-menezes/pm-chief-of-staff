@@ -7,6 +7,8 @@ description: Abre o dia de trabalho. Monta a agenda, varre as tasks abertas, pro
 
 > Semente do pm-chief-of-staff. Este arquivo é SEU: peça pro agente mudar qualquer passo ("quero que a abertura sempre inclua X") e ele edita esta skill na hora.
 
+Escrita: siga o cânone do CLAUDE.md desta pasta. Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
+
 Monta o dia em cima do que já está escrito: prioridades, tasks abertas, agenda, e a semente que o fechamento de ontem deixou. Propõe as 3 do dia; a pessoa valida antes de cravar.
 
 ## Princípios

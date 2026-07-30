@@ -1,7 +1,7 @@
 {
   "name": "pm-chief-of-staff",
   "description": "Chief of Staff pessoal pra quem trabalha com produto: um segundo cérebro de trabalho que nasce de uma conversa, mora em arquivos markdown seus e se molda a você. Rode /pm-chief-of-staff:setup numa pasta vazia.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Pedro Menezes",
     "url": "https://github.com/pe-menezes"
