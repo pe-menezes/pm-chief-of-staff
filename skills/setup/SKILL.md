@@ -149,9 +149,9 @@ Ela revisa cada proposta, ajusta, e só aí você cria os arquivos. Criados, mov
 | Semântica | o que estabilizou sobre pessoa e projeto | hubs em `pessoas/` e `projetos/` | corpo consolida o estado atual; trail datado é append-only |
 | Procedural | como você opera | `CLAUDE.md` + skills | edita ao incorporar mudança |
 
-Regras do log diário que o CLAUDE.md gerado carrega: formato `## [HH:MM] Tópico` + 2 a 4 linhas (a decisão e o ponteiro pro arquivo canônico) · escrever a cada marco, durante o trabalho, não no fim da sessão · o detalhe vive no destino (nota de reunião, hub, projeto), o log aponta · gatilhos de escrita: decisão tomada, marco de bloco, aprendizado do dia, "grava isso" (imediato).
+Regras do log diário que o CLAUDE.md gerado carrega: formato `## [HH:MM] Tópico` + 2 a 4 linhas (a decisão e o ponteiro pro arquivo canônico) · o `[HH:MM]` sai do comando `date` rodado no momento da escrita, nunca de estimativa (o modelo não sabe a hora) · escrever a cada marco, durante o trabalho, não no fim da sessão · o detalhe vive no destino (nota de reunião, hub, projeto), o log aponta · gatilhos de escrita: decisão tomada, marco de bloco, aprendizado do dia, "grava isso" (imediato).
 
-Rotina de sessão que o CLAUDE.md gerado carrega: toda sessão nova começa lendo `CRITICAL_FACTS.md`, `navegacao.md` e o log mais recente de `memory/`. O que está escrito é o estado; não dependa de memória de sessão anterior.
+Rotina de sessão que o CLAUDE.md gerado carrega: toda sessão nova começa lendo `CRITICAL_FACTS.md`, `navegacao.md` e o log mais recente de `memory/`. O que está escrito é o estado; não dependa de memória de sessão anterior. Com o plugin ativo, um hook injeta esses arquivos automaticamente na abertura da sessão; a rotina de leitura continua escrita no CLAUDE.md porque o sistema também roda sem plugin.
 
 ## Plantar as sementes
 
