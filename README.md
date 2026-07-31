@@ -75,9 +75,9 @@ Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, s
 * **O discovery caiu no meio (sessão fechou, contexto acabou):** abra a pasta de novo e rode o setup; ele encontra o `setup-notas.md` que foi gravando e retoma do bloco onde parou.
 * **Plantei uma skill e o comando (`/abrir-dia`) não aparece:** skill plantada registra quando a sessão abre. Numa sessão nova ela está lá, e o gatilho por frase ("bom dia") funciona igual.
 
-## Não tem Claude Code? (plano B)
+## Não quer instalar o plugin?
 
-O arquivo [`PROMPT.md`](PROMPT.md) tem a versão colável do setup: cola no Claude Code (ou adapta pra outra ferramenta de agente com acesso a arquivos) e roda o mesmo discovery na mão. Foi assim que as primeiras pessoas usaram esse sistema, antes de ele virar plugin. Você perde o canal de atualização e as sementes, mas o núcleo (discovery + CLAUDE.md + memória) funciona.
+Cola o conteúdo de [`PROMPT.md`](PROMPT.md) em qualquer agente com acesso a arquivos e roda o mesmo setup por conversa. O plugin só acrescenta as skills-semente e o canal de atualização.
 
 ## Filosofia, em 4 princípios
 
