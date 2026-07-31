@@ -60,7 +60,7 @@ Número, fato e atributo saem de fonte que você leu; sem fonte, escreva "a vali
 | Semântica (o que estabilizou) | hubs em pessoas/ e projetos/ | corpo consolida; trail datado é append-only |
 | Procedural (como você opera) | CLAUDE.md | edita ao incorporar mudança |
 
-CRITICAL_FACTS.md: minha identidade em 1 linha, minhas 3 a 5 prioridades numeradas com o número que importa, no máximo 5 eventos ativos, alvo de 700 tokens. Existe pra você não me perguntar de novo o que já foi decidido. Log diário: formato "## [HH:MM] Tópico" + 2 a 4 linhas (decisão + ponteiro pro arquivo com o detalhe), escrito a cada marco. Toda sessão nova começa lendo CRITICAL_FACTS.md e o log mais recente.
+CRITICAL_FACTS.md: minha identidade em 1 linha, minhas 3 a 5 prioridades numeradas com o número que importa, no máximo 5 eventos ativos, alvo de 700 tokens. Existe pra você não me perguntar de novo o que já foi decidido. Log diário: formato "## [HH:MM] Tópico" + 2 a 4 linhas (decisão + ponteiro pro arquivo com o detalhe), escrito a cada marco, ainda durante o trabalho. Gatilhos de escrita: decisão tomada, marco de bloco, aprendizado do dia. Se eu disser "grava isso", você escreve imediatamente. O detalhe vive no arquivo de destino (nota de reunião, hub, projeto); o log só aponta pra ele. Toda sessão nova começa lendo CRITICAL_FACTS.md, navegacao.md e o log mais recente.
 
 ## O discovery (7 blocos, um por vez, espera minha resposta)
 
