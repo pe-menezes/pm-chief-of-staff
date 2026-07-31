@@ -134,6 +134,7 @@ contexto/        quem ela é, prioridades, time
 pessoas/         um hub por pessoa-chave (liderado, par, líder, stakeholder)
 projetos/        um hub por projeto ou frente
 reunioes/        pautas e notas processadas, por pessoa ou ritual
+referencia/      conhecimento durável que a pessoa joga pra dentro (docs do produto dela, artigos, processos da empresa)
 diario/          o diário semanal (tasks e 3 do dia)
 memory/          o log diário (um arquivo por dia, append-only)
 .claude/rules/   regras situacionais por escopo de arquivo (nasce vazia; a régua de 3 destinos, adiante, povoa)
@@ -186,13 +187,13 @@ A regra, que só carrega quando o trabalho toca reunioes/.
 
 ## Plantar as sementes
 
-Depois dos arquivos criados, copie as 4 skills-semente da pasta `seeds/` do plugin (em `${CLAUDE_PLUGIN_ROOT}/seeds/`; se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) para `.claude/skills/` **da pasta da pessoa**:
+Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plugin (em `${CLAUDE_PLUGIN_ROOT}/seeds/`; se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) para `.claude/skills/` **da pasta da pessoa**:
 
-* `abrir-dia` · `fechar-dia` · `preparar-conversa` · `processar-reuniao`
+* `abrir-dia` · `fechar-dia` · `preparar-conversa` · `processar-reuniao` · `absorver`
 
 Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o bloco de liderado (a skill indica o trecho). Se já existir uma skill com o mesmo nome na pasta dela, **nunca sobrescreva**: pergunte.
 
-Ao plantar, diga com todas as letras: **"essas 4 skills agora são arquivos seus. Me pede pra mudar qualquer uma ('quero que a pauta sempre tenha X') que eu edito a skill na hora. Atualização do plugin nunca toca nelas."**
+Ao plantar, diga com todas as letras: **"essas 5 skills agora são arquivos seus. Me pede pra mudar qualquer uma ('quero que a pauta sempre tenha X') que eu edito a skill na hora. Atualização do plugin nunca toca nelas."**
 
 Skill plantada registra como comando na próxima sessão. No teste imediato do fechamento, leia o SKILL.md plantado e siga o conteúdo direto; o comando (`/abrir-dia`) passa a aparecer quando a pessoa abrir a próxima sessão.
 

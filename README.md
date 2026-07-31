@@ -34,7 +34,7 @@ São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe 
 
 ## O que vem plantado (e por que "plantado" importa)
 
-O setup copia 4 skills-semente pra DENTRO da sua pasta:
+O setup copia 5 skills-semente pra DENTRO da sua pasta:
 
 | Skill | O que faz |
 |---|---|
@@ -42,6 +42,7 @@ O setup copia 4 skills-semente pra DENTRO da sua pasta:
 | `fechar-dia` | avalia as 3, classifica o que não fechou, semeia o #1 de amanhã |
 | `preparar-conversa` | pauta pra 1:1 (liderado ou seu líder), par ou stakeholder, a partir do que está escrito |
 | `processar-reuniao` | cola a transcrição, sai nota estruturada + propagação pros lugares certos |
+| `absorver` | joga um doc, artigo ou processo pra dentro: ganha casa, resumo com proveniência e a linha de quando será usado |
 
 A partir do momento em que são plantadas, **essas skills são arquivos seus**. Quer que a pauta de 1:1 sempre tenha uma seção de reconhecimento? Fala isso pro agente e ele edita a skill. Quer que o abrir-dia inclua seu dashboard? Mesma coisa. Minhas atualizações futuras **nunca tocam no que é seu**: elas só melhoram o setup e adicionam sementes novas no catálogo (`/pm-chief-of-staff:plantar` lista o que há).
 
