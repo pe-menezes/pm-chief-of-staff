@@ -193,6 +193,8 @@ Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plug
 
 Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o bloco de liderado (a skill indica o trecho). Se já existir uma skill com o mesmo nome na pasta dela, **nunca sobrescreva**: pergunte.
 
+O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
+
 Ao plantar, diga com todas as letras: **"essas 5 skills agora são arquivos seus. Me pede pra mudar qualquer uma ('quero que a pauta sempre tenha X') que eu edito a skill na hora. Atualização do plugin nunca toca nelas."**
 
 Skill plantada registra como comando na próxima sessão. No teste imediato do fechamento, leia o SKILL.md plantado e siga o conteúdo direto; o comando (`/abrir-dia`) passa a aparecer quando a pessoa abrir a próxima sessão.
