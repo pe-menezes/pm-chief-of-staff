@@ -203,4 +203,4 @@ Skill plantada registra como comando na próxima sessão. No teste imediato do f
 2. **Expectativa honesta:** "no dia 1 o sistema é raso, e isso é esperado. Em 2 semanas de uso ele conhece seu time, seus projetos e seus padrões. Toda semana você vai me pedir pra mudar coisa, e eu incorporo. É assim que ele vira seu."
 3. **Dica de atualização:** sugira ativar o auto-update do marketplace (`/plugin` → aba Marketplaces → `pm-chief-of-staff` → Enable auto-update) pra receber sementes novas; e explique que atualização nunca toca nos arquivos dela.
 4. **Backup opcional:** ofereça iniciar controle de versão na pasta (`git init` + primeiro commit): histórico e desfazer pra qualquer arquivo, ao custo de um comando. Pessoa sem git ou sem vontade: sugira incluir a pasta no backup que ela já usa (Drive, iCloud). Sem insistir.
-5. **Manutenção periódica:** diga, em 1 linha, que de tempos em tempos vale rodar `/doctor` no Claude Code, que revisa e simplifica CLAUDE.md e skills que acumularam regra.
+5. **Manutenção periódica:** diga, em 1 linha, que de tempos em tempos vale rodar `/doctor` no Claude Code, que revisa e simplifica o CLAUDE.md quando ele acumula regra.

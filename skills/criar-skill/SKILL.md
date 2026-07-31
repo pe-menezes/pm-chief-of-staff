@@ -30,7 +30,7 @@ Skill é instrução pra agente, e as restrições que valem pra qualquer instru
 
 ### Camada de implementação (a mecânica de cada destino)
 
-No Claude Code: skill é uma pasta com `SKILL.md` e a description no frontmatter; regra situacional é `.claude/rules/{tema}.md` com frontmatter `paths:` (lista de globs; a regra carrega só quando o trabalho toca aqueles arquivos); e `/doctor` revisa e simplifica CLAUDE.md e skills de tempos em tempos. Em outro agente, o equivalente local: o arquivo de instrução que ele sempre carrega faz o papel do CLAUDE.md, e a regra situacional usa o mecanismo de escopo que ele tiver (ou declara o escopo no topo do próprio arquivo, que o agente respeita).
+No Claude Code: skill é uma pasta com `SKILL.md` e a description no frontmatter; regra situacional é `.claude/rules/{tema}.md` com frontmatter `paths:` (lista de globs; a regra carrega só quando o trabalho toca aqueles arquivos); e `/doctor` revisa e simplifica o CLAUDE.md de tempos em tempos. Em outro agente, o equivalente local: o arquivo de instrução que ele sempre carrega faz o papel do CLAUDE.md, e a regra situacional usa o mecanismo de escopo que ele tiver (ou declara o escopo no topo do próprio arquivo, que o agente respeita).
 
 Proveniência das regras de autoria: "The new rules of context engineering for Claude 5 generation models" (https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models), o post que documenta um system prompt de agente cortado em mais de 80% sem perda mensurável.
 
