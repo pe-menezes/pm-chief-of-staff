@@ -1,5 +1,7 @@
 #!/bin/sh
 # Boot de memoria do pm-chief-of-staff: roda no SessionStart e injeta no
+# contexto o estado gravado. Matchers: startup e clear (deliberado: apos um
+# compact o resumo ja carrega o estado da sessao; reinjetar duplicaria).
 # contexto da sessao o estado gravado em disco. Tudo que sai em stdout vira
 # contexto, entao erro nunca vai pra stdout.
 
@@ -35,10 +37,10 @@ hoje=$(date +%Y-%m-%d)
 if [ -f "memory/$hoje.md" ]; then
   imprime_arquivo "memory/$hoje.md"
 else
-  recente=$(ls memory/*.md 2>/dev/null | sort | tail -1)
+  recente=$(ls memory/[0-9]*.md 2>/dev/null | sort | tail -1)
   [ -n "$recente" ] && imprime_arquivo "$recente"
 fi
 
 echo ""
-echo "hora agora: $(date '+%A, %d/%m/%Y %H:%M')"
+echo "hora agora: $(date '+%d/%m/%Y %H:%M')"
 exit 0
