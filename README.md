@@ -47,7 +47,7 @@ A partir do momento em que são plantadas, **essas skills são arquivos seus**. 
 
 ## A memória (a parte que faz valer a pena)
 
-O agente esquece entre sessões; os arquivos não. O sistema nasce com 4 camadas de memória, todas em markdown legível:
+A memória do agente são os arquivos: o que está escrito na pasta, qualquer sessão futura carrega. O sistema nasce com 4 camadas, todas em markdown legível:
 
 * **`CRITICAL_FACTS.md`**: o estado vivo (suas prioridades com número, eventos ativos). Lido no começo de toda sessão, existe pra ele nunca te perguntar de novo o que já foi decidido.
 * **`memory/`**: o log diário, datado e imutável. O que aconteceu, quando, com ponteiro pra onde está o detalhe.
