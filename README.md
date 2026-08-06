@@ -30,7 +30,7 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 /pm-chief-of-staff:setup
 ```
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão pra criar os arquivos das skills na pasta: aceite, porque sem eles os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
 
 ## O que vem plantado (e por que "plantado" importa)
 
@@ -47,6 +47,8 @@ O setup copia 5 skills-semente pra DENTRO da sua pasta:
 A partir do momento em que são plantadas, **essas skills são arquivos seus**. Quer que a pauta de 1:1 sempre tenha uma seção de reconhecimento? Fala isso pro agente e ele edita a skill. Quer que o abrir-dia inclua seu dashboard? Mesma coisa. Minhas atualizações futuras **nunca tocam no que é seu**: elas só melhoram o setup e adicionam sementes novas no catálogo (`/pm-chief-of-staff:plantar` lista o que há).
 
 No catálogo, além das plantadas: **`fechar-semana`**, que agrega os balanços diários, força as decisões da semana, mede a saúde da memória do sistema (os arquivos que toda sessão carrega, contra os alvos de tamanho), guarda sinal de trajetória (o material da sua avaliação de ciclo) e monta o diário da próxima. Plante no fim da sua primeira semana: `/pm-chief-of-staff:plantar fechar-semana`.
+
+Também no plugin: **`/pm-chief-of-staff:conectar`**, que mapeia num arquivo único o que o agente consegue puxar sozinho (agenda, transcrição, mensagens, tickets), e com isso as skills de rotina param de perguntar o que ele já sabe buscar; o setup roda ele. Se você já tinha as skills plantadas antes dessa camada, o `conectar` confere quais delas ainda perguntam e oferece a edição de cada uma.
 
 ## A memória (a parte que faz valer a pena)
 

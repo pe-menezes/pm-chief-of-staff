@@ -13,6 +13,7 @@ Vira skill só o workflow repetível com gatilho próprio: um processo com passo
 
 * **Preferência que vale em toda interação** (tom, formato de resposta, vocabulário): 1 linha no CLAUDE.md.
 * **Regra situacional de um tema ou tipo de arquivo** ("quando mexer em nota de reunião, faça X"): arquivo de regra que só carrega quando o trabalho toca aqueles arquivos, e o CLAUDE.md continua leve (a mecânica está na camada de implementação, adiante).
+* **Disciplina de um passo de execução que 2 ou mais skills precisam** ("antes de escrever a nota, aplique isto"): módulo compartilhado em `.claude/skills/_shared/{nome}.md` (mecânica na camada de implementação, adiante). Se só uma skill precisa, é arquivo na pasta daquela skill. E `.claude/rules/` não substitui o módulo: regra com `paths:` dispara quando um arquivo é tocado, e disciplina de "antes de escrever" tem que carregar no meio da execução, antes de o arquivo existir.
 * **Ajuste em skill que já existe** (semente plantada ou skill criada antes): edição direta daquela skill. Skill nova com gatilho vizinho de uma existente disputa o disparo com ela.
 
 Diga qual destino o pedido tem e por quê, e siga pro passo 2 só com a confirmação da pessoa.
@@ -30,7 +31,9 @@ Skill é instrução pra agente, e as restrições que valem pra qualquer instru
 
 ### Camada de implementação (a mecânica de cada destino)
 
-No Claude Code: skill é uma pasta com `SKILL.md` e a description no frontmatter; regra situacional é `.claude/rules/{tema}.md` com frontmatter `paths:` (lista de globs; a regra carrega só quando o trabalho toca aqueles arquivos); e `/doctor` revisa e simplifica o CLAUDE.md de tempos em tempos. Em outro agente, o equivalente local: o arquivo de instrução que ele sempre carrega faz o papel do CLAUDE.md, e a regra situacional usa o mecanismo de escopo que ele tiver (ou declara o escopo no topo do próprio arquivo, que o agente respeita).
+No Claude Code: skill é uma pasta com `SKILL.md` e a description no frontmatter; regra situacional é `.claude/rules/{tema}.md` com frontmatter `paths:` (lista de globs; a regra carrega só quando o trabalho toca aqueles arquivos); e `/doctor` revisa e simplifica o CLAUDE.md de tempos em tempos.
+
+Módulo compartilhado é `.claude/skills/_shared/{nome}.md`: pasta sem `SKILL.md` é inerte pro scanner de skills, então o módulo não vira skill fantasma. A primeira linha declara quem o carrega, porque módulo sem consumidor declarado nunca dispara e ninguém percebe. **Não há carga automática:** criar um módulo inclui editar cada skill consumidora pra mandar ler o arquivo no passo certo, e skill que esquece de referenciar perde a disciplina em silêncio. Em outro agente, o equivalente local: o arquivo de instrução que ele sempre carrega faz o papel do CLAUDE.md, e a regra situacional usa o mecanismo de escopo que ele tiver (ou declara o escopo no topo do próprio arquivo, que o agente respeita).
 
 Proveniência das regras de autoria: "The new rules of context engineering for Claude 5 generation models" (https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models), o post que documenta um system prompt de agente cortado em mais de 80% sem perda mensurável.
 

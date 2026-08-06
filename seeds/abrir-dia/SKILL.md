@@ -20,7 +20,7 @@ Monta o dia em cima do que já está escrito: prioridades, tasks abertas, agenda
 ## Fluxo
 
 1. **Ler o estado**: `CRITICAL_FACTS.md` (prioridades) · o diário da semana corrente · a linha `**→ amanhã:**` do fechamento de ontem (candidata mais forte a #1 do dia) · o log `memory/` mais recente.
-2. **Agenda**: se houver calendário conectado (MCP ou conector), puxar os eventos de hoje. Sem conexão, perguntar em 1 linha: "como tá tua agenda hoje? (reuniões e janelas livres)".
+2. **Agenda**: se existir `.claude/skills/_shared/capacidades.md`, ler a linha `agenda do dia` e puxar os eventos de hoje pelo que está em `como chamar`, com `provider` identificando a fonte. Sem o módulo, com essa linha vazia ou pela metade (só uma das duas colunas), ou se a busca falhar (conector expirado, máquina sem ele), perguntar em 1 linha: "como tá tua agenda hoje? (reuniões e janelas livres)". A abertura do dia não para por causa da agenda.
 3. **Varrer o backlog**: `grep -- "- \[ \]"` no `diario/` inteiro, sem âncora de início de linha (subtask indentada conta). Categorizar: **hoje** (prazo hoje ou resolve em reunião de hoje) · **atrasadas** · **esta semana** · **espera** (bloqueada por terceiro). Task atrasada de outro tema se lê junto com as novas: se uma nova invalida a velha, propor fechamento da velha, não re-execução.
 4. **Propor as 3 do dia**, cada uma ancorada explícita ("{tarefa} (ancora prioridade 1)"). Regras:
    * A semente `**→ amanhã:**` de ontem é a candidata mais forte a #1.
