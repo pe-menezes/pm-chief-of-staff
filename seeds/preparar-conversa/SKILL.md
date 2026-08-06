@@ -17,7 +17,7 @@ Pauta boa nasce do que já está escrito, não da memória. O fluxo: levantar ca
 2. Ler as 2 a 3 últimas notas de conversa com ela em `reunioes/`: o que ficou de follow-up (dos dois lados), o que foi combinado "pra próxima".
 3. Grep do nome no diário e no `memory/` das últimas 2 semanas: o que apareceu sobre ela ou sobre os temas dela.
 4. Todo item da seção "Sinais recentes" do hub é candidato. Sinal parado há mais de 3 semanas entra com a pergunta: cobra de novo ou caiu?
-5. Se existir `.claude/skills/_shared/capacidades.md` com provider em `mensagens` ou `tickets`, puxar dessas fontes o que apareceu nas últimas 2 semanas sobre a pessoa e os temas dela (a mesma janela do item 3), como candidato igual aos outros. Sem o módulo, com a linha vazia, ou se a busca falhar, o passo 1 fica nos arquivos, que é o default.
+5. Se existir `.claude/skills/_shared/capacidades.md` com `provider` e `como chamar` em `mensagens` ou `tickets`, puxar por ali o que apareceu nas últimas 2 semanas sobre a pessoa e os temas dela (a mesma janela do item 3), como candidato igual aos outros. Sem o módulo, com a linha vazia ou pela metade, ou se a busca falhar, o passo 1 fica nos arquivos, que é o default.
 
 ## Passo 2: validar com a pessoa
 

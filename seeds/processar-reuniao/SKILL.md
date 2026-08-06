@@ -15,7 +15,7 @@ O valor não é resumir: é extrair o que muda o estado do sistema (decisão, ta
 
 Aceitar qualquer forma: transcrição colada, resumo automático (Gemini, Zoom, Granola), foto de quadro, notas cruas digitadas. Perguntar só o que não dá pra inferir: com quem foi e quando (se não estiver no material).
 
-Se existir `.claude/skills/_shared/capacidades.md` com provider na linha `transcrição de reunião`, oferecer buscar a transcrição em vez de esperar o material colado. Sem o módulo, ou sem resultado na busca, seguir pelo que a pessoa colar.
+Se existir `.claude/skills/_shared/capacidades.md` com `provider` e `como chamar` na linha `transcrição de reunião`, oferecer buscar a transcrição por ali em vez de esperar o material colado. Sem o módulo, com a linha pela metade, ou sem resultado na busca, seguir pelo que a pessoa colar.
 
 Transcrição é evidência do que foi DITO, não do que é verdade: afirmação factual relevante que só existe na fala entra na nota marcada como "a validar".
 
