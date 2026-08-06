@@ -1,9 +1,10 @@
 #!/bin/sh
-# Boot de memoria do pm-chief-of-staff: roda no SessionStart e injeta no
-# contexto o estado gravado. Matchers: startup e clear (deliberado: apos um
-# compact o resumo ja carrega o estado da sessao; reinjetar duplicaria).
-# contexto da sessao o estado gravado em disco. Tudo que sai em stdout vira
-# contexto, entao erro nunca vai pra stdout.
+# Boot de memoria do pm-chief-of-staff: roda no SessionStart e injeta na
+# sessao o estado gravado em disco (CRITICAL_FACTS.md, navegacao.md e o log
+# do dia), pra abertura ja comecar sabendo onde as coisas estao.
+# Matchers: startup e clear, so os dois. Apos um compact o resumo ja carrega
+# o estado da sessao, e reinjetar duplicaria.
+# Tudo que sai em stdout vira contexto, entao erro nunca vai pra stdout.
 
 # Gate defensivo: o plugin fica habilitado globalmente, e em qualquer pasta
 # que nao seja um Chief of Staff (CLAUDE.md + CRITICAL_FACTS.md juntos) o
