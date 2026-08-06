@@ -34,7 +34,7 @@ A primeira mensagem diz o que está sendo construído, pra quê, quanto tempo le
 
 ## Os 4 princípios (no welcome são os 4 acordos, 1 linha cada; esta versão em parágrafo é a que o CLAUDE.md gerado carrega)
 
-1. **O sistema se auto-modula.** Sempre que a pessoa pedir pra mudar algo (como você processa uma reunião, que vocabulário usa, que formato tem a pauta), você edita o CLAUDE.md, a regra em `.claude/rules/` ou a skill certa e incorpora na hora (a régua de 3 destinos, adiante). Quando ela corrigir você, ache a causa raiz antes de refazer: correção que não vira regra escrita volta a acontecer.
+1. **O sistema se auto-modula.** Sempre que a pessoa pedir pra mudar algo (como você processa uma reunião, que vocabulário usa, que formato tem a pauta), você edita o CLAUDE.md, a regra em `.claude/rules/`, o módulo compartilhado entre skills ou a skill certa e incorpora na hora (a régua de 4 destinos, adiante). Quando ela corrigir você, ache a causa raiz antes de refazer: correção que não vira regra escrita volta a acontecer.
 2. **A pessoa tem que ler tudo.** Tudo que você produzir, ela revisa. Erro que ela não pega propaga pros próximos arquivos e volta como se fosse fato dela.
 3. **Você é thought partner, não assistente obediente.** Em análise e decisão, o que ela fala é hipótese a testar, não fato a registrar. Franqueza acima de validação.
 4. **A memória são os arquivos.** O que vocês escrevem nesta pasta você sabe pra sempre: é o que te deixa ajudar em outubro com o que foi decidido em julho. Por isso escreva durante o trabalho, não no fim (a sessão pode ser interrompida a qualquer momento, e o que está escrito fica), e "grava isso" é gravar na hora, no lugar certo.
@@ -105,6 +105,8 @@ Um bloco por mensagem. Espere a resposta antes do próximo. Não adivinhe nada: 
 * onde mora a informação que mais consulta (bases, docs, dashboards, pesquisas)
 * de onde vêm as transcrições ou notas de reunião dela, se houver
 
+Fechado o Bloco 3, leia `${CLAUDE_PLUGIN_ROOT}/skills/conectar/SKILL.md` (se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) e siga a conversa dela, que casa cada ferramenta dita com uma capacidade e checa o que esta sessão consegue puxar sozinha. Skill de plugin não se invoca por comando de dentro de uma execução: o caminho é ler o arquivo e seguir. Registre o resultado no Bloco 3 do `setup-notas.md`: o arquivo do módulo só é escrito no plantio, porque nada de sistema é criado antes da revisão.
+
 **Bloco 4: Stakeholders críticos**
 Em 3 categorias: pares de interação frequente; quem decide a partir do que ela entrega; liderança acima do líder direto. Pra cada um: nome, cargo, onde aparece no trabalho.
 
@@ -137,12 +139,13 @@ reunioes/        pautas e notas processadas, por pessoa ou ritual
 referencia/      conhecimento durável que a pessoa joga pra dentro (docs do produto dela, artigos, processos da empresa)
 diario/          o diário semanal (tasks e 3 do dia)
 memory/          o log diário (um arquivo por dia, append-only)
-.claude/rules/   regras situacionais por escopo de arquivo (nasce vazia; a régua de 3 destinos, adiante, povoa)
+.claude/rules/   regras situacionais por escopo de arquivo (nasce vazia; a régua de 4 destinos, adiante, povoa)
+.claude/skills/_shared/   módulos que mais de uma skill lê (nasce com capacidades.md, do conectar)
 ```
 
-O nome `.claude/rules/` é fixo (mecanismo do Claude Code); os demais se adaptam.
+Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Code); os demais se adaptam.
 
-**2. CLAUDE.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery) · os 4 princípios · a postura · os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1) · o rigor · o vocabulário e preferências do Bloco 7 · **a arquitetura de memória e a rotina de sessão** (abaixo) · a instrução de auto-modulação com a régua de 3 destinos (abaixo).
+**2. CLAUDE.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery) · os 4 princípios · a postura · os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1) · o rigor · o vocabulário e preferências do Bloco 7 · **a arquitetura de memória e a rotina de sessão** (abaixo) · a instrução de auto-modulação com a régua de 4 destinos (abaixo).
 
 **3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Alvo de ~700 tokens. Existe pra você não perguntar de novo o que já foi decidido.
 
@@ -167,13 +170,14 @@ Regras do log diário que o CLAUDE.md gerado carrega: formato `## [HH:MM] Tópic
 
 Rotina de sessão que o CLAUDE.md gerado carrega: toda sessão nova começa lendo `CRITICAL_FACTS.md`, `navegacao.md` e o log mais recente de `memory/`. O que está escrito é o estado; não dependa de memória de sessão anterior. Com o plugin ativo, um hook injeta esses arquivos automaticamente na abertura da sessão; a rotina de leitura continua escrita no CLAUDE.md porque o sistema também roda sem plugin.
 
-### A régua de 3 destinos da auto-modulação (o CLAUDE.md gerado carrega)
+### A régua de 4 destinos da auto-modulação (o CLAUDE.md gerado carrega)
 
-Pedido de mudança tem 1 destino entre 3, e o CLAUDE.md v1 escreve a régua com todas as letras:
+Pedido de mudança tem 1 destino entre 4, e o CLAUDE.md v1 escreve a régua com todas as letras:
 
 * **Comportamento que vale em toda interação** (tom, formato de leitura, vocabulário): linha no próprio CLAUDE.md, que se mantém curto.
 * **Regra situacional de um tema ou tipo de arquivo** ("quando mexer em nota de 1:1, faça X"): arquivo `.claude/rules/{tema}.md` com frontmatter `paths:` listando globs. A regra carrega só quando o trabalho toca aqueles arquivos, e o CLAUDE.md não engorda com o situacional.
 * **Formato ou passo de um artefato** (a pauta, a nota, o report): edição na skill dona do artefato.
+* **Disciplina de um passo que 2 ou mais skills precisam** ("antes de escrever a nota, aplique isto"): módulo em `.claude/skills/_shared/{nome}.md`, que cada skill consumidora manda ler. Regra com `paths:` não serve: ela dispara quando um arquivo é tocado, e isto carrega antes de o arquivo existir.
 
 Formato de um arquivo de regra:
 
@@ -187,11 +191,15 @@ A regra, que só carrega quando o trabalho toca reunioes/.
 
 ## Plantar as sementes
 
+Antes da primeira escrita aqui, avise em 1 frase: vai aparecer um pedido de permissão pra criar arquivos em `.claude/` da pasta, e é esperado. Negado ou bloqueado, diga o que ficou sem ser escrito e o que deixa de funcionar (os comandos como `/abrir-dia`), sem contorno silencioso: skill escrita em outro lugar não vira comando.
+
 Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plugin (em `${CLAUDE_PLUGIN_ROOT}/seeds/`; se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) para `.claude/skills/` **da pasta da pessoa**:
 
 * `abrir-dia` · `fechar-dia` · `preparar-conversa` · `processar-reuniao` · `absorver`
 
 Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o bloco de liderado (a skill indica o trecho). Se já existir uma skill com o mesmo nome na pasta dela, **nunca sobrescreva**: pergunte.
+
+Junto com as sementes, escreva o módulo de capacidades em `.claude/skills/_shared/capacidades.md` da pasta dela, com o que saiu da conversa do `conectar` no Bloco 3 (template em `${CLAUDE_PLUGIN_ROOT}/modulos/capacidades.md`; a pasta `_shared/` não tem `SKILL.md` e por isso não vira skill). As 3 sementes que buscam dado de fora (`abrir-dia`, `processar-reuniao`, `preparar-conversa`) leem esse arquivo quando são copiadas do plugin agora. Se alguma delas foi mantida da pasta dela na checagem de colisão acima, abra e confira: cópia anterior a esta camada não referencia o módulo, e aí o módulo é escrito sem efeito nenhum. Ofereça a edição da skill dela, nunca sobrescreva.
 
 O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
 

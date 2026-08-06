@@ -19,7 +19,7 @@ No máximo 1 pergunta, e só se não der pra inferir: o que é e pra que serve.
 
 * **Doc de projeto vivo** (spec, plano, análise do que está em andamento): pasta do projeto em `projetos/`.
 * **Conhecimento durável** (produto, mercado, artigo, estudo): `referencia/{tema}.md`.
-* **Processo operacional da empresa**, pelo gatilho dele: gatilho é tipo de arquivo ("toda nota de X segue este formato"), vira `.claude/rules/{tema}.md` com frontmatter `paths:`; gatilho é ritual que uma skill plantada cobre (preparar conversa, fechar semana), a regra entra na skill dona; sem gatilho claro, `referencia/` com o gatilho escrito no arquivo.
+* **Processo operacional da empresa**, pelo gatilho dele: gatilho é tipo de arquivo ("toda nota de X segue este formato"), vira `.claude/rules/{tema}.md` com frontmatter `paths:`; gatilho é ritual que uma skill plantada cobre (preparar conversa, fechar semana), a regra entra na skill dona; o mesmo passo vale em 2 ou mais skills, vira módulo em `.claude/skills/_shared/{nome}.md` que cada uma manda ler (declare no topo dele quem carrega); sem gatilho claro, `referencia/` com o gatilho escrito no arquivo.
 * **Sinal sobre pessoa-chave**: seção "Sinais recentes" do hub dela em `pessoas/`.
 
 ## Passo 3: destilar o delta
