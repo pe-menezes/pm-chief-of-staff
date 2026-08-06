@@ -4,7 +4,7 @@
 
 Não é um template pronto. **O sistema nasce do seu discovery e se molda a você no uso.** O que funciona pra outra pessoa não necessariamente funciona pra você, e o plugin foi desenhado em cima dessa premissa.
 
-> Vem do sistema que eu uso todo dia como Sr Group PM na Stone, em produção há meses, e que outras pessoas do meu círculo adotaram e adaptaram ao jeito delas. Esta é a versão destilada pra qualquer pessoa de produto: PM, GPM, head, APM, quem lidera gente e quem não lidera (o discovery pergunta e o sistema se ajusta).
+> Vem do sistema que eu uso todo dia como pessoa de produto, em produção há meses, e que outras pessoas do meu círculo adotaram e adaptaram ao jeito delas. Esta é a versão destilada pra qualquer pessoa de produto: PM, GPM, head, APM, quem lidera gente e quem não lidera (o discovery pergunta e o sistema se ajusta).
 
 ## O que você precisa antes
 
@@ -30,11 +30,11 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 /pm-chief-of-staff:setup
 ```
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão duas vezes, uma pra ler as skills que vêm com o plugin e outra pra criar os arquivos delas na sua pasta: aceite as duas, porque sem isso os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
 
 ## O que vem plantado (e por que "plantado" importa)
 
-O setup copia 4 skills-semente pra DENTRO da sua pasta:
+O setup copia 5 skills-semente pra DENTRO da sua pasta:
 
 | Skill | O que faz |
 |---|---|
@@ -42,12 +42,17 @@ O setup copia 4 skills-semente pra DENTRO da sua pasta:
 | `fechar-dia` | avalia as 3, classifica o que não fechou, semeia o #1 de amanhã |
 | `preparar-conversa` | pauta pra 1:1 (liderado ou seu líder), par ou stakeholder, a partir do que está escrito |
 | `processar-reuniao` | cola a transcrição, sai nota estruturada + propagação pros lugares certos |
+| `absorver` | joga um doc, artigo ou processo pra dentro: ganha casa, resumo com proveniência e a linha de quando será usado |
 
 A partir do momento em que são plantadas, **essas skills são arquivos seus**. Quer que a pauta de 1:1 sempre tenha uma seção de reconhecimento? Fala isso pro agente e ele edita a skill. Quer que o abrir-dia inclua seu dashboard? Mesma coisa. Minhas atualizações futuras **nunca tocam no que é seu**: elas só melhoram o setup e adicionam sementes novas no catálogo (`/pm-chief-of-staff:plantar` lista o que há).
 
+No catálogo, além das plantadas: **`fechar-semana`**, que agrega os balanços diários, força as decisões da semana, mede a saúde da memória do sistema (os arquivos que toda sessão carrega, contra os alvos de tamanho), guarda sinal de trajetória (o material da sua avaliação de ciclo) e monta o diário da próxima. Plante no fim da sua primeira semana: `/pm-chief-of-staff:plantar fechar-semana`.
+
+Também no plugin: **`/pm-chief-of-staff:conectar`**, que mapeia num arquivo único o que o agente consegue puxar sozinho (agenda, transcrição, mensagens, tickets), e com isso as skills de rotina param de perguntar o que ele já sabe buscar; o setup roda ele. Se você já tinha as skills plantadas antes dessa camada, o `conectar` confere quais delas ainda perguntam e oferece a edição de cada uma.
+
 ## A memória (a parte que faz valer a pena)
 
-O agente esquece entre sessões; os arquivos não. O sistema nasce com 4 camadas de memória, todas em markdown legível:
+A memória do agente são os arquivos: o que está escrito na pasta, qualquer sessão futura carrega. O sistema nasce com 4 camadas, todas em markdown legível:
 
 * **`CRITICAL_FACTS.md`**: o estado vivo (suas prioridades com número, eventos ativos). Lido no começo de toda sessão, existe pra ele nunca te perguntar de novo o que já foi decidido.
 * **`memory/`**: o log diário, datado e imutável. O que aconteceu, quando, com ponteiro pra onde está o detalhe.
@@ -58,7 +63,9 @@ O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem sem
 
 ## Onde ficam meus dados?
 
-**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
+**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não roda código nem instala nada: é conversa e arquivos markdown. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
+
+Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de outras pessoas. Antes de colar material da empresa, cheque a política de IA dela (os planos Team e Enterprise do Claude têm controles próprios de dados).
 
 ## Atualizações
 
@@ -67,9 +74,15 @@ O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem sem
 
 Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu CLAUDE.md nunca são tocados.**
 
-## Não tem Claude Code? (plano B)
+## Problemas comuns
 
-O arquivo [`PROMPT.md`](PROMPT.md) tem a versão colável do setup: cola no Claude Code (ou adapta pra outra ferramenta de agente com acesso a arquivos) e roda o mesmo discovery na mão. Foi assim que as primeiras pessoas usaram esse sistema, antes de ele virar plugin. Você perde o canal de atualização e as sementes, mas o núcleo (discovery + CLAUDE.md + memória) funciona.
+* **`/pm-chief-of-staff:setup` aparece como "Unknown command":** rode `/reload-plugins` (o passo 2 da instalação termina nele) ou feche e abra a sessão.
+* **O discovery caiu no meio (sessão fechou, contexto acabou):** abra a pasta de novo e rode o setup; ele encontra o `setup-notas.md` que foi gravando e retoma do bloco onde parou.
+* **Plantei uma skill e o comando (`/abrir-dia`) não aparece:** skill plantada registra quando a sessão abre. Numa sessão nova ela está lá, e o gatilho por frase ("bom dia") funciona igual.
+
+## Não quer instalar o plugin?
+
+Cola o conteúdo de [`PROMPT.md`](PROMPT.md) em qualquer agente com acesso a arquivos e roda o mesmo setup por conversa. O plugin só acrescenta as skills-semente e o canal de atualização.
 
 ## Filosofia, em 4 princípios
 
@@ -77,6 +90,10 @@ O arquivo [`PROMPT.md`](PROMPT.md) tem a versão colável do setup: cola no Clau
 2. **Você tem que ler tudo.** Erro que você não pega propaga. Sua responsabilidade é intransferível.
 3. **Ele é thought partner, não assistente obediente.** Franqueza acima de validação, diagnóstico antes de sugestão, e anti-padrões nomeados na hora (executar sem questionar, escalar sem recomendação, showcase sem "e daí", otimismo ingênuo, e os de liderança pra quem lidera: Super-Líder, babá de luxo, feedback genérico, decisão dura adiada).
 4. **Os arquivos são a memória.** O que não está escrito não existe amanhã.
+
+## Bug ou semente que falta
+
+[Abra uma issue](../../issues/new/choose): tem template pra bug e pra pedido de semente. Pedido de semente é o que vira catálogo novo, e a fila é pública.
 
 ## Licença
 
