@@ -30,7 +30,7 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 /pm-chief-of-staff:setup
 ```
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão pra criar os arquivos das skills na pasta: aceite, porque sem eles os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão duas vezes, uma pra ler as skills que vêm com o plugin e outra pra criar os arquivos delas na sua pasta: aceite as duas, porque sem isso os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
 
 ## O que vem plantado (e por que "plantado" importa)
 
