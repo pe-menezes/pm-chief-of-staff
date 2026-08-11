@@ -20,11 +20,11 @@ No máximo 1 pergunta, e só se não der pra inferir: o que é e pra que serve.
 * **Doc de projeto vivo** (spec, plano, análise do que está em andamento): pasta do projeto em `projetos/`.
 * **Conhecimento durável** (produto, mercado, artigo, estudo): `referencia/{tema}.md`.
 * **Processo operacional da empresa**, pelo gatilho dele: gatilho é tipo de arquivo ("toda nota de X segue este formato"), vira `.claude/rules/{tema}.md` com frontmatter `paths:`; gatilho é ritual que uma skill plantada cobre (preparar conversa, fechar semana), a regra entra na skill dona; o mesmo passo vale em 2 ou mais skills, vira módulo em `.claude/skills/_shared/{nome}.md` que cada uma manda ler (declare no topo dele quem carrega); sem gatilho claro, `referencia/` com o gatilho escrito no arquivo.
-* **Sinal sobre pessoa-chave**: seção "Sinais recentes" do hub dela em `pessoas/`.
+* **Sinal sobre pessoa-chave**: seção "Sinais recentes" do hub dela em `pessoas/`, 1 linha datada.
 
 ## Passo 3: destilar o delta
 
-Resumo denso de até 20 linhas, nunca cópia: data e origem no topo (proveniência sempre, de onde veio e quando entrou), artigo longo vira o essencial. O original vai pra `raw/` do destino se a pessoa quiser guardar.
+Resumo denso de até 20 linhas, nunca cópia: data e origem no topo (proveniência sempre, de onde veio e quando entrou), artigo longo vira o essencial. O original vive fora do vault (pasta fria, drive, ou a própria origem), com 1 linha de ponteiro no destilado.
 
 ## Passo 4: declarar o consumidor
 
@@ -32,7 +32,7 @@ Todo arquivo fecha com a linha "quando eu uso isso" (exemplo: processo de avalia
 
 ## Passo 5: criar e indexar
 
-Crie o arquivo novo e atualize `navegacao.md`.
+Crie o arquivo novo e atualize `navegacao.md`. Antes de escrever em destino compartilhado (o hub em `pessoas/`), leia `.claude/skills/_shared/gate-de-escrita.md` e aplique a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP). Sem o módulo, a checagem em 1 linha: ler o destino antes de escrever, e não escrever o que já está lá.
 
 ## Passo 6: responder curto
 

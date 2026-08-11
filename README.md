@@ -61,6 +61,8 @@ A memória do agente são os arquivos: o que está escrito na pasta, qualquer se
 
 O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem semeou; o `fechar-dia` promove o que ficou solto no log pros hubs. Em duas semanas de uso, o agente conhece seu time, seus projetos e seus padrões.
 
+Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois compõem: este plugin dá a estrutura e os rituais, a engine dá o enforcement mecânico e assume a injeção de abertura (o hook detecta e cede a vez).
+
 ## Onde ficam meus dados?
 
 **No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala nada. Ele roda uma coisa só, quando você abre uma sessão: um script curto que lê três arquivos da sua própria pasta (o estado, o índice e o log do dia) e joga o conteúdo pra dentro da conversa, pra você já começar com o agente sabendo onde as coisas estão. Ele não manda nada pra lugar nenhum e não toca em nada fora da pasta. Está em `hooks/boot-memoria.sh`, tem menos de 50 linhas e dá pra ler em 2 minutos. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
