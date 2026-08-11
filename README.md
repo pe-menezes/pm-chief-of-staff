@@ -65,7 +65,7 @@ Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois
 
 ## Onde ficam meus dados?
 
-**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala nada. Ele roda uma coisa só, quando você abre uma sessão: um script curto que lê três arquivos da sua própria pasta (o estado, o índice e o log do dia) e joga o conteúdo pra dentro da conversa, pra você já começar com o agente sabendo onde as coisas estão. Ele não manda nada pra lugar nenhum e não toca em nada fora da pasta. Está em `hooks/boot-memoria.sh`, tem menos de 50 linhas e dá pra ler em 2 minutos. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
+**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala nada. Ele roda uma coisa só, quando você abre uma sessão: um script curto que lê três arquivos da sua própria pasta (o estado, o índice e o log do dia) e joga o conteúdo pra dentro da conversa, pra você já começar com o agente sabendo onde as coisas estão. Ele não manda nada pra lugar nenhum e não toca em nada fora da pasta. Está em `hooks/boot-memoria.sh` e dá pra ler inteiro em 2 minutos. A conversa com o Claude segue as regras da sua conta Anthropic, como qualquer uso do Claude Code.
 
 Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de outras pessoas. Antes de colar material da empresa, cheque a política de IA dela (os planos Team e Enterprise do Claude têm controles próprios de dados).
 
