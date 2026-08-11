@@ -140,16 +140,21 @@ referencia/      conhecimento durável que a pessoa joga pra dentro (docs do pro
 diario/          o diário semanal (tasks e 3 do dia)
 memory/          o log diário (um arquivo por dia, append-only)
 .claude/rules/   regras situacionais por escopo de arquivo (nasce vazia; a régua de 4 destinos, adiante, povoa)
-.claude/skills/_shared/   módulos que mais de uma skill lê (nasce com capacidades.md, do conectar)
+.claude/skills/_shared/   módulos que mais de uma skill lê (nasce com capacidades.md, do conectar, e gate-de-escrita.md)
 ```
 
 Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Code); os demais se adaptam.
 
 **2. CLAUDE.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery) · os 4 princípios · a postura · os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1) · o rigor · o vocabulário e preferências do Bloco 7 · **a arquitetura de memória e a rotina de sessão** (abaixo) · a instrução de auto-modulação com a régua de 4 destinos (abaixo).
 
-**3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Alvo de ~700 tokens. Existe pra você não perguntar de novo o que já foi decidido.
+**3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Teto de ~700 tokens, alvo de curadoria. Existe pra você não perguntar de novo o que já foi decidido.
 
-**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto (contexto em 2 linhas, seção "Sinais recentes", seção "Histórico"), ela preenche no uso.
+**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto, ela preenche no uso. De cima pra baixo: contexto em 2 linhas, seção "Fatos", seção "Leitura", seção "Sinais recentes", seção "Histórico". A cabeça do hub (Fatos + Leitura vigente) tem teto de ~meia página (~15 linhas):
+
+* **"Fatos":** cada linha datada e com fonte.
+* **"Leitura":** a interpretação, sempre datada. Leitura nova que muda a anterior marca a anterior com "superada em DD/MM por {o que a superou}" no ato da escrita: adjudicar é trabalho de quem escreve, a leitura futura não resolve, e leitura superada nunca fica solta ao lado da vigente (a marca permite mover pra "Histórico" depois).
+
+O que a cabeça garante: preparação e avaliação futuras leem fato datado + leitura vigente, nunca o acumulado.
 
 **5. `navegacao.md`**, o índice da pasta.
 
@@ -166,7 +171,7 @@ Ela revisa cada proposta, ajusta, e só aí você cria os arquivos. Criados, mov
 | Semântica | o que estabilizou sobre pessoa e projeto | hubs em `pessoas/` e `projetos/` | corpo consolida o estado atual; trail datado é append-only |
 | Procedural | como você opera | `CLAUDE.md` + skills | edita ao incorporar mudança |
 
-Regras do log diário que o CLAUDE.md gerado carrega: formato `## [HH:MM] Tópico` + 2 a 4 linhas (a decisão e o ponteiro pro arquivo canônico) · o `[HH:MM]` sai do comando `date` rodado no momento da escrita, nunca de estimativa (o modelo não sabe a hora) · escrever a cada marco, durante o trabalho, não no fim da sessão · o detalhe vive no destino (nota de reunião, hub, projeto), o log aponta · gatilhos de escrita: decisão tomada, marco de bloco, aprendizado do dia, "grava isso" (imediato).
+Regras do log diário que o CLAUDE.md gerado carrega: formato `## [HH:MM] Tópico` + 2 a 4 linhas, o teto do marco (a decisão e o ponteiro pro arquivo canônico) · o `[HH:MM]` sai do comando `date` rodado no momento da escrita, nunca de estimativa (o modelo não sabe a hora) · escrever a cada marco, durante o trabalho, não no fim da sessão · o detalhe vive no destino (nota de reunião, hub, projeto), o log aponta · gatilhos de escrita: decisão tomada, marco de bloco, aprendizado do dia, "grava isso" (imediato).
 
 Rotina de sessão que o CLAUDE.md gerado carrega: toda sessão nova começa lendo `CRITICAL_FACTS.md`, `navegacao.md` e o log mais recente de `memory/`. O que está escrito é o estado; não dependa de memória de sessão anterior. Com o plugin ativo, um hook injeta esses arquivos automaticamente na abertura da sessão; a rotina de leitura continua escrita no CLAUDE.md porque o sistema também roda sem plugin.
 
@@ -200,6 +205,8 @@ Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plug
 Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o bloco de liderado (a skill indica o trecho). Se já existir uma skill com o mesmo nome na pasta dela, **nunca sobrescreva**: pergunte.
 
 Junto com as sementes, escreva o módulo de capacidades em `.claude/skills/_shared/capacidades.md` da pasta dela, com o que saiu da conversa do `conectar` no Bloco 3 (template em `${CLAUDE_PLUGIN_ROOT}/modulos/capacidades.md`; a pasta `_shared/` não tem `SKILL.md` e por isso não vira skill). As 3 sementes que buscam dado de fora (`abrir-dia`, `processar-reuniao`, `preparar-conversa`) leem esse arquivo quando são copiadas do plugin agora. Se alguma delas foi mantida da pasta dela na checagem de colisão acima, abra e confira: cópia anterior a esta camada não referencia o módulo, e aí o módulo é escrito sem efeito nenhum. Ofereça a edição da skill dela, nunca sobrescreva.
+
+No mesmo passo, copie `${CLAUDE_PLUGIN_ROOT}/modulos/gate-de-escrita.md` pra `.claude/skills/_shared/gate-de-escrita.md` dela: a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP) que as sementes aplicam antes de escrever fato em hub, diário ou `CRITICAL_FACTS.md`. A mesma checagem vale pra ele: semente mantida da pasta dela em colisão não referencia o gate, e o módulo fica escrito sem leitor; ofereça a edição, nunca sobrescreva. Semente plantada antes desta camada segue escrevendo sem o gate e sem dar erro; a conferência de consumidores do `fechar-semana` (passo 6) é o caminho de detecção.
 
 O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
 

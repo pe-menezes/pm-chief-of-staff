@@ -13,7 +13,7 @@ Pauta boa nasce do que já está escrito, não da memória. O fluxo: levantar ca
 
 ## Passo 1: levantar candidatos
 
-1. Ler o hub da pessoa em `pessoas/` (contexto, sinais recentes, histórico).
+1. Ler o hub da pessoa em `pessoas/`, começando pela cabeça: a seção Fatos (datados, com fonte) e a Leitura vigente (a mais recente, sem marca de superada) são a base da preparação; leitura marcada como superada é ignorada. Sinais recentes e Histórico entram como complemento.
 2. Ler as 2 a 3 últimas notas de conversa com ela em `reunioes/`: o que ficou de follow-up (dos dois lados), o que foi combinado "pra próxima".
 3. Grep do nome no diário e no `memory/` das últimas 2 semanas: o que apareceu sobre ela ou sobre os temas dela.
 4. Todo item da seção "Sinais recentes" do hub é candidato. Sinal parado há mais de 3 semanas entra com a pergunta: cobra de novo ou caiu?

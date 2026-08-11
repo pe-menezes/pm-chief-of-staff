@@ -21,7 +21,7 @@ Transcrição é evidência do que foi DITO, não do que é verdade: afirmação
 
 ## Passo 2: escrever a nota
 
-Arquivo em `reunioes/{pessoa-ou-ritual}/YYYY-MM-DD.md`, mira de 25 linhas no máximo. A transcrição crua NÃO entra na nota (se a pessoa quiser guardar, vai pra `reunioes/{pessoa-ou-ritual}/raw/`).
+Arquivo em `reunioes/{pessoa-ou-ritual}/YYYY-MM-DD.md`, mira de 25 linhas no máximo. O texto bruto (transcrição, resumo automático) NUNCA entra no vault operacional: guardado aqui dentro, vira distrator de toda busca futura. A nota é o destilado + 1 linha de ponteiro pra onde o bruto vive (pasta fria fora do vault, drive, ou a própria origem). A skill não move nem apaga o bruto: a pessoa decide onde ele fica.
 
 ```markdown
 ---
@@ -31,6 +31,7 @@ data: YYYY-MM-DD
 ---
 
 **Contexto:** {1 linha}
+**Bruto:** {ponteiro em 1 linha pra onde o texto original vive}
 
 ## Decisões
 - {1 linha por decisão: o que foi decidido + quem decidiu}
@@ -49,10 +50,14 @@ Se houve pauta preparada (`preparar-conversa`), comparar: o que da pauta não fo
 
 ## Passo 3: propagar (é aqui que o sistema fica vivo)
 
+Régua da subida, "o que persiste vs o que passa": decisão, acordo, fato de pessoa, preferência e compromisso propagam (hub, diário, `memory/`); estado emocional momentâneo, detalhe operacional transitório e observação circunstancial ficam na nota e morrem lá. A nota retém tudo; a régua só decide o que sobe.
+
+Antes de escrever em destino compartilhado (hub, diário, `CRITICAL_FACTS.md`), ler `.claude/skills/_shared/gate-de-escrita.md` e aplicar a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP). Sem o módulo, a checagem em 1 linha: ler o destino antes de escrever, e não escrever o que já está lá.
+
 Propor a propagação e executar com o ok da pessoa:
 
 1. **Tasks da pessoa** → diário da semana, com prazo.
-2. **Sinal sobre pessoa-chave** → seção "Sinais recentes" do hub dela em `pessoas/`, 1 linha datada.
+2. **Sobre pessoa-chave** → hub dela em `pessoas/`, na seção certa: fato datado com fonte em "Fatos", sinal em "Sinais recentes" (1 linha datada), leitura que muda a vigente em "Leitura" (datada, marcando a anterior com "superada em DD/MM por {o que a superou}").
 3. **Decisão ou virada de projeto** → hub do projeto em `projetos/`.
 4. **Marco do dia** → 1 bloco no `memory/{hoje}.md` apontando pra nota (`## [HH:MM] {título} + 2 linhas`).
 5. **Mudou prioridade ou evento ativo** → propor atualização do `CRITICAL_FACTS.md`.

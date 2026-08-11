@@ -23,8 +23,10 @@ Par do `abrir-dia`: a abertura propõe as 3, este fechamento avalia (fecharam? p
    **→ amanhã:** {movimento #1, ancorado nas prioridades; carry-over só do que segue de pé}
    ```
    Não-feita que não bate mais com as prioridades reescopa ou descarta, nunca vira carry-over por inércia.
-6. **Promover o que ficou no log.** Ler `memory/{hoje}.md` e separar SÓ o que não tem destino além do log: sinal de pessoa ou projeto que nenhuma nota propagou, mudança de prioridade que o `CRITICAL_FACTS.md` não reflete. **Cap de 3 itens** (passou, leva os 3 mais caros de perder e declara o resto). Confirmar com a pessoa em 1 pergunta: promover pra onde? Antes de perguntar, checar se o item já chegou ao destino durante o dia (aí não vira pergunta).
+6. **Promover o que ficou no log.** Ler `memory/{hoje}.md` e separar SÓ o que não tem destino além do log: sinal de pessoa ou projeto que nenhuma nota propagou, mudança de prioridade que o `CRITICAL_FACTS.md` não reflete. **Cap de 3 itens** (passou, leva os 3 mais caros de perder e declara o resto). Confirmar com a pessoa em 1 pergunta: promover pra onde? Antes de perguntar, checar se o item já chegou ao destino durante o dia (aí não vira pergunta). Antes de escrever em destino compartilhado (hub, diário, `CRITICAL_FACTS.md`), ler `.claude/skills/_shared/gate-de-escrita.md` e aplicar a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP). Sem o módulo, a checagem em 1 linha: ler o destino antes de escrever, e não escrever o que já está lá.
 7. **Responder curto:** compilado + balanço (`N/3` + motivo) + semente de amanhã. Sem cheerleading.
+
+Régua de teto, válida pros passos 3, 5 e 6: destino com teto declarado se mede na hora da escrita. O bloco do dia dentro do formato (`**Reflexão:**`, `**Balanço:**` e `**→ amanhã:**` em 1 linha cada; marco no `memory/` em 2 a 4 linhas), o `CRITICAL_FACTS.md` contra ~700 tokens (~3KB) e a cabeça de hub (Fatos + Leitura vigente) contra ~meia página (~15 linhas). Notou estouro: perguntar "o que sai?" já com a proposta de corte (qual linha vira histórico, qual sai do arquivo), porque corte sem proposta devolve trabalho, e nunca cortar sozinho. O `fechar-semana` segue dono da medição sistemática; este fechamento cobra o teto do destino que toca, no dia em que escreve.
 
 ## O loop
 
