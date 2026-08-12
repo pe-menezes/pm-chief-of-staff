@@ -122,7 +122,7 @@ Se a conversa do `conectar` (fechada no Bloco 3) confirmou capacidade de agenda,
 * 1 coisa que sente que deixa cair
 * 1 coisa que quer fazer melhor nos próximos 3 meses
 
-Meta ou prazo relativo na resposta ("virar diretor em 18 meses") grava a data, não só a duração: pergunte "contando de quando?" e registre as duas coisas, duração + data-âncora. Vale pra qualquer meta relativa que aparecer no discovery: duração sem âncora envelhece em silêncio.
+Meta ou prazo relativo na resposta ("virar diretor em 18 meses") grava duração e data-âncora juntas: pergunte "contando de quando?" e registre as duas coisas. Vale pra qualquer meta relativa que aparecer no discovery: duração sem âncora envelhece em silêncio.
 
 **Bloco 7: Como você quer que eu opere**
 * idioma das respostas
