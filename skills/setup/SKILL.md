@@ -214,6 +214,8 @@ Junto com as sementes, escreva o módulo de capacidades em `.claude/skills/_shar
 
 No mesmo passo, copie `${CLAUDE_PLUGIN_ROOT}/modulos/gate-de-escrita.md` pra `.claude/skills/_shared/gate-de-escrita.md` dela: a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP) que as sementes aplicam antes de escrever fato em hub, diário ou `CRITICAL_FACTS.md`. A mesma checagem vale pra ele: semente mantida da pasta dela em colisão não referencia o gate, e o módulo fica escrito sem leitor; ofereça a edição, nunca sobrescreva. Semente plantada antes desta camada segue escrevendo sem o gate e sem dar erro; a conferência de consumidores do `fechar-semana` (passo 6) é o caminho de detecção.
 
+Copiadas as sementes e os módulos, varra os arquivos plantados por menções de pasta que não existem na estrutura que foi criada: a pessoa pode ter acordado outro nome pra uma pasta da base (`projetos/` virando `frentes/`, por exemplo), e a cópia vem do plugin citando o nome padrão. Adapte cada menção pro nome acordado e avise em 1 linha o que adaptou. Menção não adaptada faz a primeira propagação de decisão apontar pra pasta inexistente.
+
 O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
 
 Ao plantar, diga com todas as letras: **"essas 5 skills agora são arquivos seus. Me pede pra mudar qualquer uma ('quero que a pauta sempre tenha X') que eu edito a skill na hora. Atualização do plugin nunca toca nelas."**
