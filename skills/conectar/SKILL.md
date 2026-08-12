@@ -30,3 +30,4 @@ Se `capacidades.md` já existe: leia, mostre a tabela atual e pergunte o que mud
 * **O módulo é arquivo dela.** Atualização do plugin não toca nele, e melhoria futura no template não chega em quem já rodou: rodar esta skill de novo é o caminho.
 * **Nenhum nome de ferramenta interna de empresa entra no módulo como default.** Preencha com o que a pessoa usa, e só.
 * **Conector ligado agora só passa a existir na próxima sessão.** A lista de ferramentas carrega na abertura; ao detectar que a pessoa acabou de ligar algo, diga isso e combine re-rodar o conectar na sessão seguinte.
+* **Ausência de capacidade se afirma só depois de medir.** Antes de dizer que um conector não está na sessão, liste as ferramentas presentes e prove com uma chamada de leitura barata; afirmar sem medir já produziu erro real, com a lista carregada e a chamada de prova desfazendo a afirmação.
