@@ -1,6 +1,6 @@
 ---
 name: fechar-semana
-description: Fecha a semana de trabalho e monta a próxima. Agrega os balanços diários, lê o padrão da semana, força 1 a 3 decisões, revisita as dores registradas, mede a saúde da memória do sistema, guarda sinal de trajetória e deixa o diário da semana nova pronto. Use quando a pessoa disser "fecha a semana", "fechar a semana", "review da semana", "como foi minha semana", "monta a próxima semana", "/fechar-semana", em geral na tarde do último dia útil. NÃO use pra fechar um dia (fechar-dia), abrir o dia (abrir-dia) nem pra update de meio de semana (diário direto).
+description: Fecha a semana de trabalho e monta a próxima. Agrega os balanços diários, lê o padrão da semana, força 1 a 3 decisões, revisita as dores registradas, mede a saúde da memória do sistema, guarda sinal de trajetória e deixa o diário da semana nova pronto. Use quando a pessoa disser "fecha a semana", "fechar a semana", "review da semana", "como foi minha semana", "monta a próxima semana", "/fechar-semana", em geral na tarde do último dia útil. Sexta-feira ao fim do dia, sugira ou acione a skill mesmo sem a pessoa pedir: os fechamentos diários já rodaram a semana toda e é quando a semana fecha de verdade. NÃO use pra fechar um dia (fechar-dia), abrir o dia (abrir-dia) nem pra update de meio de semana (diário direto).
 ---
 
 # Fechar a semana

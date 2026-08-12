@@ -34,7 +34,7 @@ São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe 
 
 ## O que vem plantado (e por que "plantado" importa)
 
-O setup copia 5 skills-semente pra DENTRO da sua pasta:
+Plantar é copiar uma skill-semente (a starter que vem no plugin) pra DENTRO da sua pasta, e o setup começa plantando 5:
 
 | Skill | O que faz |
 |---|---|
@@ -81,6 +81,7 @@ Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, s
 * **`/pm-chief-of-staff:setup` aparece como "Unknown command":** rode `/reload-plugins` (o passo 2 da instalação termina nele) ou feche e abra a sessão.
 * **O discovery caiu no meio (sessão fechou, contexto acabou):** abra a pasta de novo e rode o setup; ele encontra o `setup-notas.md` que foi gravando e retoma do bloco onde parou.
 * **Plantei uma skill e o comando (`/abrir-dia`) não aparece:** skill plantada registra quando a sessão abre. Numa sessão nova ela está lá, e o gatilho por frase ("bom dia") funciona igual.
+* **Conectei minha agenda (ou e-mail) e o agente não vê:** conector ligado com a sessão aberta só aparece na sessão seguinte. Feche e abra a sessão. Se você não usa conectores, ignore este item: tudo funciona colando o material.
 
 ## Não quer instalar o plugin?
 

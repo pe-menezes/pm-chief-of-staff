@@ -198,6 +198,8 @@ A regra, que só carrega quando o trabalho toca reunioes/.
 
 ## Plantar as sementes
 
+Uma "semente" é uma skill starter que vive no plugin e vira um arquivo da pessoa quando plantada (copiada pra pasta dela, onde vira editável).
+
 Antes da primeira leitura e da primeira escrita aqui, avise em 1 frase: vão aparecer dois pedidos de permissão neste passo, um pra ler os arquivos do plugin (onde as sementes moram) e outro pra criar arquivos em `.claude/` da pasta dela (onde elas vão), e os dois são esperados. Negado ou bloqueado, diga o que ficou sem ser escrito e o que deixa de funcionar (os comandos como `/abrir-dia`), sem contorno silencioso: skill escrita em outro lugar não vira comando.
 
 Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plugin (em `${CLAUDE_PLUGIN_ROOT}/seeds/`; se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) para `.claude/skills/` **da pasta da pessoa**:
