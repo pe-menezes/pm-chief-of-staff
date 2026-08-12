@@ -72,7 +72,7 @@ Bloco 1: quem eu sou. Nome e como quero ser chamada ou chamado; cargo, empresa, 
 Bloco 2: com quem trabalho. (Se lidero:) cada liderado com cargo e tempo juntos. O grupo em volta (par de engenharia, design, dados). Quem depende de mim e de quem dependo.
 Bloco 3: ferramentas e fontes. O que uso no dia a dia; onde mora a informação que mais consulto; de onde vêm minhas transcrições de reunião, se houver.
 Bloco 4: stakeholders críticos, em 3 categorias (pares frequentes; quem decide a partir do que entrego; liderança acima do meu líder). Nome, cargo, onde aparece.
-Bloco 5: rituais. 1:1s, rituais do time, ciclo formal de avaliação da empresa.
+Bloco 5: rituais. 1:1s, rituais do time, ciclo formal de avaliação da empresa. Se você tiver acesso à minha agenda, proponha o mapa de rituais a partir dela com duas regras: convite recusado não é ritual, e janela atípica (férias, semana de evento) se pergunta antes de virar cadência.
 Bloco 6: dores. 3 coisas que me fazem perder tempo; 1 que deixo cair; 1 que quero fazer melhor em 3 meses.
 Bloco 7: como opero. Idioma, jargão a usar ou evitar, formato de leitura (bullet, corrido, misto).
 

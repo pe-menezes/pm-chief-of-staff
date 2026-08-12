@@ -21,7 +21,7 @@ Skill de infraestrutura: roda no setup e de novo quando a caixa de ferramentas d
 
 ## Rodar de novo (o caso mais comum)
 
-Se `capacidades.md` já existe: leia, mostre a tabela atual e pergunte o que mudou. Atualize linha por linha e **nunca reescreva do zero**, porque o arquivo é dela e pode ter sido editado à mão. Provider que saiu limpa as duas células, não uma; nunca deixe linha apontando pra ferramenta que não responde mais. O passo 4 roda de novo junto.
+Se `capacidades.md` já existe: leia, mostre a tabela atual e pergunte o que mudou. Atualize linha por linha e **nunca reescreva do zero**, porque o arquivo é dela e pode ter sido editado à mão. Provider que saiu limpa as duas células, não uma; nunca deixe linha apontando pra ferramenta que não responde mais. Confira também se a seção "Regras de leitura de agenda" existe depois da tabela; faltando, ofereça acrescentá-la (o arquivo é dela: só com o ok). O passo 4 roda de novo junto.
 
 ## Limites (diga isso pra pessoa, não é detalhe)
 

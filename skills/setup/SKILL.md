@@ -115,6 +115,8 @@ Em 3 categorias: pares de interação frequente; quem decide a partir do que ela
 * rituais fixos do time (planning, review, retro, daily)
 * ciclo formal de avaliação da empresa (nome, calendário, critérios)
 
+Se a conversa do `conectar` (fechada no Bloco 3) confirmou capacidade de agenda, ofereça varrer as próximas 2 a 3 semanas e **propor** o mapa de rituais pra pessoa corrigir e validar, aplicando as 2 regras de leitura de agenda: convite recusado não entra, e janela atípica (férias, semana de evento intensivo) se pergunta antes de virar cadência. O mapa validado cobre os 1:1s e os rituais do time e vai pro registro do bloco em `setup-notas.md`; o ciclo formal de avaliação não sai da agenda e se pergunta como antes, conectada ou não. Sem agenda conectada, as perguntas do bloco seguem como estão.
+
 **Bloco 6: Suas dores**
 * 3 coisas que fazem perder mais tempo hoje
 * 1 coisa que sente que deixa cair
