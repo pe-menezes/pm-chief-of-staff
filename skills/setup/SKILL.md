@@ -89,11 +89,11 @@ Quando a pessoa lidera gente:
 
 ## O discovery (7 blocos, um por vez)
 
-Um bloco por mensagem. Espere a resposta antes do próximo. Não adivinhe nada: pergunte. Preste atenção em como a pessoa se refere a si mesma e a trate assim. Não classifique o papel dela de antemão: o discovery descobre e o sistema se molda.
+Um bloco por mensagem. Espere a resposta antes do próximo. Não adivinhe nada: pergunte. Pessoa citada por apelido ou codinome na 1ª menção, em qualquer bloco, ganha micro-pergunta na hora ("quem é {apelido}?"), e a resposta entra no registro do bloco como contexto, sem reeditar o que já foi gravado. Preste atenção em como a pessoa se refere a si mesma e a trate assim. Não classifique o papel dela de antemão: o discovery descobre e o sistema se molda.
 
 **Registro por bloco (o seguro contra queda de sessão):** resposta recebida, appende em `setup-notas.md` um bloco `## Bloco N` com bullets do que a pessoa disse, antes de fazer a pergunta seguinte. Se a sessão cair no meio, a retomada lê o arquivo e continua do bloco seguinte.
 
-**Bloco 1: Quem você é e o que você toca.** A primeira rodada do welcome já é este bloco, em prosa de conversa: nome e como quer ser chamada ou chamado, cargo e empresa e há quanto tempo, líder direto, se lidera pessoas (quantas, quem), o trabalho em 1 a 3 linhas, metas do ano. Não repita como formulário numerado; registre a resposta em `setup-notas.md` como Bloco 1 e siga pro Bloco 2.
+**Bloco 1: Quem você é e o que você toca.** A primeira rodada do welcome já é este bloco, em prosa de conversa: nome e como quer ser chamada ou chamado, cargo e empresa e há quanto tempo, líder direto, se lidera pessoas (quantas, quem), o trabalho em 1 a 3 linhas, metas do ano. Não repita como formulário numerado. Ao registrar em `setup-notas.md` como Bloco 1, uma checagem: escopo (a estrutura permanente, os times e produtos que ela toca) não é prioridade (o recorte do período), e resposta que descreve o trabalho só pelas prioridades do momento encolhe o escopo. Misturou os dois, avise em 1 frase ("escopo permanente vs prioridade de período") e registre separado; então siga pro Bloco 2.
 
 **Bloco 2: Com quem você trabalha**
 * (se lidera:) cada liderado: primeiro nome, cargo/senioridade, há quanto tempo juntos
@@ -122,6 +122,8 @@ Se a conversa do `conectar` (fechada no Bloco 3) confirmou capacidade de agenda,
 * 1 coisa que sente que deixa cair
 * 1 coisa que quer fazer melhor nos próximos 3 meses
 
+Meta ou prazo relativo na resposta ("virar diretor em 18 meses") grava duração e data-âncora juntas: pergunte "contando de quando?" e registre as duas coisas. Vale pra qualquer meta relativa que aparecer no discovery: duração sem âncora envelhece em silêncio.
+
 **Bloco 7: Como você quer que eu opere**
 * idioma das respostas
 * jargão da área a usar ou evitar (ex: "lojista" em vez de "cliente")
@@ -147,7 +149,7 @@ memory/          o log diário (um arquivo por dia, append-only)
 
 Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Code); os demais se adaptam.
 
-**2. CLAUDE.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery) · os 4 princípios · a postura · os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1) · o rigor · o vocabulário e preferências do Bloco 7 · **a arquitetura de memória e a rotina de sessão** (abaixo) · a instrução de auto-modulação com a régua de 4 destinos (abaixo).
+**2. CLAUDE.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery, escopo formal separado das prioridades do período) · os 4 princípios · a postura · os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1) · o rigor · o vocabulário e preferências do Bloco 7 · **a arquitetura de memória e a rotina de sessão** (abaixo) · a instrução de auto-modulação com a régua de 4 destinos (abaixo).
 
 **3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Teto de ~700 tokens, alvo de curadoria. Existe pra você não perguntar de novo o que já foi decidido.
 
@@ -162,7 +164,7 @@ O que a cabeça garante: preparação e avaliação futuras leem fato datado + l
 
 **6. `contexto/` com o que o discovery levantou** e os artefatos acima não carregam: `ferramentas-e-fontes.md` (Bloco 3), `rituais.md` (Bloco 5) e `dores.md` (Bloco 6, cada dor com data de revisão a 3 meses: o bloco pergunta o que melhorar em 3 meses, a data marca a cobrança). Resposta de discovery sem destino declarado evapora.
 
-Ela revisa cada proposta, ajusta, e só aí você cria os arquivos. Criados, mova `setup-notas.md` pra `contexto/discovery-YYYY-MM-DD.md`: material bruto do discovery, guardado imutável.
+Ela revisa cada proposta, ajusta, e antes de criar você roda uma checagem de consistência no conjunto revisado: (1) a mesma coisa definida de formas divergentes em blocos diferentes (termo corrigido num bloco tardio, definição velha registrada num anterior): a mais recente vence, confirmada com ela em 1 linha, e todos os artefatos saem da versão corrigida; (2) pasta ou termo renomeado na revisão (`projetos/` virou outro nome): varra o texto de cada artefato proposto pelo nome antigo, nenhuma referência ao nome que caiu sobrevive. Limpa a checagem, crie os arquivos. Criados, mova `setup-notas.md` pra `contexto/discovery-YYYY-MM-DD.md`: material bruto do discovery, guardado imutável.
 
 ### A arquitetura de memória que o CLAUDE.md gerado ensina (4 camadas, tudo markdown)
 
