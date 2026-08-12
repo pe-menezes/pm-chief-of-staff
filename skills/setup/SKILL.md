@@ -153,10 +153,10 @@ Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Co
 
 **3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Teto de ~700 tokens, alvo de curadoria. Existe pra você não perguntar de novo o que já foi decidido.
 
-**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto, ela preenche no uso. De cima pra baixo: contexto em 2 linhas, seção "Fatos", seção "Leitura", seção "Sinais recentes", seção "Histórico". A cabeça do hub (Fatos + Leitura vigente) tem teto de ~meia página (~15 linhas):
+**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto, ela preenche no uso. De cima pra baixo: seção "Contexto" (2 linhas), seção "Fatos", seção "Leitura vigente", seção "Sinais recentes", seção "Histórico". A cabeça do hub (Fatos + Leitura vigente) tem teto de ~meia página (~15 linhas):
 
-* **"Fatos":** cada linha datada e com fonte.
-* **"Leitura":** a interpretação, sempre datada. Leitura nova que muda a anterior marca a anterior com "superada em DD/MM por {o que a superou}" no ato da escrita: adjudicar é trabalho de quem escreve, a leitura futura não resolve, e leitura superada nunca fica solta ao lado da vigente (a marca permite mover pra "Histórico" depois).
+* **"Fatos":** cada linha datada e com fonte, nunca reescrita nem apagada.
+* **"Leitura vigente":** a interpretação, sempre datada, mesma regra de não reescrever; a vigente é a mais recente sem marca de superada. Leitura nova que muda a anterior marca a anterior com "superada em DD/MM por {o que a superou}" no ato da escrita (adjudicar é trabalho de quem escreve, a leitura futura não resolve); mover a marcada pro "Histórico" é curadoria, proposta pra pessoa (`fechar-dia` e `fechar-semana`), nunca automática.
 
 O que a cabeça garante: preparação e avaliação futuras leem fato datado + leitura vigente, nunca o acumulado.
 

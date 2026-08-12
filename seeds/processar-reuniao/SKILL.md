@@ -57,7 +57,7 @@ Antes de escrever em destino compartilhado (hub, diário, `CRITICAL_FACTS.md`), 
 Propor a propagação e executar com o ok da pessoa:
 
 1. **Tasks da pessoa** → diário da semana, com prazo.
-2. **Sobre pessoa-chave** → hub dela em `pessoas/`, na seção certa: fato datado com fonte em "Fatos", sinal em "Sinais recentes" (1 linha datada), leitura que muda a vigente em "Leitura" (datada, marcando a anterior com "superada em DD/MM por {o que a superou}").
+2. **Sobre pessoa-chave** → hub dela em `pessoas/`, na seção certa: fato datado com fonte em "Fatos", sinal em "Sinais recentes" (1 linha datada), leitura que muda a anterior em "Leitura vigente" (datada, marcando a anterior com "superada em DD/MM por {o que a superou}").
 3. **Decisão ou virada de projeto** → hub do projeto em `projetos/`.
 4. **Marco do dia** → 1 bloco no `memory/{hoje}.md` apontando pra nota (`## [HH:MM] {título} + 2 linhas`).
 5. **Mudou prioridade ou evento ativo** → propor atualização do `CRITICAL_FACTS.md`.
