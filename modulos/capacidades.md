@@ -20,3 +20,8 @@ Nome de capacidade é agnóstico ao software: o produto vive só na coluna `prov
 Lido hoje por alguma skill: `agenda do dia` (abrir-dia), `transcrição de reunião` (processar-reuniao), `mensagens` e `tickets` (preparar-conversa). As outras esperam a skill que vai ler. A linha "Carregado por" do topo é outra coisa: lista as skills que leem este arquivo, não as capacidades preenchidas.
 
 Provider vazio não é problema: a skill segue pela coluna "sem conector", que é o comportamento de sempre. Linha errada ou pela metade custa mais (provider que saiu, ferramenta que mudou de nome, `como chamar` em branco): a skill tenta, falha e volta pra essa coluna com um tropeço no meio. Ferramenta nova ou perdida: rode `/pm-chief-of-staff:conectar` de novo, que atualiza a tabela e reconfere os consumidores do topo.
+
+## Regras de leitura de agenda
+
+* A resposta ao convite filtra o mapa: convite recusado não é compromisso nem ritual da pessoa. Ao varrer a agenda, leia o campo de resposta (rsvp) de cada evento; quando a fonte não devolver esse campo, pergunte antes de tratar o evento como compromisso firme.
+* Período atípico não é régua de recorrência: antes de cravar cadência a partir de uma janela (férias, evento intensivo, semana fora do padrão), pergunte "essa janela é típica?".
