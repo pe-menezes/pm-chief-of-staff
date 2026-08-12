@@ -13,4 +13,6 @@ A decisão sai de leitura: leia ou grepe o trecho do destino onde o fato entrari
 | SUPERSEDE | o novo invalida o antigo, que tem valor histórico | marcar o antigo com "superado em DD/MM por {o que o superou}" e escrever o novo |
 | NOOP | o fato já está lá | nada é escrito, e registrar nada é a decisão correta |
 
-A marca de SUPERSEDE é a que a seção "Leitura" dos hubs de `pessoas/` e `projetos/` já usa: um formato só, grepável pros dois usos. Atalho: destino vazio ou recém-criado é ADD direto, sem leitura prévia.
+Em seção que o hub declara imutável (Fatos, Leitura vigente), UPDATE não se aplica: fato que mudou entra por SUPERSEDE, que marca o antigo no ato, ou como linha nova datada por ADD, e UPDATE fica pros destinos mutáveis (`CRITICAL_FACTS.md`, diário).
+
+A marca de SUPERSEDE é a que a seção "Leitura vigente" dos hubs de `pessoas/` e `projetos/` já usa: um formato só, grepável pros dois usos. Atalho: destino vazio ou recém-criado é ADD direto, sem leitura prévia.

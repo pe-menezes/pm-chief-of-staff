@@ -153,10 +153,10 @@ Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Co
 
 **3. CRITICAL_FACTS.md**, o estado vivo: identidade em 1 linha, as 3 a 5 prioridades numeradas (com o número que importa em cada uma), e no máximo 5 eventos ativos. Teto de ~700 tokens, alvo de curadoria. Existe pra você não perguntar de novo o que já foi decidido.
 
-**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto, ela preenche no uso. De cima pra baixo: contexto em 2 linhas, seção "Fatos", seção "Leitura", seção "Sinais recentes", seção "Histórico". A cabeça do hub (Fatos + Leitura vigente) tem teto de ~meia página (~15 linhas):
+**4. Hubs iniciais** pra cada pessoa-chave e projeto citados no discovery: só esqueleto, ela preenche no uso. De cima pra baixo: seção "Contexto" (2 linhas), seção "Fatos", seção "Leitura vigente", seção "Sinais recentes", seção "Histórico". A cabeça do hub (Fatos + Leitura vigente) tem teto de ~meia página (~15 linhas):
 
-* **"Fatos":** cada linha datada e com fonte.
-* **"Leitura":** a interpretação, sempre datada. Leitura nova que muda a anterior marca a anterior com "superada em DD/MM por {o que a superou}" no ato da escrita: adjudicar é trabalho de quem escreve, a leitura futura não resolve, e leitura superada nunca fica solta ao lado da vigente (a marca permite mover pra "Histórico" depois).
+* **"Fatos":** cada linha datada e com fonte, nunca reescrita nem apagada.
+* **"Leitura vigente":** a interpretação, sempre datada, mesma regra de não reescrever; a vigente é a mais recente sem marca de superada. Leitura nova que muda a anterior marca a anterior com "superada em DD/MM por {o que a superou}" no ato da escrita (adjudicar é trabalho de quem escreve, a leitura futura não resolve); mover a marcada pro "Histórico" é curadoria, proposta pra pessoa (`fechar-dia` e `fechar-semana`), nunca automática.
 
 O que a cabeça garante: preparação e avaliação futuras leem fato datado + leitura vigente, nunca o acumulado.
 
@@ -213,6 +213,8 @@ Se ela não lidera gente, ajuste a cópia de `preparar-conversa` removendo o blo
 Junto com as sementes, escreva o módulo de capacidades em `.claude/skills/_shared/capacidades.md` da pasta dela, com o que saiu da conversa do `conectar` no Bloco 3 (template em `${CLAUDE_PLUGIN_ROOT}/modulos/capacidades.md`; a pasta `_shared/` não tem `SKILL.md` e por isso não vira skill). As 3 sementes que buscam dado de fora (`abrir-dia`, `processar-reuniao`, `preparar-conversa`) leem esse arquivo quando são copiadas do plugin agora. Se alguma delas foi mantida da pasta dela na checagem de colisão acima, abra e confira: cópia anterior a esta camada não referencia o módulo, e aí o módulo é escrito sem efeito nenhum. Ofereça a edição da skill dela, nunca sobrescreva.
 
 No mesmo passo, copie `${CLAUDE_PLUGIN_ROOT}/modulos/gate-de-escrita.md` pra `.claude/skills/_shared/gate-de-escrita.md` dela: a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP) que as sementes aplicam antes de escrever fato em hub, diário ou `CRITICAL_FACTS.md`. A mesma checagem vale pra ele: semente mantida da pasta dela em colisão não referencia o gate, e o módulo fica escrito sem leitor; ofereça a edição, nunca sobrescreva. Semente plantada antes desta camada segue escrevendo sem o gate e sem dar erro; a conferência de consumidores do `fechar-semana` (passo 6) é o caminho de detecção.
+
+Copiadas as sementes e os módulos, varra os arquivos plantados por menções de pasta que não existem na estrutura que foi criada: a pessoa pode ter acordado outro nome pra uma pasta da base (`projetos/` virando `frentes/`, por exemplo), e a cópia vem do plugin citando o nome padrão. Adapte cada menção pro nome acordado e avise em 1 linha o que adaptou. Menção não adaptada faz a primeira propagação de decisão apontar pra pasta inexistente.
 
 O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
 
