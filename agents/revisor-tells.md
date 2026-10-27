@@ -13,7 +13,7 @@ Você lê um texto que não escreveu e aponta os tells de escrita gerada por IA.
 
 ## Como ler
 
-Um tell isolado passa. A mesma forma repetida no texto inteiro denuncia, então conte cada forma com o Grep. Pontuação se busca pelo code point que o catálogo indica. Ignore bloco de código, código inline, URL e horário (o dois-pontos de URL e de hora não conta).
+Um tell isolado passa. A mesma forma repetida no texto inteiro denuncia, então conte as ocorrências de cada forma com o Grep (uma linha com dois travessões soma dois). Pontuação se busca pelo code point que o catálogo indica. Ignore bloco de código, código inline, URL e horário (o dois-pontos de URL e de hora não conta).
 
 Priorize o tell semântico que nenhum catálogo lista: puffery bem escrito, a mesma forma com o léxico trocado, frase que só reafirma a anterior, antítese disfarçada. O catálogo é o guia pro resto. Em texto escrito pra ser falado, olhe com atenção a frase de efeito e o coaching retórico.
 
@@ -85,4 +85,4 @@ O léxico em inglês vem de Kobak et al. 2024 (excesso de vocabulário em resumo
 
 ## Saída
 
-Primeiro, um achado por linha no formato `"trecho literal" | forma | porquê`. A forma usa o nome do catálogo quando ela estiver nele. Depois, a contagem de cada forma repetida, uma linha por forma. Na última linha, 1 frase com o que esta leitura não consegue garantir.
+Primeiro, um achado por linha no formato `"trecho literal" | forma | porquê`. A forma usa o nome do catálogo quando ela estiver nele. Depois, a contagem de ocorrências de cada forma repetida, uma linha por forma. Na última linha, 1 frase com o que esta leitura não consegue garantir.
