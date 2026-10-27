@@ -44,11 +44,13 @@ Plantar é copiar uma skill-semente (a starter que vem no plugin) pra DENTRO da 
 | `processar-reuniao` | cola a transcrição, sai nota estruturada + propagação pros lugares certos |
 | `absorver` | joga um doc, artigo ou processo pra dentro: ganha casa, resumo com proveniência e a linha de quando será usado |
 
-A partir do momento em que são plantadas, **essas skills são arquivos seus**. Quer que a pauta de 1:1 sempre tenha uma seção de reconhecimento? Fala isso pro agente e ele edita a skill. Quer que o abrir-dia inclua seu dashboard? Mesma coisa. Minhas atualizações futuras **nunca tocam no que é seu**: elas só melhoram o setup e adicionam sementes novas no catálogo (`/pm-chief-of-staff:plantar` lista o que há).
+A partir do momento em que são plantadas, **essas skills são arquivos seus**. Quer que a pauta de 1:1 sempre tenha uma seção de reconhecimento? Fala isso pro agente e ele edita a skill. Quer que o abrir-dia inclua seu dashboard? Mesma coisa. Minhas atualizações futuras **nunca tocam no que é seu**: elas melhoram o setup e as skills do plugin e adicionam sementes novas no catálogo (`/pm-chief-of-staff:plantar` lista o que há).
 
 No catálogo, além das plantadas: **`fechar-semana`**, que agrega os balanços diários, força as decisões da semana, mede a saúde da memória do sistema (os arquivos que toda sessão carrega, contra os alvos de tamanho), guarda sinal de trajetória (o material da sua avaliação de ciclo) e monta o diário da próxima. Plante no fim da sua primeira semana: `/pm-chief-of-staff:plantar fechar-semana`.
 
 Também no plugin: **`/pm-chief-of-staff:conectar`**, que mapeia num arquivo único o que o agente consegue puxar sozinho (agenda, transcrição, mensagens, tickets), e com isso as skills de rotina param de perguntar o que ele já sabe buscar; o setup roda ele. Se você já tinha as skills plantadas antes dessa camada, o `conectar` confere quais delas ainda perguntam e oferece a edição de cada uma.
+
+**`/pm-chief-of-staff:tirar-tells`** revisa um texto que você vai mandar. Um agente revisor, que não escreveu o texto, aponta os tells de escrita gerada por IA (antítese em série, frase de efeito, travessão). Você vê o antes e depois de cada trecho. O original só recebe os trechos que você aprovar.
 
 ## A memória (a parte que faz valer a pena)
 
@@ -74,7 +76,7 @@ Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de
 * **Automático (recomendado):** uma vez só, rode `/plugin`, aba **Marketplaces**, selecione `pm-chief-of-staff` e ative **Enable auto-update**. Versões novas chegam sozinhas com aviso.
 * **Manual:** `/plugin marketplace update pm-chief-of-staff` quando quiser checar.
 
-Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu CLAUDE.md nunca são tocados.**
+Atualização troca o plugin (setup, skills do plugin e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu CLAUDE.md nunca são tocados.**
 
 ## Problemas comuns
 
@@ -85,7 +87,7 @@ Atualização troca o plugin (setup e catálogo de sementes). **Seus arquivos, s
 
 ## Não quer instalar o plugin?
 
-Cola o conteúdo de [`PROMPT.md`](PROMPT.md) em qualquer agente com acesso a arquivos e roda o mesmo setup por conversa. O plugin só acrescenta as skills-semente e o canal de atualização.
+Cola o conteúdo de [`PROMPT.md`](PROMPT.md) em qualquer agente com acesso a arquivos e roda o mesmo setup por conversa. O plugin acrescenta as skills-semente, as skills `conectar`, `criar-skill` e `tirar-tells` e o canal de atualização.
 
 ## Filosofia, em 4 princípios
 
