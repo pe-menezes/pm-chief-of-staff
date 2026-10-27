@@ -50,6 +50,8 @@ No catálogo, além das plantadas: **`fechar-semana`**, que agrega os balanços 
 
 Também no plugin: **`/pm-chief-of-staff:conectar`**, que mapeia num arquivo único o que o agente consegue puxar sozinho (agenda, transcrição, mensagens, tickets), e com isso as skills de rotina param de perguntar o que ele já sabe buscar; o setup roda ele. Se você já tinha as skills plantadas antes dessa camada, o `conectar` confere quais delas ainda perguntam e oferece a edição de cada uma.
 
+**`/pm-chief-of-staff:tirar-tells`** revisa um texto que você vai mandar. Um agente revisor, que não escreveu o texto, aponta os tells de escrita gerada por IA (antítese em série, frase de efeito, travessão). Você vê o antes e depois de cada trecho. O original só recebe os trechos que você aprovar.
+
 ## A memória (a parte que faz valer a pena)
 
 A memória do agente são os arquivos: o que está escrito na pasta, qualquer sessão futura carrega. O sistema nasce com 4 camadas, todas em markdown legível:
