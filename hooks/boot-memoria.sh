@@ -43,7 +43,8 @@
 #    de instalacao dela escreve (instalada no ambiente nao implica ativa
 #    nesta pasta);
 # 2) a prova de vida do topo, na pasta deste host, modificada nos ultimos
-#    2 dias.
+#    2 dias. So arquivo comum la dentro: pasta com nome de .jsonl, ou a da
+#    propria maquina com nome terminado em .jsonl, nao e prova.
 # A cessao avisa em 1 linha pra ausencia simultanea dos dois boots ficar
 # visivel.
 host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
@@ -51,7 +52,7 @@ host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
   | LC_ALL=C sed 's/^\.*//' 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null)
 [ -n "$host_dir" ] || host_dir=sem-host
 if [ -f .claude/memoria-config.json ] \
-  && find ".claude/data/sensor-efeito/$host_dir" -maxdepth 1 -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
+  && find ".claude/data/sensor-efeito/$host_dir" -mindepth 1 -maxdepth 1 -type f -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
   echo "memoria-agente presente, injeção de abertura cedida à engine"
   exit 0
 fi

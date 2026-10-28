@@ -3,7 +3,8 @@
 # e G7 e G8 do conserto 1 da auditoria (pastas mudas sem CRITICAL_FACTS.md
 # ou sem manual),
 # e da cessao pra engine memoria-agente, casos C1 a C7 da parte 2 e C8, C9
-# e H1 a H8 do conserto 1 da auditoria (janela de 2 dias e nome do host).
+# e H1 a H8 do conserto 1 da auditoria (janela de 2 dias e nome do host),
+# e K1 e K2 do conserto 2 (prova de vida so por arquivo comum).
 # Roda a mao: sh hooks/boot-memoria-teste.sh
 # Cada caso monta uma pasta de mktemp -d, roda o hook la dentro num subshell
 # (o hook le caminhos relativos ao cwd, como na sessao real) e apaga a pasta.
@@ -100,8 +101,9 @@ fi
 
 # caso_c NOME ESPERADO CONFIG PROVA DATA [PASTA_PATH]
 # ESPERADO: cede ou dispara. CONFIG: sim ou nao. PROVA: caminho sob
-# .claude/data. DATA: novo, ou o carimbo do touch -t. PASTA_PATH: pasta
-# posta na frente do PATH so durante o hook (o uname falso dos casos H).
+# .claude/data; terminado em / vira pasta vazia, nao arquivo. DATA: novo, ou
+# o carimbo do touch -t (em UTC, sem horario de verao). PASTA_PATH: pasta
+# posta na frente do PATH so durante o hook (o uname falso dos casos H e K).
 caso_c() {
   nome="$1"
   esperado="$2"
@@ -124,9 +126,12 @@ caso_c() {
   echo "$FIXTURE" > "$tmp/CRITICAL_FACTS.md"
   mkdir -p "$tmp/.claude/data/$(dirname "$prova")"
   [ "$config" = sim ] && echo "{}" > "$tmp/.claude/memoria-config.json"
-  echo "{}" > "$tmp/.claude/data/$prova"
+  case "$prova" in
+    */) mkdir -p "$tmp/.claude/data/$prova" ;;
+    *) echo "{}" > "$tmp/.claude/data/$prova" ;;
+  esac
   if [ "$data" != novo ]; then
-    touch -t "$data" "$tmp/.claude/data/$prova"
+    TZ=UTC0 touch -t "$data" "$tmp/.claude/data/$prova"
   fi
   if [ -n "$na_frente" ]; then
     saida=$(cd "$tmp" && PATH="$na_frente:$PATH" "$HOOK" 2>/dev/null)
@@ -166,9 +171,11 @@ caso_c "C7 sensor-efeito-log novo" dispara sim "sensor-efeito-log.jsonl" novo
 # Casos C8 e C9 do conserto 1 (achado A1): a fronteira da janela de 2 dias.
 # -mtime -2 e idade abaixo de 48 h; 47 h cede e 49 h faz o boot, com 1 h de
 # folga de cada lado. O carimbo e "agora menos N horas", pelo date do macOS
-# (-v) ou do Linux (-d).
+# (-v) ou do Linux (-d). O date e o touch -t rodam em UTC (TZ=UTC0): no fuso
+# local, uma hora por ano o carimbo de 47 h cai na hora que o horario de
+# verao repete, e o touch -t grava a primeira das duas.
 ha_horas() {
-  date -v-"$1"H +%Y%m%d%H%M 2>/dev/null || date -d "$1 hours ago" +%Y%m%d%H%M 2>/dev/null
+  TZ=UTC0 date -v-"$1"H +%Y%m%d%H%M 2>/dev/null || TZ=UTC0 date -d "$1 hours ago" +%Y%m%d%H%M 2>/dev/null
 }
 caso_c "C8 sensor deste host com 47 h" cede sim "sensor-efeito/$HOST_DIR/2026-10.jsonl" "$(ha_horas 47)"
 caso_c "C9 sensor deste host com 49 h" dispara sim "sensor-efeito/$HOST_DIR/2026-10.jsonl" "$(ha_horas 49)"
@@ -180,7 +187,9 @@ caso_c "C9 sensor deste host com 49 h" dispara sim "sensor-efeito/$HOST_DIR/2026
 # (origin/main 3558597), menos a do H7, que e a pasta_do_host da engine
 # rodada sobre o nome cortado em 64 (o corte de host_maquina). Nada aqui cria
 # variavel de ambiente nem muda o hook.
-# caso_h NOME CRU PASTA; CRU "-falha-" faz o uname sair com erro.
+# caso_h NOME CRU PASTA [ESPERADO]; CRU "-falha-" faz o uname sair com erro.
+# ESPERADO e cede quando omitido; PASTA terminada em / e a pasta do host nova
+# e vazia, sem prova dentro.
 caso_h() {
   falso=$(mktemp -d 2>/dev/null)
   if [ -z "$falso" ] || [ ! -d "$falso" ]; then
@@ -195,7 +204,10 @@ caso_h() {
     printf '#!/bin/sh\ncat "%s/nome"\n' "$falso" > "$falso/uname"
   fi
   chmod +x "$falso/uname"
-  caso_c "$1" cede sim "sensor-efeito/$3/2026-10.jsonl" novo "$falso"
+  case "$3" in
+    */) caso_c "$1" "${4:-cede}" sim "sensor-efeito/$3" novo "$falso" ;;
+    *) caso_c "$1" "${4:-cede}" sim "sensor-efeito/$3/2026-10.jsonl" novo "$falso" ;;
+  esac
   rm -rf "$falso"
 }
 caso_h "H1 ponto no comeco sai" ".oculto" "oculto"
@@ -210,6 +222,13 @@ caso_h "H7 corte em 64 antes de tirar os pontos" \
   "..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 caso_h "H8 uname falhando vira sem-host" "-falha-" "sem-host"
+
+# Casos K1 e K2 do conserto 2 (achado K1 da revisao do Codex): so arquivo
+# comum dentro da pasta deste host e prova de vida. Pasta com nome de .jsonl
+# nao conta, nem a propria pasta do host quando o nome da maquina termina em
+# .jsonl (o find testaria o ponto de partida).
+caso_c "K1 pasta 2026-10.jsonl na pasta deste host" dispara sim "sensor-efeito/$HOST_DIR/2026-10.jsonl/" novo
+caso_h "K2 host terminado em .jsonl com a pasta vazia" "maquina.jsonl" "maquina.jsonl/" dispara
 
 [ "$falhas" -eq 0 ] || exit 1
 exit 0
