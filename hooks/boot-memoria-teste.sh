@@ -1,5 +1,7 @@
 #!/bin/sh
-# Teste do gate do boot-memoria.sh, casos G1 a G6 da spec agents-md parte 1,
+# Teste do gate do boot-memoria.sh, casos G1 a G6 da spec agents-md parte 1
+# e G7 e G8 do conserto 1 da auditoria (pastas mudas sem CRITICAL_FACTS.md
+# ou sem manual),
 # e da cessao pra engine memoria-agente, casos C1 a C7 da parte 2.
 # Roda a mao: sh hooks/boot-memoria-teste.sh
 # Cada caso monta uma pasta de mktemp -d, roda o hook la dentro num subshell
@@ -68,6 +70,8 @@ caso "G3 nova sem ponte" dispara AGENTS.md CRITICAL_FACTS.md navegacao.md
 caso "G4 molde do vault" mudo AGENTS.md CRITICAL_FACTS.md
 caso "G5 repo com AGENTS.md" mudo AGENTS.md navegacao.md
 caso "G6 vazia" mudo
+caso "G7 so CLAUDE.md" mudo CLAUDE.md
+caso "G8 CF e nav sem manual" mudo CRITICAL_FACTS.md navegacao.md
 
 # Casos C1 a C7 da spec agents-md parte 2: a cessao pra engine memoria-agente.
 # Toda pasta parte do molde antigo (CLAUDE.md + CRITICAL_FACTS.md), pro gate
