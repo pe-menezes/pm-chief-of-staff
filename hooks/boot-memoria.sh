@@ -12,9 +12,14 @@
 # ate o primeiro evento de telemetria, aceito como fail-open.
 
 # Gate defensivo: o plugin fica habilitado globalmente, e em qualquer pasta
-# que nao seja um Chief of Staff (CLAUDE.md + CRITICAL_FACTS.md juntos) o
-# hook precisa ser invisivel.
-[ -f CLAUDE.md ] && [ -f CRITICAL_FACTS.md ] || exit 0
+# que nao seja um Chief of Staff o hook precisa ser invisivel. Chief of Staff
+# e CRITICAL_FACTS.md junto com CLAUDE.md (pasta antiga) ou junto com o par
+# AGENTS.md + navegacao.md (pasta nova, com ou sem a ponte CLAUDE.md).
+# AGENTS.md com CRITICAL_FACTS.md nao basta: pasta de outro sistema pode ter
+# os dois nomes e ficaria com o boot duplicado. O navegacao.md, que o setup
+# cria e este hook ja le, e a terceira evidencia.
+[ -f CRITICAL_FACTS.md ] || exit 0
+[ -f CLAUDE.md ] || { [ -f AGENTS.md ] && [ -f navegacao.md ]; } || exit 0
 
 # Cessao pra engine memoria-agente, com duas evidencias obrigatorias:
 # 1) .claude/memoria-config.json na raiz do projeto, o config que a skill
