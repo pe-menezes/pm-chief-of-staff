@@ -10,14 +10,17 @@
 # Engine configurada mas sem sinal de vida recente NAO ganha a cessao:
 # zero boot e pior que boot duplo. Engine recem-instalada tem boot duplo
 # ate o primeiro evento de telemetria, aceito como fail-open.
-# Provas de vida aceitas, qualquer uma modificada ha menos de 2 dias:
-# * .claude/data/sensor-efeito/<pasta deste host>/*.jsonl, engine 0.14.0 em
-#   diante (CHANGELOG da engine, nota da 0.14.0, item 10; INSTALL.md da
-#   engine, "Telemetria entre maquinas");
-# * .claude/data/sensor-efeito-log.jsonl, engine 0.13.0;
-# * .claude/data/juiz-*-log.jsonl, engine ate 0.13.0.
+# Prova de vida aceita, uma so: .claude/data/sensor-efeito/<pasta deste
+# host>/*.jsonl modificado ha menos de 2 dias, que a engine grava da 0.14.0
+# em diante (na engine: INSTALL.md, docs/architecture.md e
+# scripts/sensor_efeito.py).
 # So a pasta deste host conta: .claude/data viaja entre maquinas, e o evento
 # de outra maquina faria esta, sem a engine, abrir sem boot nenhum.
+# Sairam as provas da engine ate a 0.13.0 (.claude/data/sensor-efeito-log.jsonl
+# e .claude/data/juiz-*-log.jsonl): nao tem host, e todo clone novo da a
+# elas data de agora, entao uma maquina sem a engine cedia e ficava sem boot
+# nenhum por ate 2 dias. Engine ate a 0.13.0 volta a ter boot duplo, o lado
+# aceito.
 # A pasta deste host segue a regra da engine (scripts/sensor_efeito.py,
 # pasta_do_host) sobre uname -n: corte em 64, todo caractere fora de
 # [A-Za-z0-9._-] vira hifen, saem os pontos do comeco, corte em 64, vazio
@@ -39,8 +42,8 @@
 # 1) .claude/memoria-config.json na raiz do projeto, o config que a skill
 #    de instalacao dela escreve (instalada no ambiente nao implica ativa
 #    nesta pasta);
-# 2) prova de vida da engine modificada nos ultimos 2 dias, uma das tres
-#    listadas no topo.
+# 2) a prova de vida do topo, na pasta deste host, modificada nos ultimos
+#    2 dias.
 # A cessao avisa em 1 linha pra ausencia simultanea dos dois boots ficar
 # visivel.
 host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
@@ -48,8 +51,7 @@ host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
   | LC_ALL=C sed 's/^\.*//' 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null)
 [ -n "$host_dir" ] || host_dir=sem-host
 if [ -f .claude/memoria-config.json ] \
-  && { find ".claude/data/sensor-efeito/$host_dir" -maxdepth 1 -name '*.jsonl' -mtime -2 2>/dev/null | grep -q . \
-    || find .claude/data -maxdepth 1 \( -name 'sensor-efeito-log.jsonl' -o -name 'juiz-*-log.jsonl' \) -mtime -2 2>/dev/null | grep -q .; }; then
+  && find ".claude/data/sensor-efeito/$host_dir" -maxdepth 1 -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
   echo "memoria-agente presente, injeção de abertura cedida à engine"
   exit 0
 fi
