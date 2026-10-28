@@ -10,22 +10,49 @@
 # Engine configurada mas sem sinal de vida recente NAO ganha a cessao:
 # zero boot e pior que boot duplo. Engine recem-instalada tem boot duplo
 # ate o primeiro evento de telemetria, aceito como fail-open.
+# Prova de vida aceita, uma so: .claude/data/sensor-efeito/<pasta deste
+# host>/*.jsonl modificado ha menos de 2 dias, que a engine grava da 0.14.0
+# em diante (na engine: INSTALL.md, docs/architecture.md e
+# scripts/sensor_efeito.py).
+# So a pasta deste host conta: .claude/data viaja entre maquinas, e o evento
+# de outra maquina faria esta, sem a engine, abrir sem boot nenhum.
+# Sairam as provas da engine ate a 0.13.0 (.claude/data/sensor-efeito-log.jsonl
+# e .claude/data/juiz-*-log.jsonl): nao tem host, e todo clone novo da a
+# elas data de agora, entao uma maquina sem a engine cedia e ficava sem boot
+# nenhum por ate 2 dias. Engine ate a 0.13.0 volta a ter boot duplo, o lado
+# aceito.
+# A pasta deste host segue a regra da engine (scripts/sensor_efeito.py,
+# pasta_do_host) sobre uname -n: corte em 64, todo caractere fora de
+# [A-Za-z0-9._-] vira hifen, saem os pontos do comeco, corte em 64, vazio
+# vira sem-host. Limite: hostname fora de ASCII, ou trocado pela rede no
+# macOS, pode dar nome diferente do da engine, e ai o hook nao cede (boot
+# duplo, o lado aceito).
 
 # Gate defensivo: o plugin fica habilitado globalmente, e em qualquer pasta
-# que nao seja um Chief of Staff (CLAUDE.md + CRITICAL_FACTS.md juntos) o
-# hook precisa ser invisivel.
-[ -f CLAUDE.md ] && [ -f CRITICAL_FACTS.md ] || exit 0
+# que nao seja um Chief of Staff o hook precisa ser invisivel. Chief of Staff
+# e CRITICAL_FACTS.md junto com CLAUDE.md (pasta antiga) ou junto com o par
+# AGENTS.md + navegacao.md (pasta nova, com ou sem a ponte CLAUDE.md).
+# AGENTS.md com CRITICAL_FACTS.md nao basta: pasta de outro sistema pode ter
+# os dois nomes e ficaria com o boot duplicado. O navegacao.md, que o setup
+# cria e este hook ja le, e a terceira evidencia.
+[ -f CRITICAL_FACTS.md ] || exit 0
+[ -f CLAUDE.md ] || { [ -f AGENTS.md ] && [ -f navegacao.md ]; } || exit 0
 
 # Cessao pra engine memoria-agente, com duas evidencias obrigatorias:
 # 1) .claude/memoria-config.json na raiz do projeto, o config que a skill
 #    de instalacao dela escreve (instalada no ambiente nao implica ativa
 #    nesta pasta);
-# 2) prova de vida da engine: algum .claude/data/juiz-*-log.jsonl
-#    modificado nos ultimos 2 dias.
+# 2) a prova de vida do topo, na pasta deste host, modificada nos ultimos
+#    2 dias. So arquivo comum la dentro: pasta com nome de .jsonl, ou a da
+#    propria maquina com nome terminado em .jsonl, nao e prova.
 # A cessao avisa em 1 linha pra ausencia simultanea dos dois boots ficar
 # visivel.
+host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
+  | LC_ALL=C tr -c 'A-Za-z0-9._\n-' '-' 2>/dev/null \
+  | LC_ALL=C sed 's/^\.*//' 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null)
+[ -n "$host_dir" ] || host_dir=sem-host
 if [ -f .claude/memoria-config.json ] \
-  && find .claude/data -maxdepth 1 -name 'juiz-*-log.jsonl' -mtime -2 2>/dev/null | grep -q .; then
+  && find ".claude/data/sensor-efeito/$host_dir" -mindepth 1 -maxdepth 1 -type f -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
   echo "memoria-agente presente, injeção de abertura cedida à engine"
   exit 0
 fi

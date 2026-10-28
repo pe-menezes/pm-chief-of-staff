@@ -17,4 +17,4 @@ Semente é uma skill starter que vive no plugin só até ser plantada: copiada p
 
 ## Se a pasta não tem sistema montado
 
-Se não existe CLAUDE.md na pasta (o setup nunca rodou), diga que a semente funciona melhor plantada num sistema montado e ofereça rodar `/pm-chief-of-staff:setup` primeiro. Se a pessoa quiser a semente avulsa mesmo assim, plante.
+O sistema está montado quando existe na pasta o arquivo de instrução (o `AGENTS.md`; em pasta montada antes da 0.6, que não tem `AGENTS.md`, o `CLAUDE.md`). Sem nenhum dos dois (o setup nunca rodou), diga que a semente funciona melhor plantada num sistema montado e ofereça rodar `/pm-chief-of-staff:setup` primeiro. Se a pessoa quiser a semente avulsa mesmo assim, plante.

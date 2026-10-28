@@ -30,7 +30,7 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 /pm-chief-of-staff:setup
 ```
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o CLAUDE.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão duas vezes, uma pra ler as skills que vêm com o plugin e outra pra criar os arquivos delas na sua pasta: aceite as duas, porque sem isso os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o AGENTS.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão duas vezes, uma pra ler as skills que vêm com o plugin e outra pra criar os arquivos delas na sua pasta: aceite as duas, porque sem isso os comandos não passam a existir. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
 
 ## O que vem plantado (e por que "plantado" importa)
 
@@ -59,7 +59,9 @@ A memória do agente são os arquivos: o que está escrito na pasta, qualquer se
 * **`CRITICAL_FACTS.md`**: o estado vivo (suas prioridades com número, eventos ativos). Lido no começo de toda sessão, existe pra ele nunca te perguntar de novo o que já foi decidido.
 * **`memory/`**: o log diário, datado e imutável. O que aconteceu, quando, com ponteiro pra onde está o detalhe.
 * **Hubs de pessoas e projetos**: o que estabilizou. Sinais recentes, histórico, contexto.
-* **`CLAUDE.md` e as skills**: como ele opera com você. É o que se auto-modula.
+* **`AGENTS.md` e as skills**: como ele opera com você. É o que se auto-modula.
+
+O manual mora no `AGENTS.md`, que Claude Code, Codex e Cursor leem. Ao lado dele fica um `CLAUDE.md` com uma linha só, `@AGENTS.md`, a ponte que faz o Claude Code carregar o manual: não apague esse arquivo e não escreva regra nele. Pasta montada antes da 0.6 segue com o manual no `CLAUDE.md` e funciona igual, sem migrar nada. Skills plantadas e regras com `paths:` funcionam só no Claude Code.
 
 O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem semeou; o `fechar-dia` promove o que ficou solto no log pros hubs. Em duas semanas de uso, o agente conhece seu time, seus projetos e seus padrões.
 
@@ -76,7 +78,7 @@ Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de
 * **Automático (recomendado):** uma vez só, rode `/plugin`, aba **Marketplaces**, selecione `pm-chief-of-staff` e ative **Enable auto-update**. Versões novas chegam sozinhas com aviso.
 * **Manual:** `/plugin marketplace update pm-chief-of-staff` quando quiser checar.
 
-Atualização troca o plugin (setup, skills do plugin e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu CLAUDE.md nunca são tocados.**
+Atualização troca o plugin (setup, skills do plugin e catálogo de sementes). **Seus arquivos, suas skills plantadas e seu `AGENTS.md` ou `CLAUDE.md` nunca são tocados.**
 
 ## Problemas comuns
 
@@ -91,7 +93,7 @@ Cola o conteúdo de [`PROMPT.md`](PROMPT.md) em qualquer agente com acesso a arq
 
 ## Filosofia, em 4 princípios
 
-1. **O sistema se auto-modula.** Pedido de mudança vira edição no CLAUDE.md ou na skill, na hora. O sistema se molda ao seu jeito de pensar, não o contrário.
+1. **O sistema se auto-modula.** Pedido de mudança vira edição no AGENTS.md ou na skill, na hora. O sistema se molda ao seu jeito de pensar, não o contrário.
 2. **Você tem que ler tudo.** Erro que você não pega propaga. Sua responsabilidade é intransferível.
 3. **Ele é thought partner, não assistente obediente.** Franqueza acima de validação, diagnóstico antes de sugestão, e anti-padrões nomeados na hora (executar sem questionar, escalar sem recomendação, showcase sem "e daí", otimismo ingênuo, e os de liderança pra quem lidera: Super-Líder, babá de luxo, feedback genérico, decisão dura adiada).
 4. **Os arquivos são a memória.** O que não está escrito não existe amanhã.

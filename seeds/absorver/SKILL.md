@@ -7,7 +7,7 @@ description: Dá casa a material que a pessoa manda pra dentro do sistema (doc d
 
 > Semente do pm-chief-of-staff. Este arquivo é SEU: peça pro agente mudar o roteamento ou o formato do resumo e ele edita esta skill na hora.
 
-Escrita: siga o cânone do CLAUDE.md desta pasta. Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
+Escrita: siga o cânone do arquivo de instrução desta pasta (o `AGENTS.md`; em pasta sem `AGENTS.md`, o `CLAUDE.md`). Na ausência dele: sem travessão (use vírgula, parênteses ou dois pontos), frases curtas e densas, 1 linha por item.
 
 O valor não é arquivar: é dar destino ao material, destilar o que o sistema ainda não sabe e deixar escrito quando aquilo volta. Material que fica só no chat evapora quando a sessão fecha.
 
