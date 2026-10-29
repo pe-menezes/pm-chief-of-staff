@@ -1,6 +1,6 @@
 {
   "name": "pm-chief-of-staff",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Chief of Staff pessoal pra quem trabalha com produto: um segundo cérebro de trabalho que nasce de uma conversa, mora em arquivos markdown seus e se molda a você. Rode a skill setup numa pasta vazia.",
   "author": {
     "name": "Pedro Menezes",
