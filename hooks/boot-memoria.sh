@@ -27,6 +27,14 @@
 # vira sem-host. Limite: hostname fora de ASCII, ou trocado pela rede no
 # macOS, pode dar nome diferente do da engine, e ai o hook nao cede (boot
 # duplo, o lado aceito).
+# Runtime: o registro do Codex (.codex-plugin/plugin.json) chama este hook
+# com o argumento codex; o do Claude (hooks/hooks.json), sem argumento. A
+# engine memoria-agente roda e grava telemetria so no Claude, entao com o
+# marcador codex a cessao nao se aplica e o boot sai sempre: a telemetria
+# da pasta e do Claude e nao prova engine viva nesta sessao. O runtime vem
+# so do marcador, nunca de arquivo do host. Se o Codex tambem ler o
+# hooks/hooks.json, o Codex fica com boot duplo, o lado aceito.
+runtime="${1:-claude}"
 
 # Gate defensivo: o plugin fica habilitado globalmente, e em qualquer pasta
 # que nao seja um Chief of Staff o hook precisa ser invisivel. Chief of Staff
@@ -51,7 +59,7 @@ host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
   | LC_ALL=C tr -c 'A-Za-z0-9._\n-' '-' 2>/dev/null \
   | LC_ALL=C sed 's/^\.*//' 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null)
 [ -n "$host_dir" ] || host_dir=sem-host
-if [ -f .claude/memoria-config.json ] \
+if [ "$runtime" != codex ] && [ -f .claude/memoria-config.json ] \
   && find ".claude/data/sensor-efeito/$host_dir" -mindepth 1 -maxdepth 1 -type f -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
   echo "memoria-agente presente, injeção de abertura cedida à engine"
   exit 0

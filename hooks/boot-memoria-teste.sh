@@ -4,7 +4,8 @@
 # ou sem manual),
 # e da cessao pra engine memoria-agente, casos C1 a C7 da parte 2 e C8, C9
 # e H1 a H8 do conserto 1 da auditoria (janela de 2 dias e nome do host),
-# e K1 e K2 do conserto 2 (prova de vida so por arquivo comum).
+# e K1 e K2 do conserto 2 (prova de vida so por arquivo comum),
+# e R1 a R5 da spec codex-compat-funcional (runtime Codex e caminho com espaco).
 # Roda a mao: sh hooks/boot-memoria-teste.sh
 # Cada caso monta uma pasta de mktemp -d, roda o hook la dentro num subshell
 # (o hook le caminhos relativos ao cwd, como na sessao real) e apaga a pasta.
@@ -229,6 +230,100 @@ caso_h "H8 uname falhando vira sem-host" "-falha-" "sem-host"
 # .jsonl (o find testaria o ponto de partida).
 caso_c "K1 pasta 2026-10.jsonl na pasta deste host" dispara sim "sensor-efeito/$HOST_DIR/2026-10.jsonl/" novo
 caso_h "K2 host terminado em .jsonl com a pasta vazia" "maquina.jsonl" "maquina.jsonl/" dispara
+
+# Casos R1 a R5 da spec codex-compat-funcional: o runtime Codex e o caminho
+# com espaco. A engine memoria-agente grava telemetria so pelo Claude, entao
+# o Codex nao cede a ela: o registro Codex passa o marcador codex ao hook,
+# e sem marcador o hook segue a cessao de sempre. R1 roda o hook direto; R2
+# a R5 leem o comando de cada registro (hooks/hooks.json do Claude e o hook
+# inline de .codex-plugin/plugin.json), rodam por sh -c, como os dois
+# agentes rodam comando de hook, com a raiz do plugin numa pasta com espaco.
+# caso_r NOME ESPERADO ARQ CHAVE VAR [MARCADOR]
+# ESPERADO: cede ou dispara. ARQ: registro relativo a raiz do repo. CHAVE:
+# caminho do comando no JSON, em pontos. VAR: variavel da raiz do plugin.
+# Toda pasta tem config e prova de vida nova deste host, a condicao da
+# cessao no Claude.
+comando_json() {
+  if command -v plutil >/dev/null 2>&1; then
+    plutil -extract "$2" raw -o - "$1" 2>/dev/null
+  elif command -v node >/dev/null 2>&1; then
+    node -e 'let v=require(process.argv[1]);for(const k of process.argv[2].split("."))v=v==null?v:v[k];if(typeof v!=="string")process.exit(1);process.stdout.write(v)' "$1" "$2" 2>/dev/null
+  else
+    return 1
+  fi
+}
+RAIZ=$(cd "$DIR/.." && pwd)
+caso_r() {
+  nome="$1"
+  esperado="$2"
+  cmd=$(comando_json "$RAIZ/$3" "$4")
+  if [ -z "$cmd" ]; then
+    echo "FALHA $nome: comando ausente em $3 ($4), ou sem plutil e sem node pra ler"
+    falhas=$((falhas + 1))
+    return
+  fi
+  tmp=$(mktemp -d 2>/dev/null)
+  if [ -z "$tmp" ] || [ ! -d "$tmp" ]; then
+    echo "FALHA $nome: mktemp -d nao devolveu pasta"
+    falhas=$((falhas + 1))
+    return
+  fi
+  pacote="$tmp/pacote do plugin"
+  pasta="$tmp/pasta da pessoa"
+  mkdir -p "$pacote/hooks" "$pasta/.claude/data/sensor-efeito/$HOST_DIR"
+  cp -p "$HOOK" "$pacote/hooks/boot-memoria.sh"
+  echo "@AGENTS.md" > "$pasta/CLAUDE.md"
+  echo "$FIXTURE" > "$pasta/CRITICAL_FACTS.md"
+  echo "{}" > "$pasta/.claude/memoria-config.json"
+  echo "{}" > "$pasta/.claude/data/sensor-efeito/$HOST_DIR/2026-10.jsonl"
+  saida=$(cd "$pasta" && env "$5=$pacote" sh -c "$cmd" 2>/dev/null)
+  rc=$?
+  rm -rf "$tmp"
+  primeira=$(printf '%s\n' "$saida" | sed -n 1p)
+  if [ "$esperado" = cede ]; then
+    if [ "$rc" -eq 0 ] && [ "$saida" = "$CEDE" ]; then
+      echo "ok    $nome"
+    else
+      echo "FALHA $nome: esperava so a linha da cessao (exit $rc, primeira linha: $primeira)"
+      falhas=$((falhas + 1))
+    fi
+  else
+    if [ "$rc" -eq 0 ] && [ "$primeira" = "$MARCA" ] \
+      && printf '%s\n' "$saida" | grep -qx "$FIXTURE"; then
+      echo "ok    $nome"
+    else
+      echo "FALHA $nome: esperava boot completo (exit $rc, primeira linha: $primeira)"
+      falhas=$((falhas + 1))
+    fi
+  fi
+}
+
+# R1: o hook direto com o marcador codex e a engine viva no Claude.
+tmp=$(mktemp -d 2>/dev/null)
+echo "@AGENTS.md" > "$tmp/CLAUDE.md"
+echo "$FIXTURE" > "$tmp/CRITICAL_FACTS.md"
+mkdir -p "$tmp/.claude/data/sensor-efeito/$HOST_DIR"
+echo "{}" > "$tmp/.claude/memoria-config.json"
+echo "{}" > "$tmp/.claude/data/sensor-efeito/$HOST_DIR/2026-10.jsonl"
+saida=$(cd "$tmp" && "$HOOK" codex 2>/dev/null)
+rc=$?
+rm -rf "$tmp"
+if [ "$rc" -eq 0 ] && [ "$(printf '%s\n' "$saida" | sed -n 1p)" = "$MARCA" ] \
+  && printf '%s\n' "$saida" | grep -qx "$FIXTURE"; then
+  echo "ok    R1 marcador codex nao cede a engine do Claude"
+else
+  echo "FALHA R1 marcador codex: esperava boot completo (exit $rc)"
+  falhas=$((falhas + 1))
+fi
+
+caso_r "R2 registro Claude startup com espaco cede" cede \
+  hooks/hooks.json hooks.SessionStart.0.hooks.0.command CLAUDE_PLUGIN_ROOT
+caso_r "R3 registro Claude clear com espaco cede" cede \
+  hooks/hooks.json hooks.SessionStart.1.hooks.0.command CLAUDE_PLUGIN_ROOT
+caso_r "R4 registro Codex startup com espaco dispara" dispara \
+  .codex-plugin/plugin.json hooks.hooks.SessionStart.0.hooks.0.command CLAUDE_PLUGIN_ROOT
+caso_r "R5 registro Codex clear com espaco dispara" dispara \
+  .codex-plugin/plugin.json hooks.hooks.SessionStart.1.hooks.0.command CLAUDE_PLUGIN_ROOT
 
 [ "$falhas" -eq 0 ] || exit 1
 exit 0
