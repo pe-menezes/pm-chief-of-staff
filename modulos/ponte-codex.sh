@@ -18,7 +18,8 @@
 # Nunca substitui, apaga, renomeia ou mescla: link, arquivo ou pasta que ja
 # existe e nao e desta ponte fica como esta e sai como conflito.
 # Pasta comecada por _ ou . nao vira skill (_shared/ e modulo).
-# Saida: 0 tudo ligado; 1 sem .claude/skills ou erro de disco; 2 sobrou
+# Saida: 0 tudo ligado; 1 sem .claude/skills ou erro de disco (inclui wrapper
+# que nao gravou, com o anterior intacto); 2 sobrou
 # conflito, listado no stdout pra quem rodou decidir com a pessoa.
 # Limite: no Windows sem permissao de link cai sempre no wrapper.
 
@@ -57,20 +58,28 @@ if [ ! -e .agents/skills ]; then
   echo "link de colecao indisponivel: ligando skill por skill"
 fi
 
+# Limite de tamanho de arquivo vira erro de escrita, nao morte do processo.
+trap '' XFSZ
+
 # wrapper FONTE NOME DESTINO: escreve o wrapper com o frontmatter da fonte.
+# Grava num temporario desta rodada na mesma pasta e so troca por rename
+# depois de conferir o conteudo; falha deixa o SKILL.md anterior intacto e
+# remove so o temporario que esta rodada criou.
 wrapper() {
   fm=$(awk 'NR == 1 { if ($0 != "---") exit; next } /^---$/ { achou = 1; exit } { print } END { exit !achou }' "$1") || return 1
-  {
-    echo "---"
-    printf '%s\n' "$fm"
-    echo "---"
-    echo "$MARCA"
-    echo ""
-    echo "Esta skill mora em \`.claude/skills/$2/SKILL.md\`, a fonte desta pasta. Leia esse arquivo inteiro e siga o que ele diz; caminho relativo citado nele parte da pasta dele. Edição vai sempre na fonte: a próxima rodada da ponte atualiza o frontmatter aqui."
-  } > "$3/SKILL.md"
+  conteudo=$(printf -- '---\n%s\n---\n%s\n\n%s' "$fm" "$MARCA" "Esta skill mora em \`.claude/skills/$2/SKILL.md\`, a fonte desta pasta. Leia esse arquivo inteiro e siga o que ele diz; caminho relativo citado nele parte da pasta dele. Edição vai sempre na fonte: a próxima rodada da ponte atualiza o frontmatter aqui.")
+  tmp="$3/.SKILL.md.ponte.$$"
+  (set -C; : > "$tmp") 2>/dev/null || return 1
+  if printf '%s\n' "$conteudo" > "$tmp" 2>/dev/null && [ "$(cat "$tmp")" = "$conteudo" ] \
+    && mv -f "$tmp" "$3/SKILL.md" 2>/dev/null; then
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
 }
 
 conflitos=0
+erros=0
 for fonte in .claude/skills/*/SKILL.md; do
   [ -f "$fonte" ] || continue
   nome=${fonte#.claude/skills/}
@@ -96,16 +105,18 @@ for fonte in .claude/skills/*/SKILL.md; do
       echo "wrapper: $nome"
     else
       echo "erro: wrapper de $nome nao gravou (frontmatter ausente na fonte ou disco)"
-      conflitos=$((conflitos + 1))
+      erros=$((erros + 1))
     fi
     continue
   fi
-  if [ -f "$destino/SKILL.md" ] && grep -qxF "$MARCA" "$destino/SKILL.md"; then
+  # So arquivo regular com a marca e wrapper desta ponte: SKILL.md em link,
+  # ate quebrado ou com alvo marcado, e da pessoa.
+  if [ -f "$destino/SKILL.md" ] && [ ! -L "$destino/SKILL.md" ] && grep -qxF "$MARCA" "$destino/SKILL.md"; then
     if wrapper "$fonte" "$nome" "$destino"; then
       echo "wrapper atualizado: $nome"
     else
-      echo "erro: wrapper de $nome nao atualizou (frontmatter ausente na fonte ou disco)"
-      conflitos=$((conflitos + 1))
+      echo "erro: wrapper de $nome nao atualizou, o anterior ficou (frontmatter ausente na fonte ou disco)"
+      erros=$((erros + 1))
     fi
     continue
   fi
@@ -113,6 +124,10 @@ for fonte in .claude/skills/*/SKILL.md; do
   conflitos=$((conflitos + 1))
 done
 
+if [ "$erros" -gt 0 ]; then
+  echo "$erros erro(s) de escrita; $conflitos conflito(s); nada foi substituido pela metade"
+  exit 1
+fi
 if [ "$conflitos" -gt 0 ]; then
   echo "$conflitos conflito(s): nada foi substituido; decida com a pessoa"
   exit 2

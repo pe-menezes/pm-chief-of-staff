@@ -223,6 +223,76 @@ if nova W1; then
   fi
   rm -rf "$tmp"
 fi
+
+# S1 SKILL.md em .agents/skills e link pra arquivo da pessoa, e o alvo tem a
+# marca da ponte: link e alvo ficam como estao, exit 2.
+if nova S1; then
+  monta "$pasta"
+  roda "$falso"
+  w="$pasta/.agents/skills/abrir-dia/SKILL.md"
+  cp "$w" "$tmp/da pessoa.md"
+  echo "texto da pessoa" >> "$tmp/da pessoa.md"
+  antes=$(cksum < "$tmp/da pessoa.md")
+  rm "$w"
+  ln -s "../../../../da pessoa.md" "$w"
+  roda "$falso"
+  if [ "$rc" -eq 2 ] && [ -L "$w" ] && [ "$(readlink "$w")" = "../../../../da pessoa.md" ] \
+    && [ "$(cksum < "$tmp/da pessoa.md")" = "$antes" ]; then
+    ok "S1 SKILL.md ligado a arquivo da pessoa com a marca fica"
+  else
+    falha "S1 SKILL.md ligado" "exit $rc, alvo mudou ou link trocado"
+  fi
+  rm -rf "$tmp"
+fi
+
+# S2 SKILL.md em .agents/skills e link quebrado: fica, nada nasce no alvo, exit 2.
+if nova S2; then
+  monta "$pasta"
+  roda "$falso"
+  w="$pasta/.agents/skills/abrir-dia/SKILL.md"
+  rm "$w"
+  ln -s "../../../../nao-existe.md" "$w"
+  roda "$falso"
+  if [ "$rc" -eq 2 ] && [ -L "$w" ] && [ "$(readlink "$w")" = "../../../../nao-existe.md" ] \
+    && [ ! -e "$tmp/nao-existe.md" ]; then
+    ok "S2 SKILL.md em link quebrado fica"
+  else
+    falha "S2 SKILL.md em link quebrado" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
+
+# F1 escrita falha na atualizacao do wrapper (limite de tamanho de arquivo
+# so no subshell da ponte, sem core): o anterior fica identico, o arquivo da
+# pessoa na mesma pasta fica, nao sobra temporario, exit 1.
+if nova F1; then
+  monta "$pasta"
+  roda "$falso"
+  d="$pasta/.agents/skills/abrir-dia"
+  echo "notas da pessoa" > "$d/notas.md"
+  antes=$(cksum < "$d/SKILL.md")
+  longa=$(awk 'BEGIN { for (i = 0; i < 400; i++) printf "palavra%03d ", i }')
+  printf -- '---\nname: abrir-dia\ndescription: %s %s\n---\n\n# Abrir\n' "$SENT" "$longa" > "$pasta/.claude/skills/abrir-dia/SKILL.md"
+  (cd "$pasta" && ulimit -c 0 && ulimit -f 1 && PATH="$falso:$PATH" sh "$PONTE" >/dev/null 2>&1)
+  rc=$?
+  if [ "$rc" -eq 1 ] && [ -f "$d/SKILL.md" ] && [ ! -L "$d/SKILL.md" ] \
+    && [ "$(cksum < "$d/SKILL.md")" = "$antes" ] \
+    && grep -qx "notas da pessoa" "$d/notas.md" \
+    && [ "$(ls -A "$d" | wc -l | tr -d ' ')" -eq 2 ]; then
+    ok "F1 falha de escrita deixa o wrapper anterior e nao declara sucesso"
+  else
+    falha "F1 falha de escrita" "exit $rc, entradas: $(ls -A "$d" | tr '\n' ' ')"
+  fi
+  # F2 sem o limite, a mesma pasta atualiza o wrapper e fecha com exit 0.
+  roda "$falso"
+  if [ "$rc" -eq 0 ] && grep -qF "palavra399" "$d/SKILL.md" \
+    && [ "$(ls -A "$d" | wc -l | tr -d ' ')" -eq 2 ]; then
+    ok "F2 rodada seguinte sem limite atualiza o wrapper"
+  else
+    falha "F2 rodada sem limite" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
 rm -rf "$falso"
 
 # Casos D: descoberta nativa no Codex, sem modelo.
