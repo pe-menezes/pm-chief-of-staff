@@ -182,6 +182,39 @@ if nova P9; then
   rm -rf "$tmp"
 fi
 
+# E1 .agents e link pra pasta da pessoa fora do workspace: link e alvo
+# ficam como estao, nada nasce la, exit 2.
+if nova E1; then
+  monta "$pasta"
+  mkdir -p "$tmp/fora"
+  echo "da pessoa" > "$tmp/fora/nota.md"
+  ln -s ../fora "$pasta/.agents"
+  antes=$(ls -lAR "$tmp/fora" | cksum)
+  roda
+  if [ "$rc" -eq 2 ] && [ "$(readlink "$pasta/.agents")" = "../fora" ] \
+    && [ ! -e "$tmp/fora/skills" ] && [ ! -L "$tmp/fora/skills" ] \
+    && [ "$(ls -lAR "$tmp/fora" | cksum)" = "$antes" ]; then
+    ok "E1 .agents em link pra fora fica, nada nasce no alvo"
+  else
+    falha "E1 .agents em link" "exit $rc, alvo: $(ls -A "$tmp/fora" | tr '\n' ' ')"
+  fi
+  rm -rf "$tmp"
+fi
+
+# E2 .agents e link quebrado: fica, o alvo continua sem existir, exit 2.
+if nova E2; then
+  monta "$pasta"
+  ln -s ../nao-existe "$pasta/.agents"
+  roda
+  if [ "$rc" -eq 2 ] && [ "$(readlink "$pasta/.agents")" = "../nao-existe" ] \
+    && [ ! -e "$tmp/nao-existe" ] && [ ! -L "$tmp/nao-existe" ]; then
+    ok "E2 .agents em link quebrado fica"
+  else
+    falha "E2 .agents em link quebrado" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
+
 # Casos W: link indisponivel. Um ln falso, posto na frente do PATH so
 # durante a ponte, sai com erro, como em sistema sem link simbolico.
 falso=$(mktemp -d 2>/dev/null)
@@ -213,6 +246,14 @@ if nova W1; then
   else
     falha "W2 wrapper acompanha" "exit $rc"
   fi
+  # W2b o wrapper atualizado segue integro: a rodada seguinte nao acusa conflito.
+  antes=$(cksum < "$pasta/.agents/skills/abrir-dia/SKILL.md")
+  roda "$falso"
+  if [ "$rc" -eq 0 ] && [ "$(cksum < "$pasta/.agents/skills/abrir-dia/SKILL.md")" = "$antes" ]; then
+    ok "W2b wrapper atualizado segue integro"
+  else
+    falha "W2b wrapper atualizado integro" "exit $rc"
+  fi
   # W3 wrapper sem a marca da ponte e da pessoa: fica, exit 2.
   printf -- '---\nname: fechar-dia\ndescription: minha versao.\n---\nescrito a mao\n' > "$pasta/.agents/skills/fechar-dia/SKILL.md"
   roda "$falso"
@@ -223,6 +264,108 @@ if nova W1; then
   fi
   rm -rf "$tmp"
 fi
+
+# W4 a W6: wrapper com a marca mas mexido pela pessoa, ou sem a prova de
+# integridade (formato anterior). A fonte muda, entao uma atualizacao
+# indevida trocaria o arquivo; o wrapper fica byte a byte, exit 2.
+# mexe CASO DESCRICAO: gera o wrapper, aplica a edicao em $w, muda a fonte,
+# roda de novo e confere.
+mexe() {
+  if nova "$1"; then
+    monta "$pasta"
+    roda "$falso"
+    w="$pasta/.agents/skills/abrir-dia/SKILL.md"
+    case "$1" in
+      W4) echo "Instrucao acrescentada pela pessoa." >> "$w" ;;
+      W5) sed 's/abrir\./abrir, versao da pessoa./' "$w" > "$tmp/novo" && cat "$tmp/novo" > "$w" ;;
+      W6) sed '$d' "$w" > "$tmp/novo" && cat "$tmp/novo" > "$w" ;;
+    esac
+    antes=$(cksum < "$w")
+    sed 's/abrir\./abrir, mudada./' "$pasta/.claude/skills/abrir-dia/SKILL.md" > "$tmp/novo"
+    cat "$tmp/novo" > "$pasta/.claude/skills/abrir-dia/SKILL.md"
+    roda "$falso"
+    if [ "$rc" -eq 2 ] && [ -f "$w" ] && [ ! -L "$w" ] && [ "$(cksum < "$w")" = "$antes" ]; then
+      ok "$1 $2"
+    else
+      falha "$1 $2" "exit $rc, wrapper mudou: $(cksum < "$w") contra $antes"
+    fi
+    rm -rf "$tmp"
+  fi
+}
+mexe W4 "corpo do wrapper editado com a marca fica"
+mexe W5 "metadata do wrapper editada com a marca fica"
+mexe W6 "wrapper com a marca e sem prova de integridade fica"
+
+# E3 .agents e link pra fora com wrapper gerado la: nada no alvo muda,
+# nem com a fonte mudada e sem link no sistema, exit 2.
+if nova E3; then
+  monta "$pasta"
+  mkdir -p "$tmp/gera"
+  monta "$tmp/gera"
+  (cd "$tmp/gera" && PATH="$falso:$PATH" sh "$PONTE" >/dev/null 2>&1)
+  mv "$tmp/gera/.agents" "$tmp/fora"
+  ln -s ../fora "$pasta/.agents"
+  echo "edicao canonica" >> "$pasta/.claude/skills/abrir-dia/SKILL.md"
+  antes=$(ls -lAR "$tmp/fora" | cksum)
+  wantes=$(cksum < "$tmp/fora/skills/abrir-dia/SKILL.md" 2>/dev/null)
+  roda "$falso"
+  if [ "$rc" -eq 2 ] && [ -n "$wantes" ] && [ "$(readlink "$pasta/.agents")" = "../fora" ] \
+    && [ "$(cksum < "$tmp/fora/skills/abrir-dia/SKILL.md")" = "$wantes" ] \
+    && [ "$(ls -lAR "$tmp/fora" | cksum)" = "$antes" ]; then
+    ok "E3 wrapper fora do workspace nao se atualiza pelo link de .agents"
+  else
+    falha "E3 wrapper fora pelo link" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
+
+# F3 a primeira gravacao do wrapper falha: a pasta vazia que a rodada criou
+# sai, exit 1; sem o limite, a mesma pasta ganha o wrapper, exit 0.
+if nova F3; then
+  monta "$pasta"
+  longa=$(awk 'BEGIN { for (i = 0; i < 400; i++) printf "palavra%03d ", i }')
+  printf -- '---\nname: abrir-dia\ndescription: %s %s\n---\n\n# Abrir\n' "$SENT" "$longa" > "$pasta/.claude/skills/abrir-dia/SKILL.md"
+  (cd "$pasta" && ulimit -c 0 && ulimit -f 1 && PATH="$falso:$PATH" sh "$PONTE" >/dev/null 2>&1)
+  rc=$?
+  d="$pasta/.agents/skills/abrir-dia"
+  if [ "$rc" -eq 1 ] && [ ! -e "$d" ] && [ ! -L "$d" ]; then
+    ok "F3 falha na primeira gravacao nao deixa pasta vazia"
+  else
+    falha "F3 falha na primeira gravacao" "exit $rc, entradas: $(ls -A "$d" 2>/dev/null | tr '\n' ' ')"
+  fi
+  roda "$falso"
+  if [ "$rc" -eq 0 ] && grep -qF "palavra399" "$d/SKILL.md" 2>/dev/null \
+    && [ "$(ls -A "$d" | wc -l | tr -d ' ')" -eq 1 ]; then
+    ok "F3b rodada seguinte cria o wrapper na mesma pasta"
+  else
+    falha "F3b rodada seguinte" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
+
+# F4 a gravacao falha, mas a pasta ganhou conteudo da pessoa nesse meio
+# tempo (ln falso que cria o arquivo): o conteudo fica, so a gravacao falha.
+falso2=$(mktemp -d 2>/dev/null)
+printf '#!/bin/sh\nexit 1\n' > "$falso2/ln"
+printf '#!/bin/sh\n/bin/mkdir "$@" || exit $?\nfor a; do case "$a" in -*) ;; *) echo "da pessoa" > "$a/notas.md" ;; esac; done\n' > "$falso2/mkdir"
+chmod +x "$falso2/ln" "$falso2/mkdir"
+if nova F4; then
+  monta "$pasta"
+  mkdir -p "$pasta/.agents/skills"
+  longa=$(awk 'BEGIN { for (i = 0; i < 400; i++) printf "palavra%03d ", i }')
+  printf -- '---\nname: abrir-dia\ndescription: %s %s\n---\n\n# Abrir\n' "$SENT" "$longa" > "$pasta/.claude/skills/abrir-dia/SKILL.md"
+  (cd "$pasta" && ulimit -c 0 && ulimit -f 1 && PATH="$falso2:$PATH" sh "$PONTE" >/dev/null 2>&1)
+  rc=$?
+  d="$pasta/.agents/skills/abrir-dia"
+  if [ "$rc" -eq 1 ] && grep -qx "da pessoa" "$d/notas.md" 2>/dev/null \
+    && [ "$(ls -A "$d" | wc -l | tr -d ' ')" -eq 1 ]; then
+    ok "F4 falha na primeira gravacao preserva o que apareceu na pasta"
+  else
+    falha "F4 conteudo preservado" "exit $rc, entradas: $(ls -A "$d" 2>/dev/null | tr '\n' ' ')"
+  fi
+  rm -rf "$tmp"
+fi
+rm -rf "$falso2"
 
 # S1 SKILL.md em .agents/skills e link pra arquivo da pessoa, e o alvo tem a
 # marca da ponte: link e alvo ficam como estao, exit 2.
