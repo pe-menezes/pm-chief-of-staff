@@ -9,7 +9,7 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 ## O que você precisa antes
 
 1. **Um dos dois agentes, rodando no seu computador:** o **[Claude Code](https://claude.com/claude-code)**, da Anthropic (Mac ou Windows), ou o **Codex**, da OpenAI, no app desktop ou no CLI.
-2. **A conta do agente escolhido:** assinatura do Claude (Pro ou superior) pro Claude Code, ou uma conta com acesso ao Codex. É a única coisa paga.
+2. **A conta do agente escolhido:** assinatura do Claude (Pro ou superior) pro Claude Code, ou uma conta com acesso ao Codex, nos termos do plano dela. O plugin em si é gratuito.
 3. Mais nada. Não precisa saber programar, não precisa de Obsidian nem Notion (o sistema é uma pasta de arquivos markdown que qualquer editor abre; se você usa Obsidian, ele funciona bem por cima). Se você nunca usou um terminal, cole este README no próprio Claude e peça ajuda.
 
 ## Instalação no Claude Code (3 passos, ~5 minutos)
@@ -30,7 +30,7 @@ Não é um template pronto. **O sistema nasce do seu discovery e se molda a voc�
 /pm-chief-of-staff:setup
 ```
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o AGENTS.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pede sua permissão três vezes: uma pra ler as skills que vêm com o plugin, outra pra criar os arquivos delas na sua pasta e a última pra rodar a ponte que deixa a pasta pronta pro Codex (adiante). Aceite as duas primeiras, porque sem elas os comandos não passam a existir; a terceira só importa se você for abrir a pasta no Codex também. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura e o AGENTS.md (o "manual de instruções" que ele mesmo vai seguir), **você revisa tudo antes de qualquer arquivo ser criado**, e ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pode pedir sua permissão (quantas vezes depende do que você já liberou antes) pra três coisas: ler as skills que vêm com o plugin, criar os arquivos delas na sua pasta e rodar a ponte que deixa a pasta pronta pro Codex (adiante). Aceite os pedidos de leitura e de criação, porque sem eles os comandos não passam a existir; o da ponte só importa se você for abrir a pasta no Codex também. Não comece 15 minutos antes de uma reunião: o discovery é a parte que define a qualidade do resto.
 
 ## Instalação no Codex (app desktop ou CLI)
 
@@ -78,7 +78,7 @@ Os comandos com `/pm-chief-of-staff:` são a forma do Claude Code. No Codex, pe�
 A pasta montada abre nos dois agentes, sem segunda cópia de nada:
 
 * **Uma fonte só pras suas skills.** Elas moram em `.claude/skills/`, e é lá que toda edição acontece. O Codex procura skills em `.agents/skills/`, então a ponte (`modulos/ponte-codex.sh`, rodada pelo setup, pelo plantar e pelo criar-skill) cria ali um link relativo pra `.claude/skills/`. Onde link não é possível, ela escreve por skill um `SKILL.md` curto que manda ler a fonte. Edição feita na fonte aparece na sessão seguinte do Codex.
-* **A ponte não passa por cima do que é seu.** Um `.agents/skills` que você já tinha, um link seu ou uma skill de mesmo nome ficam intactos e saem como conflito, pra você decidir com o agente. Ela só reescreve os arquivos curtos que ela mesma gerou. Rodar de novo é seguro.
+* **A ponte não passa por cima do que é seu.** Se você já tinha uma pasta `.agents/skills`, ela continua sendo usada: a ponte só acrescenta ali as entradas que faltam, uma por skill. Uma entrada de mesmo nome que não foi a ponte que criou (arquivo, link ou skill sua) fica como está e sai na lista de conflitos, pra você decidir com o agente. Se `.agents/skills` já for um link seu ou um arquivo, a ponte não escreve nada ali e também relata conflito. Ela só reescreve os arquivos curtos que ela mesma gerou. Rodar de novo é seguro.
 * **Regras situacionais chegam pelo índice.** O Codex não lê o `paths:` das regras de `.claude/rules/`. O `AGENTS.md` gerado tem a seção `## Regras por assunto`, uma linha por regra com o assunto e o caminho, e manda ler a regra antes de atuar no assunto. Regra nova entra no índice no mesmo passo; regra fora dele vale só no Claude Code.
 * **O revisor de tells continua independente.** No Claude Code é o agente nomeado do plugin. No Codex, o `remove-ai-tells` abre um subagente novo, sem o histórico da conversa e com ordem de só ler. Se a sessão não tiver subagente, ele avisa que nenhum revisor separado leu o texto, em vez de fingir a leitura.
 
@@ -97,7 +97,7 @@ O manual mora no `AGENTS.md`, que Claude Code, Codex e Cursor leem. Ao lado dele
 
 O ciclo diário fecha sozinho: `abrir-dia` lê o que o `fechar-dia` de ontem semeou; o `fechar-dia` promove o que ficou solto no log pros hubs. Em duas semanas de uso, o agente conhece seu time, seus projetos e seus padrões.
 
-Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois compõem: este plugin dá a estrutura e os rituais, a engine dá o enforcement mecânico e assume a injeção de abertura no Claude Code (o hook detecta e cede a vez). A engine roda só no Claude, então no Codex o hook do plugin faz a carga sempre.
+Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois compõem: este plugin dá a estrutura e os rituais, a engine dá o enforcement mecânico e assume a injeção de abertura no Claude Code (o hook detecta e cede a vez). No Codex, o hook do plugin faz a carga sempre: a telemetria que a engine deixa na pasta não comprova que ela está rodando nesta sessão do Codex, então o registro do Codex não cede a vez por essa evidência.
 
 ## Onde ficam meus dados?
 
