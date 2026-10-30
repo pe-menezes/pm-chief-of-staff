@@ -227,5 +227,50 @@ else
   fail "AQ4 README anchors" "$aq4_bad"
 fi
 
+# ---------------------------------------------------------------------------
+# AQ5 (risk code: the agent-side names of an 0.7.0 folder) an 0.7.0 folder
+# keeps the 0.7.0 names on the agent side too: its file is navegacao.md and
+# its capabilities module names the capability rows and the columns the 0.7.0
+# way, so a planted seed that reads `navigation.md` or the `how to call`
+# column reads what is not there. For every row of the vocabulary legacy table
+# of kind folder file, agent label, capability, capabilities column,
+# capabilities section or tells.md section whose 0.7.0 name differs and that
+# a catalog seed cites in backticks: plant's 0.7.0 leftover list names it,
+# and setup's pt-BR list (a new folder, where these names stay in English)
+# does not. The adaptation step of plant takes the legacy column of both
+# tables that hold these names, and names the fixed file it maps.
+
+awk -F'|' '
+  /^## Legacy 0.7.0 names/ { on = 1; next }
+  /^## / { on = 0 }
+  on {
+    k = $2; gsub(/^ +| +$/, "", k)
+    if (k != "folder file" && k != "agent label" && k != "capability" && k != "capabilities column" \
+        && k != "capabilities section" && k != "`tells.md` section") next
+    n = $3; o = $4
+    gsub(/^ *`|` *$/, "", n); gsub(/^ *`|` *$/, "", o)
+    if (n != o) print k "\t" n "\t" o
+  }' "$VOC" > "$work/agent-legacy"
+aq5_bad=""
+[ "$(wc -l < "$work/agent-legacy" | tr -d ' ')" -ge 10 ] || aq5_bad="$aq5_bad [agent-side legacy rows not found]"
+used=0
+while IFS="$(printf '\t')" read -r kind en old; do
+  grep -q -F -- "\`$en\`" "$work/seeds" || continue
+  used=$((used + 1))
+  grep -q -x -F -- "$en" "$work/l-plant" || aq5_bad="$aq5_bad [plant list misses $en ($kind, 0.7.0 $old), cited by a seed]"
+  grep -q -x -F -- "$en" "$work/l-setup" && aq5_bad="$aq5_bad [setup list names $en, which a new folder keeps]"
+done < "$work/agent-legacy"
+[ "$used" -ge 4 ] || aq5_bad="$aq5_bad [only $used agent-side names found in the seeds]"
+step=$(grep -F -- "adapted to the folder's vocabulary before writing" "$PLANT" | head -1)
+[ -n "$step" ] || aq5_bad="$aq5_bad [plant adaptation step not found]"
+for t in '"Agent-side labels"' '"Legacy 0.7.0 names"' '`navigation.md`' '`navegacao.md`'; do
+  printf '%s\n' "$step" | grep -q -F -- "$t" || aq5_bad="$aq5_bad [plant adaptation step does not name $t]"
+done
+if [ -z "$aq5_bad" ]; then
+  ok "AQ5 plant adapts and searches the agent-side 0.7.0 names in an 0.7.0 folder only"
+else
+  fail "AQ5 agent-side 0.7.0 names" "$aq5_bad"
+fi
+
 rm -rf "$work"
 [ "$failures" -eq 0 ]

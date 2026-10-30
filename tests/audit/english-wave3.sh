@@ -195,11 +195,25 @@ fi
 # AP5 the leftover search after an adapted copy: each name setup lists for a
 # pt-BR folder and plant lists for an 0.7.0 folder is the fixed part of an en
 # cell whose pt-BR fixed part differs (so a hit is a real unadapted name), or,
-# only in the 0.7.0 list, a module whose 0.7.0 name differs. A module name in
-# the pt-BR list would make the agent "fix" the right path of a new folder.
+# only in the 0.7.0 list, a module or an agent-side name (folder file, agent
+# label, capability, capabilities column or section, tells.md section) whose
+# 0.7.0 name in the legacy table differs. A module or agent-side name in the
+# pt-BR list would make the agent "fix" the right name of a new folder.
 
 heads 3 > "$work/h-en"
 heads 4 > "$work/h-pt"
+# agent-side 0.8.0 names whose 0.7.0 name differs, one per line.
+awk -F'|' '
+  /^## Legacy 0.7.0 names/ { on = 1; next }
+  /^## / { on = 0 }
+  on {
+    k = $2; gsub(/^ +| +$/, "", k)
+    if (k != "folder file" && k != "agent label" && k != "capability" && k != "capabilities column" \
+        && k != "capabilities section" && k != "`tells.md` section") next
+    n = $3; o = $4
+    gsub(/^ *`|` *$/, "", n); gsub(/^ *`|` *$/, "", o)
+    if (n != o) print n
+  }' "$VOC" > "$work/agent-differ"
 # listed FILE INTRO: the backticked names between INTRO and "and the rest".
 listed() {
   grep -F -- "$2" "$1" | head -1 | awk -v i="$2" '{ s = index($0, i); t = substr($0, s); e = index(t, "and the rest of the column"); if (s && e) print substr(t, 1, e - 1) }' \
@@ -226,7 +240,12 @@ check_list() {
         else
           ap5_bad="$ap5_bad [$tag: $n is a fixed name in a new folder]"
         fi ;;
-      *) ap5_bad="$ap5_bad [$tag: $n is no en name of the vocabulary]" ;;
+      *)
+        if grep -q -x -F -- "$n" "$work/agent-differ"; then
+          [ "$allow_modules" = yes ] || ap5_bad="$ap5_bad [$tag: $n is an agent-side name a new folder keeps]"
+        else
+          ap5_bad="$ap5_bad [$tag: $n is no en name of the vocabulary]"
+        fi ;;
     esac
   done < "$work/list"
 }
