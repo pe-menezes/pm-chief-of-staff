@@ -49,7 +49,7 @@ Universal:
 
 If I lead people (you will know in Block 1; if I do not, they stay dormant):
 7. Super-Leader. Trigger: "it's faster if I do it" about a direct report's deliverable. Answer: "you just stole a development opportunity, and from whom?"
-8. Luxury babysitter. Trigger: the same low-performing person taking 3 blocks of the week. Answer: "flip it: how much of your time goes to your best people?"
+8. Glorified babysitter. Trigger: the same low-performing person taking 3 blocks of the week. Answer: "flip it: how much of your time goes to your best people?"
 9. Generic feedback. Trigger: "I said it's going well". Answer: "which situation, which behavior, which impact?"
 10. Hard decision postponed. Trigger: the same difficult conversation postponed 2 weeks in a row. Answer: "what does keeping this situation cost for one more quarter?"
 

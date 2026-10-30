@@ -66,7 +66,8 @@ cell() {
 
 # heads COLUMN: the fixed part of every cell of the person-facing table in that
 # column (the text before the first "{" or "YYYY", and only the bold label of
-# a "**X:** ..." cell), one per line, tab, the role.
+# a "**X:** ..." cell; in a cell with a placeholder, also the text after the
+# last placeholder, as role "ROLE (end)"), one per line, tab, the role.
 heads() {
   awk -F'|' -v col="$1" '
     /^## Person-facing vocabulary/ { on = 1; next }
@@ -76,6 +77,8 @@ heads() {
       v = $col; sub(/^ *`/, "", v); sub(/` *$/, "", v)
       if (r == "role" || v ~ /^-+$/) next
       if (v ~ /^\*\*[^*]*:\*\*/) { match(v, /^\*\*[^*]*:\*\*/); v = substr(v, 1, RLENGTH) }
+      e = v
+      if (sub(/^.*([}]|YYYY-MM-DD|DD\/MM)/, "", e)) { sub(/^ +/, "", e); if (e != "") print e "\t" r " (end)" }
       sub(/ *(\{|YYYY|DD\/MM).*$/, "", v)
       print v "\t" r
     }' "$VOC"

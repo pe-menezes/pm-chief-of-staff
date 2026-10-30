@@ -103,7 +103,9 @@ fi
 # ---------------------------------------------------------------------------
 # AQ2 the leftover search after an adapted copy covers what the copy can carry:
 # every fixed part (text before the first "{" or "YYYY", only the bold label
-# of a "**X:** ..." cell) of an en cell of the person-facing table whose pt-BR
+# of a "**X:** ..." cell; in a cell with a placeholder, also the text after
+# the last placeholder, as role "ROLE (end)") of an en cell of the
+# person-facing table whose pt-BR
 # fixed part differs, that a catalog seed uses, is named in plant's 0.7.0 list
 # and in setup's pt-BR list; setup also plants capabilities.md and
 # write-gate.md, so the names those modules use are in its list too. The
@@ -118,6 +120,8 @@ heads() {
       v = $col; sub(/^ *`/, "", v); sub(/` *$/, "", v)
       if (r == "role" || r == "date format in labels" || v ~ /^-+$/) next
       if (v ~ /^\*\*[^*]*:\*\*/) { match(v, /^\*\*[^*]*:\*\*/); v = substr(v, 1, RLENGTH) }
+      e = v
+      if (sub(/^.*([}]|YYYY-MM-DD|DD\/MM)/, "", e)) { sub(/^ +/, "", e); if (e != "") print r " (end)\t" e }
       sub(/ *(\{|YYYY|DD\/MM).*$/, "", v)
       print r "\t" v
     }' "$VOC"

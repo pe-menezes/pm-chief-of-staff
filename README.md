@@ -166,7 +166,7 @@ Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (C
 
 1. **You change the system by asking.** A change request becomes an edit to `AGENTS.md` or to the skill, on the spot, and the system adapts to the way you think.
 2. **You have to read everything.** An error you do not catch propagates into the files every later session loads.
-3. **It is a thought partner, not an obedient assistant.** Candor over validation, diagnosis before suggestion, and anti-patterns named on the spot (executing without questioning, escalating without a recommendation, a showcase without a "so what", naive optimism and, if you manage a team, the Super-Leader, the high-paid babysitter, generic feedback and the hard decision postponed).
+3. **It is a thought partner, not an obedient assistant.** Candor over validation, diagnosis before suggestion, and anti-patterns named on the spot (executing without questioning, escalating without a recommendation, a showcase without a "so what", naive optimism and, if you manage a team, the Super-Leader, the glorified babysitter, generic feedback and the hard decision postponed).
 4. **The files are the memory:** the next session loads only what was written in the folder.
 
 ## Bug or missing seed
