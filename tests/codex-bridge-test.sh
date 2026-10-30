@@ -150,7 +150,7 @@ if fresh P6; then
 fi
 
 # P7 .agents/skills is a real folder with the person's skill of the same
-# name: hers stays intact, the missing one gets its own link, _shared stays
+# name: theirs stays intact, the missing one gets its own link, _shared stays
 # out, exit 2.
 if fresh P7; then
   build "$folder"
@@ -162,7 +162,7 @@ if fresh P7; then
     && [ "$(cat "$folder/.agents/skills/start-day/SKILL.md")" = "the person's codex skill" ] \
     && [ "$target" = "../../.claude/skills/close-day" ] \
     && [ ! -e "$folder/.agents/skills/_shared" ] && [ ! -L "$folder/.agents/skills/_shared" ]; then
-    ok "P7 real folder: hers stays, the missing one gets a link, _shared out"
+    ok "P7 real folder: theirs stays, the missing one gets a link, _shared out"
   else
     fail "P7 real folder" "exit $rc, close-day link: $target"
   fi

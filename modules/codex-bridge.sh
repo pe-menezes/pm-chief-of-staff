@@ -1,6 +1,6 @@
 #!/bin/sh
 # Codex bridge of pm-chief-of-staff: lets Codex find the person's skills
-# without a second copy. The single source is .claude/skills/ in her folder;
+# without a second copy. The single source is .claude/skills/ in their folder;
 # Codex scans .agents/skills/. Runs inside the person's folder:
 #   sh "<plugin root>/modules/codex-bridge.sh"
 # Loaded by: setup (planting), plant (step 4), create-skill (step 4).
