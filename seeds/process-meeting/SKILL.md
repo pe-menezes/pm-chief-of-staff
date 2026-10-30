@@ -9,7 +9,7 @@ description: Turns a meeting that happened into a structured note and propagates
 
 Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without one, in the language the person writes in, and fallback questions go in their language too. Follow that file's writing canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
 
-The value is not summarizing: it is extracting what changes the state of the system (decision, task, signal about a person or project) and putting each thing in the place where it will be found. One meeting processed and propagated is worth more than ten stored transcripts.
+The value lies in extracting what changes the state of the system (decision, task, signal about a person or project) and putting each thing in the place where it will be found. One meeting processed and propagated is worth more than ten stored transcripts.
 
 ## Step 1: receive the material
 
@@ -17,7 +17,7 @@ Accept any form: pasted transcript, automatic summary (Gemini, Zoom, Granola), p
 
 If `.claude/skills/_shared/capabilities.md` exists with `provider` and `how to call` filled in on the `meeting transcript` line, offer to fetch the transcript through there instead of waiting for pasted material. Without the module, with the line half-filled, or with no result from the fetch, go on with what the person pastes.
 
-A transcript is evidence of what was SAID, not of what is true: a relevant factual claim that exists only in speech goes into the note marked as "to validate".
+A transcript proves only what was SAID: a relevant factual claim that exists only in speech goes into the note marked as "to validate".
 
 ## Step 2: write the note
 

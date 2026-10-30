@@ -7,7 +7,7 @@ description: Starts the workday. Builds the calendar, scans the open tasks, prop
 
 > pm-chief-of-staff seed. This file is YOURS: ask the agent to change any step ("I want the opening to always include X") and it edits this skill on the spot.
 
-Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without it, in the language they write in, and fallback questions go in their language. Follow that file's canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
+Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without one, in the language the person writes in, and fallback questions go in their language too. Follow that file's writing canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
 
 Builds the day on what is already written: priorities, open tasks, calendar, and the seed that yesterday's close left. Proposes today's 3; the person validates before they are locked in.
 
@@ -21,11 +21,11 @@ Builds the day on what is already written: priorities, open tasks, calendar, and
 
 1. **Read the state**: `CRITICAL_FACTS.md` (priorities) · the current week's journal · the `**→ tomorrow:**` line from yesterday's close (the strongest candidate for today's #1) · the most recent `memory/` log.
 2. **Calendar**: if `.claude/skills/_shared/capabilities.md` exists, read the `today's calendar` line and pull today's events with what is in `how to call`, with `provider` identifying the source. Without the module, with that line empty or half filled (only one of the two columns), or if the fetch fails (expired connector, machine without it), ask in 1 line: "what does your calendar look like today? (meetings and free windows)". The day opening does not stop because of the calendar.
-3. **Scan the backlog**: `grep -- "- \[ \]"` across the whole `journal/`, with no start-of-line anchor (an indented subtask counts). Categorize: **today** (due today or settled in a meeting today) · **overdue** · **this week** · **waiting** (blocked by a third party). An overdue task from another topic is read together with the new ones: if a new one invalidates the old one, propose closing the old one, not redoing it.
+3. **Scan the backlog**: `grep -- "- \[ \]"` across the whole `journal/`, with no start-of-line anchor (an indented subtask counts). Categorize: **today** (due today or settled in a meeting today) · **overdue** · **this week** · **waiting** (blocked by a third party). An overdue task from another topic is read together with the new ones: if a new one invalidates the old one, propose closing the old one.
 4. **Propose today's 3**, each one explicitly anchored ("{task} (anchors priority 1)"). Rules:
    * Yesterday's `**→ tomorrow:**` seed is the strongest candidate for #1.
    * A meeting is not one of today's 3 (it happens anyway); the 3 are execution.
-   * **Calibrate against the calendar**: count the hours that are really free. With less than 2h left, propose 1 move + 1 monitor at most, and say so in the opening. Three ambitious ones on a day with no window guarantee failure by calibration, not by execution.
+   * **Calibrate against the calendar**: count the hours that are really free. With less than 2h left, propose 1 move + 1 monitor at most, and say so in the opening. Three ambitious ones on a day with no window guarantee a failure whose cause is calibration.
 5. **Record** at the top of the weekly journal: `## Today's 3: YYYY-MM-DD` + the 3, numbered and anchored. Same day runs again: overwrite the block. New day: create it and leave the previous one in the history.
 6. **Answer short**: calendar in 1 block · the 3 proposals · 1 to 2 critical questions if a contradiction was detected. Wait for validation before locking in.
 

@@ -9,7 +9,7 @@ description: Builds the agenda before a conversation that matters. 1:1 with a di
 
 Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without one, in the language the person writes in, and fallback questions go in their language too. Follow that file's writing canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
 
-A good agenda is born from what is already written, not from memory. The flow: gather candidates → validate with the person → write the agenda with only what was validated.
+A good agenda is born from what is already written. The flow: gather candidates → validate with the person → write the agenda with only what was validated.
 
 ## Step 1: gather candidates
 
@@ -47,7 +47,7 @@ Open by listening: "what do you bring me?"
 <!-- direct-report-feedback:start -->
 * **Direct report (if you lead people):** add a `## Feedback (1-2)` section with concrete evidence (situation → behavior → impact; developmental feedback closes with the expected change). No concrete evidence from the last 1 to 2 weeks, no feedback: flag the gap and suggest observing during the week. Also add 1 development question anchored in the person's moment.
 <!-- direct-report-feedback:end -->
-* **Your manager:** lead with state and decision, not with activity. What you need FROM THEM (unblocking, decision, context) goes in explicitly. Bring a recommendation, not a list of problems.
+* **Your manager:** lead with state and decision. What you need FROM THEM (unblocking, decision, context) goes in explicitly. Bring a recommendation for each problem you raise.
 * **Peer or stakeholder:** what you need from them, what they need from you, and the misalignment that is costly. An alignment agenda with no decision to make is a meeting that could have been a message: say so.
 
 ## After generating
