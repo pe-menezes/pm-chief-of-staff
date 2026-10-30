@@ -105,7 +105,7 @@ Um bloco por mensagem. Espere a resposta antes do próximo. Não adivinhe nada: 
 * onde mora a informação que mais consulta (bases, docs, dashboards, pesquisas)
 * de onde vêm as transcrições ou notas de reunião dela, se houver
 
-Fechado o Bloco 3, leia `${CLAUDE_PLUGIN_ROOT}/skills/conectar/SKILL.md` (se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) e siga a conversa dela, que casa cada ferramenta dita com uma capacidade e checa o que esta sessão consegue puxar sozinha. Skill de plugin não se invoca por comando de dentro de uma execução: o caminho é ler o arquivo e seguir. Registre o resultado no Bloco 3 do `setup-notas.md`: o arquivo do módulo só é escrito no plantio, porque nada de sistema é criado antes da revisão.
+Fechado o Bloco 3, leia `${CLAUDE_PLUGIN_ROOT}/skills/conectar/SKILL.md` (se a variável não resolver, a raiz do plugin é a pasta dois níveis acima deste SKILL.md; só sem ela, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins do agente em uso) e siga a conversa dela, que casa cada ferramenta dita com uma capacidade e checa o que esta sessão consegue puxar sozinha. Skill de plugin não se invoca por comando de dentro de uma execução: o caminho é ler o arquivo e seguir. Registre o resultado no Bloco 3 do `setup-notas.md`: o arquivo do módulo só é escrito no plantio, porque nada de sistema é criado antes da revisão.
 
 **Bloco 4: Stakeholders críticos**
 Em 3 categorias: pares de interação frequente; quem decide a partir do que ela entrega; liderança acima do líder direto. Pra cada um: nome, cargo, onde aparece no trabalho.
@@ -145,11 +145,12 @@ diario/          o diário semanal (tasks e 3 do dia)
 memory/          o log diário (um arquivo por dia, append-only)
 .claude/rules/   regras situacionais por escopo de arquivo (nasce vazia; a régua de 4 destinos, adiante, povoa)
 .claude/skills/_shared/   módulos que mais de uma skill lê (nasce com capacidades.md, do conectar, e gate-de-escrita.md)
+.agents/skills   ponte pro Codex: link pra .claude/skills, sem cópia (a ponte, no plantio)
 ```
 
-Os nomes `.claude/rules/` e `.claude/skills/` são fixos (mecanismo do Claude Code); os demais se adaptam.
+Os nomes `.claude/rules/`, `.claude/skills/` e `.agents/skills` são fixos (mecanismo do Claude Code e do Codex); os demais se adaptam. `.claude/skills/` é a fonte única das skills dela, e `.agents/skills` só aponta pra ela.
 
-**2. AGENTS.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery, escopo formal separado das prioridades do período); os 4 princípios; a postura; os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1); o rigor; o vocabulário e preferências do Bloco 7; **a arquitetura de memória e a rotina de sessão** (abaixo); a instrução de auto-modulação com a régua de 4 destinos (abaixo).
+**2. AGENTS.md v1**, o arquivo mais importante do sistema. Precisa conter: quem ela é e o que toca (do discovery, escopo formal separado das prioridades do período); os 4 princípios; a postura; os anti-padrões com gatilhos (universais + os de liderança, ativos ou dormentes conforme o Bloco 1); o rigor; o vocabulário e preferências do Bloco 7; **a arquitetura de memória e a rotina de sessão** (abaixo); a instrução de auto-modulação com a régua de 4 destinos (abaixo); e a seção `## Regras por assunto`, o índice das regras de `.claude/rules/` (abaixo, no segundo destino), que nasce com a linha "nenhuma regra ainda".
 
 Junto dele vai o `CLAUDE.md` da pasta, cujo conteúdo é só a linha `@AGENTS.md`. Ao propor, explique a ponte em 1 linha: ela faz o Claude Code carregar o `AGENTS.md` mesmo com um `CLAUDE.local.md` ao lado, e o manual fica num arquivo só, que Codex e Cursor também leem.
 
@@ -186,7 +187,7 @@ Rotina de sessão que o AGENTS.md gerado carrega: toda sessão nova começa lend
 Pedido de mudança tem 1 destino entre 4, e o AGENTS.md v1 escreve a régua com todas as letras. A última frase do primeiro destino entra no AGENTS.md gerado copiada literal:
 
 * **Comportamento que vale em toda interação** (tom, formato de leitura, vocabulário): linha no próprio AGENTS.md, que se mantém curto. O `CLAUDE.md` da pasta é a ponte de uma linha (`@AGENTS.md`) e nunca recebe regra.
-* **Regra situacional de um tema ou tipo de arquivo** ("quando mexer em nota de 1:1, faça X"): arquivo `.claude/rules/{tema}.md` com frontmatter `paths:` listando globs. A regra carrega só quando o trabalho toca aqueles arquivos, e o AGENTS.md não engorda com o situacional.
+* **Regra situacional de um tema ou tipo de arquivo** ("quando mexer em nota de 1:1, faça X"): arquivo `.claude/rules/{tema}.md` com frontmatter `paths:` listando globs. No Claude Code a regra carrega só quando o trabalho toca aqueles arquivos, e o AGENTS.md não engorda com o situacional. Outro agente, como o Codex, não lê `paths:`: quem leva a regra até ele é o índice `## Regras por assunto` do AGENTS.md, uma linha por regra (o assunto e o caminho em `.claude/rules/`), com esta ordem escrita no topo do índice: antes de atuar num assunto do índice, leia a regra dele. Regra nova entra no índice no mesmo passo em que o arquivo nasce; regra fora do índice fica invisível pro Codex.
 * **Formato ou passo de um artefato** (a pauta, a nota, o report): edição na skill dona do artefato.
 * **Disciplina de um passo que 2 ou mais skills precisam** ("antes de escrever a nota, aplique isto"): módulo em `.claude/skills/_shared/{nome}.md`, que cada skill consumidora manda ler. Regra com `paths:` não serve: ela dispara quando um arquivo é tocado, e isto carrega antes de o arquivo existir.
 
@@ -204,7 +205,7 @@ A regra, que só carrega quando o trabalho toca reunioes/.
 
 Uma "semente" é uma skill starter que vive no plugin e vira um arquivo da pessoa quando plantada (copiada pra pasta dela, onde vira editável).
 
-Antes da primeira leitura e da primeira escrita aqui, avise em 1 frase: vão aparecer dois pedidos de permissão neste passo, um pra ler os arquivos do plugin (onde as sementes moram) e outro pra criar arquivos em `.claude/` da pasta dela (onde elas vão), e os dois são esperados. Negado ou bloqueado, diga o que ficou sem ser escrito e o que deixa de funcionar (os comandos como `/abrir-dia`), sem contorno silencioso: skill escrita em outro lugar não vira comando.
+Antes da primeira leitura e da primeira escrita aqui, avise em 1 frase: vão aparecer pedidos de permissão neste passo, um pra ler os arquivos do plugin (onde as sementes moram), outro pra criar arquivos em `.claude/` da pasta dela (onde elas vão) e um pra rodar a ponte do Codex (adiante), e todos são esperados. Negado ou bloqueado, diga o que ficou sem ser escrito e o que deixa de funcionar (os comandos como `/abrir-dia`), sem contorno silencioso: skill escrita em outro lugar não vira comando.
 
 Depois dos arquivos criados, copie as 5 skills-semente da pasta `seeds/` do plugin (em `${CLAUDE_PLUGIN_ROOT}/seeds/`; se a variável não resolver, localize a pasta do plugin `pm-chief-of-staff` no cache de plugins) para `.claude/skills/` **da pasta da pessoa**:
 
@@ -217,6 +218,8 @@ Junto com as sementes, escreva o módulo de capacidades em `.claude/skills/_shar
 No mesmo passo, copie `${CLAUDE_PLUGIN_ROOT}/modulos/gate-de-escrita.md` pra `.claude/skills/_shared/gate-de-escrita.md` dela: a decisão de admissão (ADD, UPDATE, SUPERSEDE, NOOP) que as sementes aplicam antes de escrever fato em hub, diário ou `CRITICAL_FACTS.md`. A mesma checagem vale pra ele: semente mantida da pasta dela em colisão não referencia o gate, e o módulo fica escrito sem leitor; ofereça a edição, nunca sobrescreva. Semente plantada antes desta camada segue escrevendo sem o gate e sem dar erro; a conferência de consumidores do `fechar-semana` (passo 6) é o caminho de detecção.
 
 Copiadas as sementes e os módulos, varra os arquivos plantados por menções de pasta que não existem na estrutura que foi criada: a pessoa pode ter acordado outro nome pra uma pasta da base (`projetos/` virando `frentes/`, por exemplo), e a cópia vem do plugin citando o nome padrão. Adapte cada menção pro nome acordado e avise em 1 linha o que adaptou. Menção não adaptada faz a primeira propagação de decisão apontar pra pasta inexistente.
+
+Por último, a ponte do Codex: rode na pasta dela `sh "${CLAUDE_PLUGIN_ROOT}/modulos/ponte-codex.sh"` (raiz do plugin resolvida como no começo deste passo, com o caminho entre aspas porque pode ter espaço). Ela cria `.agents/skills` como link relativo pra `.claude/skills`, ou, sem link no sistema, um `SKILL.md` curto por skill que manda ler a fonte. É o que faz o Codex achar as mesmas skills, e a edição em `.claude/skills/` aparece na sessão seguinte dele sem cópia. Saída 0: diga em 1 linha que a pasta abre igual no Codex. Saída 2: a ponte achou algo da pessoa no caminho (um `.agents/skills` dela, uma skill de mesmo nome) e deixou intacto; mostre as linhas de conflito e decida com ela, nunca apague, renomeie nem mescle sozinho. Saída 1 ou comando negado: diga que no Codex as skills dela ficam sem descoberta até a ponte rodar, e que `/pm-chief-of-staff:plantar` roda a ponte de novo.
 
 O catálogo tem uma semente que não entra agora: `fechar-semana`, o loop semanal. No fechamento, deixe combinado: no fim da primeira semana de uso, rodar `/pm-chief-of-staff:plantar fechar-semana`. É o primeiro plantio que a pessoa faz sozinha, e fecha o loop da semana em cima dos fechamentos diários.
 

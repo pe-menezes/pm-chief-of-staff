@@ -1,0 +1,43 @@
+{
+  "name": "pm-chief-of-staff",
+  "version": "0.7.0",
+  "description": "Chief of Staff pessoal pra quem trabalha com produto: um segundo cérebro de trabalho que nasce de uma conversa, mora em arquivos markdown seus e se molda a você. Rode a skill setup numa pasta vazia.",
+  "author": {
+    "name": "Pedro Menezes",
+    "url": "https://github.com/pe-menezes"
+  },
+  "homepage": "https://github.com/pe-menezes/pm-chief-of-staff",
+  "repository": "https://github.com/pe-menezes/pm-chief-of-staff",
+  "license": "MIT",
+  "skills": "./skills/",
+  "hooks": {
+    "hooks": {
+      "SessionStart": [
+        {
+          "matcher": "startup",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memoria.sh\" codex"
+            }
+          ]
+        },
+        {
+          "matcher": "clear",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memoria.sh\" codex"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "interface": {
+    "displayName": "PM Chief of Staff",
+    "shortDescription": "Segundo cérebro de trabalho em markdown, montado numa conversa",
+    "developerName": "Pedro Menezes",
+    "category": "Productivity"
+  }
+}
