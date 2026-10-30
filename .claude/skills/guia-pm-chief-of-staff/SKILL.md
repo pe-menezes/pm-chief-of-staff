@@ -15,13 +15,13 @@ This repository is the plugin and its marketplace. The product is made of Markdo
 * `agents/ai-tells-reviewer.md`: source of the independent reviewer protocol.
 * `.claude-plugin/`: Claude identity and marketplace; `.codex-plugin/`: Codex identity and hooks.
 * `hooks/`: memory boot (`boot-memory.sh`), its suite (`boot-memory-test.sh`) and the registry `hooks.json`. The script runs in the person's folder, never at the plugin root.
-* `tests/`: deterministic proofs of the bridge (`codex-bridge-test.sh`) and of local discovery (`audit/codex-compat-final.sh`), plus the English-translation audit probes (`audit/english-wave1.sh`, `audit/english-wave2.sh`); `tests/e2e/` holds the E2E tools (`lang-check.sh`, the language meter, and `legacy-0.7-fixture.sh`, the fictitious 0.7.0 folder).
+* `tests/`: deterministic proofs of the bridge (`codex-bridge-test.sh`) and of local discovery (`audit/codex-compat-final.sh`), plus the English-translation audit probes (`audit/english-wave1.sh`, `audit/english-wave2.sh`, `audit/english-wave3.sh`); `tests/e2e/` holds the E2E tools (`lang-check.sh`, the language meter, and `legacy-0.7-fixture.sh`, the fictitious 0.7.0 folder).
 * `README.md`, `PROMPT.md` and their `.pt-BR.md` mirrors: install docs and the pastable setup.
 * `.vibeflow/`: local context and reports, ignored by git.
 
 ## Verification
 
-Run `sh hooks/boot-memory-test.sh`, `sh tests/codex-bridge-test.sh`, `sh tests/audit/codex-compat-final.sh`, `sh tests/audit/english-wave1.sh` and `sh tests/audit/english-wave2.sh`. Real discovery needs `codex` on the PATH; the cases without it prove nothing about that part. The language meter used by the English probes needs a UTF-8 locale: under a `C` locale, run them with `env LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8`. Also run `git diff --check` and `claude plugin validate .`.
+Run `sh hooks/boot-memory-test.sh`, `sh tests/codex-bridge-test.sh`, `sh tests/audit/codex-compat-final.sh`, `sh tests/audit/english-wave1.sh`, `sh tests/audit/english-wave2.sh` and `sh tests/audit/english-wave3.sh`. Real discovery needs `codex` on the PATH; the cases without it prove nothing about that part. The language meter (`tests/e2e/lang-check.sh`) picks an installed UTF-8 locale by itself, so the probes run the same under a `C` shell; it exits 2 only when the machine has none (`locale -a`). Also run `git diff --check` and `claude plugin validate .`.
 
 A change to a skill or agent requires an E2E run in a temporary folder: `claude -p "<trigger>" --plugin-dir <plugin-root> --permission-mode acceptEdits --strict-mcp-config --max-budget-usd <cap> --output-format stream-json --verbose`. The `init` event proves which skills and agents are registered. A call with `--agent pm-chief-of-staff:ai-tells-reviewer` proves the reviewer's tools. Use an account that is already authenticated, fictitious data, and record the real result. Grep/Glob of the main session and of the agent can differ, so check `init` instead of assuming.
 
