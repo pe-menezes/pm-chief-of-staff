@@ -359,8 +359,26 @@ if git -C "$ROOT" cat-file -e 318ea9c^{commit} 2>/dev/null; then
   else
     fail "AF4 fixture determinism" "files $nf"
   fi
+
+  # AF6 (reaudit 1) wrong usage around the optional third argument exits 64
+  # and creates nothing: four arguments, an empty third one, the option in
+  # the mode slot, and the option in another case.
+  sh "$FIXTURE" "$work/AF6 a" wrappers with-fechar-semana extra >/dev/null 2>&1
+  u1=$?
+  sh "$FIXTURE" "$work/AF6 b" wrappers "" >/dev/null 2>&1
+  u2=$?
+  sh "$FIXTURE" "$work/AF6 c" with-fechar-semana wrappers >/dev/null 2>&1
+  u3=$?
+  sh "$FIXTURE" "$work/AF6 d" link WITH-FECHAR-SEMANA >/dev/null 2>&1
+  u4=$?
+  if [ "$u1$u2$u3$u4" = 64646464 ] && [ ! -e "$work/AF6 a" ] && [ ! -e "$work/AF6 b" ] \
+    && [ ! -e "$work/AF6 c" ] && [ ! -e "$work/AF6 d" ]; then
+    ok "AF6 fixture wrong usage with the third argument exits 64, writes nothing"
+  else
+    fail "AF6 fixture wrong usage" "exits $u1 $u2 $u3 $u4"
+  fi
 else
-  echo "info  no 318ea9c in the git history: AF1 to AF5 not measured"
+  echo "info  no 318ea9c in the git history: AF1 to AF6 not measured"
 fi
 
 # meter TEXT_FILE LANG: runs the meter; line in $mout, exit in $rc.
@@ -421,6 +439,28 @@ if [ "$r1" = "en FALHA en=8 pt=0" ] && [ "$r2" = "1:pt FALHA en=11 pt=15" ]; the
   ok "AL5 meter counts every listed word on a line"
 else
   fail "AL5 meter on one line of prose" "$r1 / $r2"
+fi
+
+# AL6 (reaudit 1) word boundaries in prose after the word-by-word split: a
+# word is a run of letters, digits and underscores, as with grep -w. Listed
+# words next to punctuation, an apostrophe, a hyphen, a slash or a CR count;
+# a listed word glued to a letter, a digit or an underscore does not; case
+# folds for accented capitals. Expected counts agree with a perl \w oracle.
+{
+  printf '%s\n' 'the the,the.the;the' \
+    'theme island isle forum list' \
+    'força paraíso parada compara comunidade com' \
+    "you're the one, it's for you" \
+    'is2 the1 the_ _the the-end para-raio' \
+    'NÃO VoCê EsTá PESSOA uma'
+  printf 'the and\r\n'
+  printf '%s\n' 'https://example.com/the'
+} > "$m/bounds"
+meter "$m/bounds" en
+if [ "$mout" = "en FALHA en=13 pt=8" ]; then
+  ok "AL6 meter word boundaries in prose"
+else
+  fail "AL6 meter word boundaries" "$mout"
 fi
 
 # AL3 usage errors exit 2: no arguments, a bad language, a missing file.
