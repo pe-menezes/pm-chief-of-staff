@@ -1,33 +1,48 @@
 ---
 name: guia-pm-chief-of-staff
-description: Orienta desenvolvimento e verificação do plugin pm-chief-of-staff. Use antes de alterar skills, sementes, manifests, adapters ou hooks deste repositório.
+description: Guides development and verification of the pm-chief-of-staff plugin. Use before changing skills, seeds, modules, manifests, adapters or hooks in this repository.
 ---
 
-# Guia do repositório
+# Repository guide
 
-Este repositório é o plugin e seu marketplace. O produto é feito de instruções Markdown e scripts POSIX sh, sem dependências externas instaladas pelo plugin.
+This repository is the plugin and its marketplace. The product is made of Markdown instructions and POSIX sh scripts, with no external dependency installed by the plugin.
 
-## Mapa
+## Map
 
-* `skills/`: cinco workflows do plugin, registrados pelos manifests.
-* `seeds/`: seis workflows copiados para a pasta da pessoa, fora do registro do plugin.
-* `modulos/`: templates compartilhados e ponte de descoberta do Codex.
-* `agents/ai-tells-reviewer.md`: fonte do protocolo do revisor independente.
-* `.claude-plugin/`: identidade e marketplace Claude; `.codex-plugin/`: identidade e hooks do Codex.
-* `hooks/`: boot de memória e sua suíte. O script roda na pasta da pessoa, não na raiz do plugin.
-* `testes/`: provas determinísticas da ponte e da descoberta local.
-* `.vibeflow/`: contexto e relatórios locais, ignorados pelo git.
+* `skills/`: the five plugin workflows, registered by the manifests: `setup`, `plant`, `create-skill`, `connect`, `remove-ai-tells` (command `/pm-chief-of-staff:<name>`).
+* `seeds/`: the six workflows copied into the person's folder, outside the plugin registry: `start-day`, `close-day`, `close-week`, `prep-conversation`, `process-meeting`, `absorb`. Setup plants five; `close-week` waits for the first plant the person runs.
+* `modules/`: the templates planted into `.claude/skills/_shared/` (`capabilities.md`, `write-gate.md`, and `vocabulary.md`, which is also the single source of names) and the Codex discovery bridge `codex-bridge.sh`.
+* `agents/ai-tells-reviewer.md`: source of the independent reviewer protocol.
+* `.claude-plugin/`: Claude identity and marketplace; `.codex-plugin/`: Codex identity and hooks.
+* `hooks/`: memory boot (`boot-memory.sh`), its suite (`boot-memory-test.sh`) and the registry `hooks.json`. The script runs in the person's folder, never at the plugin root.
+* `tests/`: deterministic proofs of the bridge (`codex-bridge-test.sh`) and of local discovery (`audit/codex-compat-final.sh`); `tests/e2e/` holds the E2E tools (`lang-check.sh`, the language meter, and `legacy-0.7-fixture.sh`, the fictitious 0.7.0 folder).
+* `README.md`, `PROMPT.md` and their `.pt-BR.md` mirrors: install docs and the pastable setup.
+* `.vibeflow/`: local context and reports, ignored by git.
 
-## Verificação
+## Verification
 
-Rode `sh hooks/boot-memoria-teste.sh` e `sh testes/ponte-codex-teste.sh`. A descoberta real exige `codex` no PATH; os casos sem ele não provam essa parte. Rode também `git diff --check` e `claude plugin validate .`.
+Run `sh hooks/boot-memory-test.sh`, `sh tests/codex-bridge-test.sh` and `sh tests/audit/codex-compat-final.sh`. Real discovery needs `codex` on the PATH; the cases without it prove nothing about that part. Also run `git diff --check` and `claude plugin validate .`.
 
-Alteração em skill ou agente exige E2E em pasta temporária: `claude -p "<gatilho>" --plugin-dir <raiz-do-plugin> --permission-mode acceptEdits --output-format stream-json --verbose`. O evento `init` comprova skills e agentes registrados. Uma chamada com `--agent pm-chief-of-staff:ai-tells-reviewer` comprova as ferramentas do revisor. Use conta já autenticada, dados fictícios e registre o resultado real. Grep/Glob da sessão principal e do agente podem diferir, então confira o `init` em vez de assumir.
+A change to a skill or agent requires an E2E run in a temporary folder: `claude -p "<trigger>" --plugin-dir <plugin-root> --permission-mode acceptEdits --output-format stream-json --verbose`. The `init` event proves which skills and agents are registered. A call with `--agent pm-chief-of-staff:ai-tells-reviewer` proves the reviewer's tools. Use an account that is already authenticated, fictitious data, and record the real result. Grep/Glob of the main session and of the agent can differ, so check `init` instead of assuming.
 
-No Codex, `codex debug prompt-input` prova descoberta de skills sem chamar modelo. Ele não prova execução, instalação do pacote ou boot confiado. E2E de setup e retomada exige sessões novas com modelo. Instalação de plugin altera configuração persistente; confiança de hooks é revista pelo mecanismo normal do runtime, sem bypass nos testes.
+In Codex, `codex debug prompt-input` proves skill discovery without calling a model. It proves nothing about execution, package installation or trusted boot. E2E of setup and resume requires fresh sessions with a model. Installing a plugin changes persistent configuration; hook trust is reviewed by the runtime's normal mechanism, with no bypass in tests.
 
-## Contratos
+In a Codex E2E the JSON stream can omit `spawn_agent` and show only the waits. To prove a subagent ran, check the persisted transcript and the child threads; never conclude from its absence in the stream that no subagent ran.
 
-Arquivos personalizados têm uma fonte em `.claude/skills/`; `.agents/skills` é descoberta derivada. Preserve arquivos e links preexistentes. Só altere wrappers comprovadamente gerados pela ponte. Casos de sobrescrita, links, falha de escrita e caminhos com espaços exigem prova de comportamento.
+## Contracts
 
-`AGENTS.md` é o manual gerado; `CLAUDE.md` é sua ponte de uma linha. Regras situacionais continuam em `.claude/rules/` e precisam de índice no `AGENTS.md` para runtimes sem carga nativa de `paths:`. Alteração nos dois manifests mantém a mesma versão. Mudanças no setup que também existam no `PROMPT.md` precisam chegar ao colável antes da release.
+Customized files have one source in `.claude/skills/`; `.agents/skills` is derived discovery. Preserve preexisting files and links. Only change wrappers proven to be generated by the bridge. Overwrite, links, write failure and paths with spaces require a behavior proof.
+
+`AGENTS.md` is the generated manual; `CLAUDE.md` is its one-line bridge. Situational rules stay in `.claude/rules/` and need an index entry in `AGENTS.md` for runtimes without native `paths:` loading. A change to the two manifests keeps the same version in both. Setup changes that also exist in `PROMPT.md` (and `PROMPT.pt-BR.md`) must reach the pastable prompt before the release.
+
+Language contract (common spec, I4): text the agent reads in order to act is English; text the person reads is in the person's language, recorded in `AGENTS.md` and in the folder vocabulary.
+What is born from the person's own words inside the folder (a skill from `create-skill`, a rule in `.claude/rules/`, `AGENTS.md` itself) is in the person's language, because the person edits it.
+Plugin skill and seed descriptions carry the English triggers plus the 0.7.0 Portuguese trigger phrases, verbatim.
+
+`modules/vocabulary.md` is the single source of folder names, contract labels and the 0.7.0 to 0.8.0 name map. A name used by a skill, seed or module comes from it; a renamed path or label changes the vocabulary and every consumer in the same change.
+
+The bridge marker and the integrity prefix in `modules/codex-bridge.sh` are frozen byte for byte as in 0.7.0, because they are written into the wrappers of installed folders; changing them would turn every 0.7.0 wrapper into a conflict. The wrapper body may change, since the integrity proof covers whatever sits above it.
+
+0.7.0 legacy names (`navegacao.md`, `setup-notas.md`, `_shared/capacidades.md`, `_shared/gate-de-escrita.md`, the six old seed names, the old labels and trigger phrases) are accepted wherever the plugin reads them. Nothing in the plugin ever renames them in a person's folder.
+
+Commit messages, PR titles and bodies, and code comments are written in English.
