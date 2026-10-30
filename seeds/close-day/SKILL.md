@@ -7,16 +7,16 @@ description: Closes the workday. Assesses today's 3, classifies what did not clo
 
 > pm-chief-of-staff seed. This file is YOURS: ask the agent to change any step and it edits this skill on the spot.
 
-Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without it, in the language they write in, and fallback questions go in their language. Follow that file's canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
+Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without one, in the language the person writes in, and fallback questions go in their language too. Follow that file's writing canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
 
-Pair of `start-day`: the opening proposes the 3, this close assesses them (did they close? why not? what to do tomorrow?) and records the answer where the opening reads it in the morning. Without a close, the 3 are proposals never assessed, and the system does not learn whether it errs in prioritization or in execution. It takes 5 minutes. A 0/3 day is data, not a moral failure.
+Pair of `start-day`: the opening proposes the 3, this close assesses them (did they close? why not? what to do tomorrow?) and records the answer where the opening reads it in the morning. Without a close, the 3 are proposals never assessed, and the system does not learn whether it errs in prioritization or in execution. It takes 5 minutes. A 0/3 day is data, read without judgment.
 
 ## Flow
 
-1. **Compile the day (pull, not interrogation).** Pull from what already left a trace: today's conversation, the diff of what was written in the folder (journal, hubs, notes), the calendar. Deliver "your day" in 5 to 8 lines grouped by priority. The person only adds what leaves no trace (in person, verbal, what they thought). Asking for an account of what you can gather yourself is handing work back.
+1. **Compile the day (pull from the traces).** Pull from what already left a trace: today's conversation, the diff of what was written in the folder (journal, hubs, notes), the calendar. Deliver "your day" in 5 to 8 lines grouped by priority. The person only adds what leaves no trace (in person, verbal, what they thought). Asking for an account of what you can gather yourself is handing work back.
 2. **Assess the 3.** Read the `## Today's 3: YYYY-MM-DD` block in the journal and propose the status of each as a hypothesis (done / not done / partial); the person settles it. Mark it inline in the journal.
 3. **Reflect (the part that is only theirs).** Two questions: what important thing happened that left no trace? · what did you learn or would do differently? A relevant account becomes a `**Reflection:**` line in the day block; learning about themselves goes to `memory/{today}.md`. A reflection that repeats a pattern already seen (the same gap coming back) gets named, frankly.
-4. **Classify what did not close.** Each one not done gets one of three reasons: **out of time** (right task, the day did not fit it) · **outside attack** (the unplanned took the day; was it unavoidable?) · **wrong 3** (a prioritization error, not an execution one). The classification is the value of the skill: the same reason 3 days in a row points at what to adjust.
+4. **Classify what did not close.** Each one not done gets one of three reasons: **out of time** (right task, the day did not fit it) · **outside attack** (the unplanned took the day; was it unavoidable?) · **wrong 3** (the error is in the prioritization). The classification is the value of the skill: the same reason 3 days in a row points at what to adjust.
 5. **Seed tomorrow.** At the end of the day block:
    ```
    **Balance:** {N}/3, {1 sentence with the reason for what did not close}

@@ -34,7 +34,7 @@ There is no ready-made template here. **The system is built from your discovery 
 
 The conversation and the files follow your language, and any language works. The bare command opens in English and tells you that you can answer in any language; your first answer sets it. Words after the command set it from the start (`/pm-chief-of-staff:setup monta meu chief of staff` opens in Portuguese).
 
-There are 7 blocks of questions, about 20 to 30 minutes of conversation. At the end it proposes the folder structure, named in your language, and `AGENTS.md` (the "instruction manual" it will follow). **You review everything before any file is created**, and then it plants the starter skills in your folder. In that last part Claude may ask for your permission (how many times depends on what you have already allowed) for three things: reading the skills that come with the plugin, creating their files in your folder, and running the bridge that gets the folder ready for Codex (see [The same folder in Claude and Codex](#the-same-folder-in-claude-and-codex)). Accept the read and create requests, because without them the commands will not be created. The bridge request only matters if you also plan to open the folder in Codex. Do not start 15 minutes before a meeting, because the rest of the system is built from your discovery answers.
+There are 7 blocks of questions, about 20 to 30 minutes of conversation. At the end it proposes the folder structure, named in your language, and `AGENTS.md` (the "instruction manual" it will follow). **You review everything before any file is created**, and then it plants the starter skills in your folder. The one exception is `setup-notes.md`, where it saves your answers during the discovery so it can pick up where it left off if the session drops. During the planting, Claude may ask for your permission (how many times depends on what you have already allowed) for three things: reading the skills that come with the plugin, creating their files in your folder, and running the bridge that gets the folder ready for Codex (see [The same folder in Claude and Codex](#the-same-folder-in-claude-and-codex)). Accept the read and create requests, because without them the commands will not be created. The bridge request only matters if you also plan to open the folder in Codex. Do not start 15 minutes before a meeting, because the rest of the system is built from your discovery answers.
 
 ## Installing in Codex (desktop app or CLI)
 
@@ -49,9 +49,9 @@ In Codex the command is `plugin add` (`plugin install` is the Claude Code form).
 
 **2.** Create the new folder and open a **new session** of Codex inside it. A session that was already open before the install does not see the plugin.
 
-**3.** Ask for the setup in natural language, for example "run the pm-chief-of-staff setup" or "build my chief of staff". The language you ask in becomes the language of the conversation and of the files. The discovery, the proposal and the review are the same as in Claude Code, and nothing is created until you approve it.
+**3.** Ask for the setup in natural language, for example "run the pm-chief-of-staff setup" or "build my chief of staff". The language you ask in becomes the language of the conversation and of the files. The discovery, the proposal and the review are the same as in Claude Code, and apart from `setup-notes.md`, nothing is created until you approve it.
 
-The plugin also ships a session-start hook that does the memory load (see [The memory](#the-memory)). **Installing the package does not authorize the hook.** Codex asks for your trust in it through its normal hook approval mechanism; until you approve it, the session opens without the memory load, and `AGENTS.md` still tells the agent to read the same files.
+The plugin also ships a session-start hook that does the memory load (see [The memory](#the-memory)). **Installing the package does not authorize the hook.** Codex asks you to trust it through its normal hook approval mechanism; until you approve it, the session opens without the memory load, and `AGENTS.md` still tells the agent to read the same files.
 
 During planting, the setup runs the Codex bridge in your folder (see [The same folder in Claude and Codex](#the-same-folder-in-claude-and-codex)). A sandbox that does not allow creating `.agents/` blocks this step, and the agent stops there and tells you. In that case, ask it for the bridge command with the full path filled in and read it. Then either approve it through Codex's normal approval request or run it yourself in your terminal, from inside the folder. Without the bridge the folder still works, but the planted skills do not show up in Codex.
 
@@ -67,13 +67,13 @@ Planting is copying a seed skill (the starter that ships in the plugin) INTO you
 | `process-meeting` | paste the transcript, get a structured note + propagation to the right places |
 | `absorb` | files a doc, article or process in your system, with a home, a summary that cites its source and a line saying when it will be used |
 
-From the moment they are planted, **these skills are your files**. Want the 1:1 agenda to always have a recognition section, or start-day to include your dashboard? Tell the agent and it edits the skill. My future updates improve the setup and the plugin skills and add new seeds to the catalog (`/pm-chief-of-staff:plant` lists what is there).
+From the moment they are planted, **these skills are your files**. Want the 1:1 agenda to always have a recognition section, or start-day to include your dashboard? Tell the agent and it edits the skill. Future updates will improve the setup and the plugin skills and add new seeds to the catalog (`/pm-chief-of-staff:plant` lists what is there).
 
 The catalog also has **`close-week`**, which rolls up the daily wrap-ups, pushes you to make the decisions the week left open, checks the health of the system's memory (the files every session loads, against their size targets), keeps notes on how you are progressing (material for your performance review) and sets up next week's journal. Plant it at the end of your first week: `/pm-chief-of-staff:plant close-week`.
 
-Also in the plugin: **`/pm-chief-of-staff:connect`**, which maps in a single file what the agent can pull on its own (calendar, transcripts, messages, tickets), so the routine skills stop asking for what it already knows how to fetch. The setup runs it for you. If you planted skills before `connect` existed, it checks which of them still ask and offers to edit each one.
+Also in the plugin: **`/pm-chief-of-staff:connect`**, which records, in a single file, what the agent can pull on its own (calendar, transcripts, messages, tickets), so the routine skills stop asking you for what it can already fetch. The setup runs it for you. If you planted skills before `connect` existed, it checks which of them still ask you for that material and offers to edit each one.
 
-**`/pm-chief-of-staff:remove-ai-tells`** reviews a text you are about to send. A reviewer agent, which did not write the text, points out the tells of AI-generated writing (antithesis in series, punchlines, em dashes). You see the before and after of each excerpt. The original only receives the excerpts you approve.
+**`/pm-chief-of-staff:remove-ai-tells`** reviews a text you are about to send. A reviewer agent, which did not write the text, points out the tells of AI-generated writing (antithesis in series, punchlines, em dashes). You see the before and after of each excerpt. Only the changes you approve are applied to the original.
 
 The commands with the `/pm-chief-of-staff:` prefix are the Claude Code form. In Codex, ask by name in natural language ("plant close-week", "remove the tells from this text").
 
@@ -105,10 +105,10 @@ If the external engine `memoria-agente` is set up in the same folder, the two wo
 
 ## Where is my data?
 
-**On your computer, and only there.** The whole system is a folder of markdown that you open, read, version and delete whenever you want. Nothing is sent to me, and the plugin installs no server, connector or MCP integration. It has two short scripts, both local, and you can read each one in full in 2 minutes:
+**It stays on your computer and nowhere else.** The whole system is a folder of markdown that you open, read, version and delete whenever you want. Nothing is sent to me, and the plugin installs no server, connector or MCP integration. It has two short scripts, both local, and you can read each one in full in 2 minutes:
 
-* **`hooks/boot-memory.sh`, a read at session start.** It reads three files from your own folder (the state, the index and the day's log) and puts their content into the conversation, so you start with the agent already knowing where things are. It writes nothing and sends nothing anywhere.
-* **`modules/codex-bridge.sh`, a local write at planting.** It runs when setup, plant or create-skill ask for it, with your permission, and writes only inside `.agents/` in your folder (the link or the short files that point to your skills).
+* **`hooks/boot-memory.sh` runs at session start and only reads.** It reads three files from your own folder (the state, the index and the day's log) and puts their content into the conversation, so you start with the agent already knowing where things are. It writes nothing and sends nothing anywhere.
+* **`modules/codex-bridge.sh` writes locally during planting.** It runs when setup, plant or create-skill ask for it, with your permission, and writes only inside `.agents/` in your folder (the link or the short files that point to your skills).
 
 Plugin updates never touch your files, your planted skills, or your `AGENTS.md` or `CLAUDE.md`, and neither script deletes, renames or replaces any file of yours.
 
@@ -160,7 +160,7 @@ The first five rows are plugin commands (`/pm-chief-of-staff:<name>` in Claude C
 
 ## Don't want to install the plugin?
 
-Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (Claude Code and Codex included) and run the same setup by conversation. You end up with `AGENTS.md`, the one-line `CLAUDE.md` that points to `AGENTS.md`, the rules index and the skills in a single source, and Codex skill discovery is set up without overwriting anything that already exists. The plugin adds the seed skills, the `connect`, `create-skill` and `remove-ai-tells` skills, the session-start hook, the bridge as a script and the update channel.
+Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (Claude Code and Codex included) and run the same setup by chatting with it. You end up with `AGENTS.md`, the one-line `CLAUDE.md` that points to `AGENTS.md`, the rules index and the skills in a single source, and Codex skill discovery is set up without overwriting anything that already exists. The plugin adds the seed skills, the `connect`, `create-skill` and `remove-ai-tells` skills, the session-start hook, the bridge as a script and the update channel.
 
 ## Philosophy, in 4 principles
 

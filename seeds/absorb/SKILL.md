@@ -9,7 +9,7 @@ description: Gives a home to material the person sends into the system (a doc ab
 
 Writing: write to the person and in their files in the language this folder's instruction file defines (the `AGENTS.md`; in a folder without `AGENTS.md`, the `CLAUDE.md`); without one, in the language the person writes in, and fallback questions go in their language too. Follow that file's writing canon. Without it: no em dash (use a comma, parentheses or a colon), short dense sentences, 1 line per item.
 
-The value is not archiving: it is giving the material a destination, distilling what the system does not know yet and leaving in writing when it comes back. Material that stays only in the chat evaporates when the session closes.
+The value lies in giving the material a destination, distilling what the system does not know yet and leaving in writing when it comes back. Material that stays only in the chat evaporates when the session closes.
 
 ## Step 1: understand the material
 

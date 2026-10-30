@@ -34,7 +34,7 @@ Não tem template pronto aqui. **O sistema nasce do seu discovery e se molda a v
 
 A conversa e os arquivos seguem o seu idioma, e qualquer idioma serve. As palavras depois do comando fixam o idioma desde o começo; o comando puro abre em inglês e avisa que você pode responder em qualquer idioma, e a sua primeira resposta fixa o idioma.
 
-São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura de pastas, com os nomes no seu idioma, e o AGENTS.md (o "manual de instruções" que ele mesmo vai seguir). **Você revisa tudo antes de qualquer arquivo ser criado**, e só então ele planta as skills iniciais na sua pasta. Nessa última parte o Claude pode pedir sua permissão (quantas vezes depende do que você já liberou antes) pra três coisas: ler as skills que vêm com o plugin, criar os arquivos delas na sua pasta e rodar a ponte que deixa a pasta pronta pro Codex (veja [A mesma pasta no Claude e no Codex](#a-mesma-pasta-no-claude-e-no-codex)). Aceite os pedidos de leitura e de criação, porque sem eles os comandos não passam a existir. O da ponte só importa se você for abrir a pasta no Codex também. Não comece 15 minutos antes de uma reunião, porque o resto do sistema é montado a partir das suas respostas no discovery.
+São 7 blocos de perguntas, uns 20 a 30 minutos de conversa. No fim ele propõe a estrutura de pastas, com os nomes no seu idioma, e o AGENTS.md (o "manual de instruções" que ele mesmo vai seguir). **Você revisa tudo antes de qualquer arquivo ser criado**, e só então ele planta as skills iniciais na sua pasta. A única exceção é o `setup-notes.md`, onde ele vai gravando suas respostas durante o discovery pra retomar de onde parou se a sessão cair. Durante o plantio, o Claude pode pedir sua permissão (quantas vezes depende do que você já liberou antes) pra três coisas: ler as skills que vêm com o plugin, criar os arquivos delas na sua pasta e rodar a ponte que deixa a pasta pronta pro Codex (veja [A mesma pasta no Claude e no Codex](#a-mesma-pasta-no-claude-e-no-codex)). Aceite os pedidos de leitura e de criação, porque sem eles os comandos não passam a existir. O da ponte só importa se você for abrir a pasta no Codex também. Não comece 15 minutos antes de uma reunião, porque o resto do sistema é montado a partir das suas respostas no discovery.
 
 ## Instalação no Codex (app desktop ou CLI)
 
@@ -49,7 +49,7 @@ No Codex o comando é `plugin add` (`plugin install` é a forma do Claude Code).
 
 **2.** Crie a pasta nova e abra uma **sessão nova** do Codex dentro dela. Sessão que já estava aberta antes da instalação não enxerga o plugin.
 
-**3.** Peça o setup em linguagem natural, por exemplo "roda o setup do pm-chief-of-staff" ou "monta meu chief of staff". O idioma em que você pede vira o idioma da conversa e dos arquivos. O discovery, a proposta e a revisão são os mesmos do Claude Code: nada é criado antes do seu ok.
+**3.** Peça o setup em linguagem natural, por exemplo "roda o setup do pm-chief-of-staff" ou "monta meu chief of staff". O idioma em que você pede vira o idioma da conversa e dos arquivos. O discovery, a proposta e a revisão são os mesmos do Claude Code: fora o `setup-notes.md`, nada é criado antes do seu ok.
 
 O plugin também traz um hook de abertura (a carga de memória descrita em [A memória](#a-memória)). **Instalar o pacote não autoriza o hook.** O Codex pede sua confiança pra ele pelo mecanismo normal de aprovação de hooks; enquanto você não aprovar, a sessão abre sem a carga de memória, e o `AGENTS.md` continua mandando ler os mesmos arquivos.
 
