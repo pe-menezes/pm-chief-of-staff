@@ -38,7 +38,7 @@ The first message says what is being built, for what, how long it takes and what
 
 > Let's build your Chief of Staff, and that is me: I think with you so you decide better, I push your development, I help build what you have to deliver, and I forget nothing along the way. I live inside this folder, in files that are yours and readable: every time you open the agent in here, I load everything and we pick up where we stopped.
 >
-> The path: 7 short rounds of questions, about 20 to 30 minutes. Answer your own way, no need to polish; you can pause at any moment and I save where we stopped. At the end I propose the assembled system, you review everything before I create any file, and we start by processing something real from your day today.
+> The path: 7 short rounds of questions, about 20 to 30 minutes. Answer your own way, no need to polish; you can pause at any moment and I save where we stopped. At the end I propose the assembled system, you review everything before I create any file (the one exception is `setup-notes.md`, where I save your answers during the discovery so we can pick up where we stopped if the session drops), and we start by processing something real from your day today.
 >
 > Four agreements:
 > 1. The system shapes itself to you. Ask for a change (format, vocabulary, process) and I write it into the rule and adopt it on the spot.
