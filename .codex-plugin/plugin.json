@@ -18,7 +18,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memoria.sh\" codex"
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex"
             }
           ]
         },
@@ -27,7 +27,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memoria.sh\" codex"
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex"
             }
           ]
         }
