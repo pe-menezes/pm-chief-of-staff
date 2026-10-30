@@ -1,17 +1,17 @@
 ---
 name: Bug
-about: Algo quebrou na instalação, no setup ou numa skill
+about: Something broke in the install, the setup or a skill
 title: ""
 labels: bug
 ---
 
-**O que aconteceu**
+**What happened**
 
 
-**O que você esperava**
+**What you expected**
 
 
-**Onde** (instalação / setup / plantar / skill plantada: qual)
+**Where** (install / setup / plant / planted skill: which one)
 
 
-**Como reproduzir** (o que você digitou e o que o agente respondeu; print ajuda)
+**How to reproduce** (what you typed and what the agent answered; a screenshot helps)
