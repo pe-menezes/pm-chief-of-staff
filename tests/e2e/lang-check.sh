@@ -44,8 +44,17 @@ fi
 LC_ALL=$utf8
 export LC_ALL
 
+# Split the text into words first, one per line (a word is a run of letters,
+# digits and underscores, the same word characters as grep -w), then match
+# each line whole. Matching with grep -o -w on the raw text is not used: the
+# macOS grep stops counting the rest of a line after a listed word that sits
+# inside a longer one ("is" inside "list").
+words() {
+  grep -o -E '[[:alnum:]_]+' "$file"
+}
+
 count() {
-  n=$(grep -o -i -w -E "$1" "$file" | wc -l)
+  n=$(words | grep -i -x -E "$1" | wc -l)
   printf '%s' $((n + 0))
 }
 

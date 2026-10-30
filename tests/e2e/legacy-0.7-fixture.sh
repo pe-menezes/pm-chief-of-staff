@@ -1,12 +1,16 @@
 #!/bin/sh
 # Builds a fictitious Chief of Staff folder as installed by v0.7.0, for the
 # E2E runs of the 0.8.0 parts (the legacy-folder matrix of the common spec).
-# Usage: sh tests/e2e/legacy-0.7-fixture.sh "<folder>" link|wrappers
+# Usage: sh tests/e2e/legacy-0.7-fixture.sh "<folder>" link|wrappers [with-fechar-semana]
 #   link      the 0.7.0 bridge links .agents/skills -> ../.claude/skills
 #   wrappers  the 0.7.0 bridge runs with a fake ln on the PATH, so it writes
 #             one 0.7.0 wrapper per seed (frozen marker, Portuguese body,
 #             proof)
-# The six seeds, the two modules and the bridge come from the 0.7.0 commit
+#   with-fechar-semana  optional: adds the sixth seed, as in a folder that ran
+#             "plantar fechar-semana"
+# By default the folder gets the five seeds the 0.7.0 setup plants
+# (abrir-dia, fechar-dia, preparar-conversa, processar-reuniao, absorver).
+# The seeds, the two modules and the bridge come from the 0.7.0 commit
 # by `git show 318ea9c:<path>`, never from a hand copy, so this script needs
 # the git history of this repo (the deterministic suites do not). The other
 # files are fictitious, in Portuguese like every 0.7.0 folder, and each one
@@ -21,12 +25,20 @@ BASE=318ea9c
 DIR=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 
 usage() {
-  echo "usage: sh tests/e2e/legacy-0.7-fixture.sh \"<folder>\" link|wrappers" >&2
+  echo "usage: sh tests/e2e/legacy-0.7-fixture.sh \"<folder>\" link|wrappers [with-fechar-semana]" >&2
   exit 64
 }
-[ "$#" -eq 2 ] || usage
+[ "$#" -eq 2 ] || [ "$#" -eq 3 ] || usage
 case "$2" in link|wrappers) ;; *) usage ;; esac
 [ -n "$1" ] || usage
+mode=$2
+seeds="abrir-dia absorver fechar-dia preparar-conversa processar-reuniao"
+nseeds=5
+if [ "$#" -eq 3 ]; then
+  [ "$3" = with-fechar-semana ] || usage
+  seeds="$seeds fechar-semana"
+  nseeds=6
+fi
 
 if [ -e "$1" ] || [ -L "$1" ]; then
   echo "refused: $1 already exists, nothing was written" >&2
@@ -49,7 +61,7 @@ put() {
   printf '%s\n' "$@" > "$f" || exit 1
 }
 
-for seed in abrir-dia absorver fechar-dia fechar-semana preparar-conversa processar-reuniao; do
+for seed in $seeds; do
   mkdir -p ".claude/skills/$seed" || exit 1
   from07 "seeds/$seed/SKILL.md" ".claude/skills/$seed/SKILL.md"
 done
@@ -170,7 +182,7 @@ if [ -z "$bridge07" ]; then
   echo "error: git show $BASE:modulos/ponte-codex.sh failed; this script needs the repo history" >&2
   exit 1
 fi
-if [ "$2" = link ]; then
+if [ "$mode" = link ]; then
   printf '%s\n' "$bridge07" | sh >/dev/null 2>&1
   rc=$?
 else
@@ -183,8 +195,8 @@ else
   rmdir .fixture-bin || exit 1
 fi
 if [ "$rc" -ne 0 ]; then
-  echo "error: the 0.7.0 bridge exited with $rc in mode $2" >&2
+  echo "error: the 0.7.0 bridge exited with $rc in mode $mode" >&2
   exit 1
 fi
-echo "0.7.0 fixture ready ($2): $PWD"
+echo "0.7.0 fixture ready ($mode, $nseeds seeds): $PWD"
 exit 0

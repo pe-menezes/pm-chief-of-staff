@@ -260,32 +260,77 @@ if git -C "$ROOT" cat-file -e 318ea9c^{commit} 2>/dev/null; then
     fail "AF1 fixture refusal" "exit $rc1 and $rc2"
   fi
 
-  # AF2 wrappers mode: six 0.7.0 wrappers, which the new bridge upgrades to
-  # the English body with exit 0; link mode: the new bridge keeps the link.
+  # count07 FOLDER TEXT SEED...: how many SEEDs have an intact wrapper in
+  # FOLDER whose body holds TEXT; result in $n.
+  count07() {
+    c7_dir=$1
+    c7_text=$2
+    shift 2
+    n=0
+    for s in "$@"; do
+      intact07 "$c7_dir/.agents/skills/$s/SKILL.md" && grep -qF "$c7_text" "$c7_dir/.agents/skills/$s/SKILL.md" && n=$((n + 1))
+    done
+  }
+  FIVE07="abrir-dia absorver fechar-dia preparar-conversa processar-reuniao"
+
+  # AF2 default build, as the 0.7.0 setup plants it: the five seeds, no
+  # fechar-semana. Wrappers mode: five 0.7.0 wrappers, which the new bridge
+  # upgrades to the English body with exit 0; link mode: the new bridge keeps
+  # the link.
   fw="$work/AF2 wrappers"
   fl="$work/AF2 link"
   sh "$FIXTURE" "$fw" wrappers >/dev/null 2>&1
   rcw=$?
   sh "$FIXTURE" "$fl" link >/dev/null 2>&1
   rcl=$?
-  n07=0
-  for s in abrir-dia absorver fechar-dia fechar-semana preparar-conversa processar-reuniao; do
-    intact07 "$fw/.agents/skills/$s/SKILL.md" && grep -qF "Esta skill mora em" "$fw/.agents/skills/$s/SKILL.md" && n07=$((n07 + 1))
-  done
+  # shellcheck disable=SC2086
+  count07 "$fw" "Esta skill mora em" $FIVE07
+  n07=$n
   (cd "$fw" && sh "$BRIDGE" >/dev/null 2>&1)
   rcb=$?
-  nen=0
-  for s in abrir-dia absorver fechar-dia fechar-semana preparar-conversa processar-reuniao; do
-    intact07 "$fw/.agents/skills/$s/SKILL.md" && grep -qF "This skill lives in" "$fw/.agents/skills/$s/SKILL.md" && nen=$((nen + 1))
-  done
+  # shellcheck disable=SC2086
+  count07 "$fw" "This skill lives in" $FIVE07
+  nen=$n
   (cd "$fl" && sh "$BRIDGE" >/dev/null 2>&1)
   rclb=$?
-  if [ "$rcw" -eq 0 ] && [ "$rcl" -eq 0 ] && [ "$n07" -eq 6 ] && [ "$rcb" -eq 0 ] && [ "$nen" -eq 6 ] \
+  if [ "$rcw" -eq 0 ] && [ "$rcl" -eq 0 ] && [ "$n07" -eq 5 ] && [ "$rcb" -eq 0 ] && [ "$nen" -eq 5 ] \
+    && [ ! -e "$fw/.claude/skills/fechar-semana" ] && [ ! -e "$fw/.agents/skills/fechar-semana" ] \
+    && [ ! -e "$fl/.claude/skills/fechar-semana" ] \
     && [ ! -e "$fw/.fixture-bin" ] && [ "$rclb" -eq 0 ] \
     && [ "$(readlink "$fl/.agents/skills")" = "../.claude/skills" ]; then
-    ok "AF2 fixture wrappers upgraded by the new bridge, link kept"
+    ok "AF2 default fixture has the five 0.7.0 seeds, upgraded by the new bridge, link kept"
   else
     fail "AF2 fixture and new bridge" "fixture $rcw/$rcl, 0.7.0 wrappers $n07, bridge $rcb/$rclb, English $nen"
+  fi
+
+  # AF5 with-fechar-semana adds the sixth seed, as a folder that ran
+  # "plantar fechar-semana": six 0.7.0 wrappers, all six upgraded by the new
+  # bridge with exit 0; link mode carries the sixth source too. A third
+  # argument other than with-fechar-semana exits 64 and writes nothing.
+  fw5="$work/AF5 wrappers"
+  fl5="$work/AF5 link"
+  sh "$FIXTURE" "$fw5" wrappers with-fechar-semana >/dev/null 2>&1
+  rcw=$?
+  sh "$FIXTURE" "$fl5" link with-fechar-semana >/dev/null 2>&1
+  rcl=$?
+  # shellcheck disable=SC2086
+  count07 "$fw5" "Esta skill mora em" $FIVE07 fechar-semana
+  n07=$n
+  (cd "$fw5" 2>/dev/null && sh "$BRIDGE" >/dev/null 2>&1)
+  rcb=$?
+  # shellcheck disable=SC2086
+  count07 "$fw5" "This skill lives in" $FIVE07 fechar-semana
+  nen=$n
+  sh "$FIXTURE" "$work/AF5 bad" wrappers fechar-semana >/dev/null 2>&1
+  rcu=$?
+  if [ "$rcw" -eq 0 ] && [ "$rcl" -eq 0 ] && [ "$n07" -eq 6 ] && [ "$rcb" -eq 0 ] && [ "$nen" -eq 6 ] \
+    && [ -f "$fl5/.claude/skills/fechar-semana/SKILL.md" ] \
+    && [ "$(readlink "$fl5/.agents/skills")" = "../.claude/skills" ] \
+    && [ ! -e "$fw5/.fixture-bin" ] \
+    && [ "$rcu" -eq 64 ] && [ ! -e "$work/AF5 bad" ]; then
+    ok "AF5 with-fechar-semana adds the sixth seed, all six upgraded"
+  else
+    fail "AF5 fixture with-fechar-semana" "fixture $rcw/$rcl, 0.7.0 wrappers $n07, bridge $rcb, English $nen, bad usage $rcu"
   fi
 
   # AF3 the new hook boots on the 0.7.0 fixture: header, the facts, the
@@ -315,7 +360,7 @@ if git -C "$ROOT" cat-file -e 318ea9c^{commit} 2>/dev/null; then
     fail "AF4 fixture determinism" "files $nf"
   fi
 else
-  echo "info  no 318ea9c in the git history: AF1 to AF4 not measured"
+  echo "info  no 318ea9c in the git history: AF1 to AF5 not measured"
 fi
 
 # meter TEXT_FILE LANG: runs the meter; line in $mout, exit in $rc.
