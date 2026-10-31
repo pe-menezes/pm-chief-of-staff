@@ -107,7 +107,7 @@ If the external engine `memoria-agente` is set up in the same folder, the two wo
 
 **It stays on your computer and nowhere else.** The whole system is a folder of markdown that you open, read, version and delete whenever you want. Nothing is sent to me, and the plugin installs no server, connector or MCP integration. It has two short scripts, both local, and you can read each one in full in 2 minutes:
 
-* **`hooks/boot-memory.sh` runs at session start and only reads.** It reads three files from your own folder (the state, the index and the day's log) and puts their content into the conversation, so you start with the agent already knowing where things are. It writes nothing and sends nothing anywhere.
+* **`hooks/boot-memory.sh` runs at session start and only reads.** It reads three files from your own folder and puts into the conversation a pack of at most 8,000 bytes: the state, the latest headings of the day's log and the start of the index, and it ends by saying what was left out. It runs when the session opens and again after the conversation is compacted, so the agent keeps knowing where things are. It writes nothing and sends nothing anywhere.
 * **`modules/codex-bridge.sh` writes locally during planting.** It runs when setup, plant or create-skill ask for it, with your permission, and writes only inside `.agents/` in your folder (the link or the short files that point to your skills).
 
 Plugin updates never touch your files, your planted skills, or your `AGENTS.md` or `CLAUDE.md`, and neither script deletes, renames or replaces any file of yours.
@@ -123,6 +123,8 @@ One thing is on you: meeting and 1:1 transcripts carry sensitive data about othe
 * **In Codex:** `codex plugin marketplace upgrade pm-chief-of-staff` in the terminal, then start a new session.
 
 An update replaces only the plugin (setup, plugin skills and the seed catalog).
+
+**A folder built before 0.9.0:** the session routine in its `AGENTS.md` still says to read the most recent log in full. The session-start pack now brings the headings of that log, so you can ask the agent to change that line to reading the headings and opening an entry when it needs one. The plugin does not change anyone's manual, so that edit is yours to ask for.
 
 ## Upgrading from 0.7
 
