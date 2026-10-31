@@ -6,6 +6,9 @@
 # never the bridge's text.
 # Output: one ok or FAIL line per case; exit 0 only when everything passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from DIR.
+unset CDPATH
 DIR=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 BRIDGE="$DIR/modules/codex-bridge.sh"
 failures=0

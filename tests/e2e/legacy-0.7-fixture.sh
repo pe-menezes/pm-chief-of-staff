@@ -22,6 +22,9 @@
 # wrong usage.
 
 BASE=318ea9c
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from DIR.
+unset CDPATH
 DIR=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 
 usage() {

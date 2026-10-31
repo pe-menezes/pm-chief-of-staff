@@ -17,6 +17,9 @@
 # points the history lookup elsewhere, to run the probes over a copy.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 GIT_ROOT=${GIT_ROOT:-$ROOT}
 VOC="$ROOT/modules/vocabulary.md"

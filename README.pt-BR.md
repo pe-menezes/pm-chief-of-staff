@@ -107,7 +107,7 @@ Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois
 
 **No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala servidor, conector nem integração MCP. Ele tem dois scripts curtos, os dois locais, e dá pra ler cada um inteiro em 2 minutos:
 
-* **`hooks/boot-memory.sh`, leitura na abertura da sessão.** Lê três arquivos da sua própria pasta (o estado, o índice e o log do dia) e joga o conteúdo pra dentro da conversa, pra você já começar com o agente sabendo onde as coisas estão. Não escreve nada e não manda nada pra lugar nenhum.
+* **`hooks/boot-memory.sh`, leitura na abertura da sessão.** Lê da sua própria pasta o estado (`CRITICAL_FACTS.md`), o índice (`navigation.md`, e o antigo `navegacao.md` se houver) e o log do dia, ou o último log datado quando hoje não tem, e põe na conversa um pacote de até 8.000 bytes: o começo do estado, os títulos mais recentes desse log e o começo do índice, e termina dizendo o que ficou de fora. Roda quando a sessão abre e de novo depois que a conversa é compactada, pro agente seguir sabendo onde as coisas estão. Não escreve nada e não manda nada pra lugar nenhum.
 * **`modules/codex-bridge.sh`, escrita local no plantio.** Roda quando o setup, o plant ou o create-skill pedem, com sua permissão, e escreve só dentro de `.agents/` da sua pasta (o link ou os arquivos curtos que apontam pras suas skills).
 
 Atualização do plugin nunca toca nos seus arquivos, nas suas skills plantadas nem no seu `AGENTS.md` ou `CLAUDE.md`, e nenhum dos dois scripts apaga, renomeia ou substitui arquivo seu.
@@ -123,6 +123,8 @@ Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de
 * **No Codex:** `codex plugin marketplace upgrade pm-chief-of-staff` no terminal, e depois abra uma sessão nova.
 
 Atualização troca só o plugin (setup, skills do plugin e catálogo de sementes).
+
+**Pasta montada antes da 0.9.0:** a rotina de sessão do manual dela (o `AGENTS.md`, ou o `CLAUDE.md` em pasta anterior à 0.6) ainda manda ler o log mais recente inteiro. O pacote da abertura agora traz os títulos desse log, então você pode pedir ao agente pra trocar essa linha pela leitura dos títulos, lendo um registro quando precisar. O plugin não muda o manual de ninguém, então essa troca fica com você.
 
 ## Atualizando da 0.7
 

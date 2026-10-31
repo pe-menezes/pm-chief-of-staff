@@ -12,6 +12,9 @@
 # 318ea9c); without it they print "info" and the rest runs the same.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 VOC="$ROOT/modules/vocabulary.md"
 CAP="$ROOT/modules/capabilities.md"
