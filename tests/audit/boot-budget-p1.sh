@@ -28,10 +28,15 @@
 # P5 the old layout (CLAUDE.md only): line 4 names CLAUDE.md with its size,
 #    no navigation section; with AGENTS.md too, line 4 names AGENTS.md.
 # P6 internal failure from any of the hook's tools (awk, wc, tr failing or
-#    printing garbage): exit 0 and either a pack or exactly the one failure
-#    line, never an empty stdout.
+#    printing garbage): exit 0 and either a whole pack of at most 8000
+#    bytes or exactly the one failure line, never an empty stdout. The
+#    garbage fake reads stdin only when no argument names a file, as the
+#    real tools do, so the probe ends with the caller's stdin left open.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 HOOK="$ROOT/hooks/boot-memory.sh"
 HEADER="=== MEMORY BOOT (pm-chief-of-staff) ==="
@@ -435,8 +440,20 @@ for tool in awk wc tr; do
     fb="$work/p6 bin $tool $mode"
     mkdir -p "$fb"
     cp "$fakes/date" "$fakes/uname" "$fb/"
+    # The garbage fake drains a pipe (wc and tr read one), but a call that
+    # names a file (awk does) never reads stdin, so an open terminal or pipe
+    # on the caller's side cannot hold the run.
     if [ "$mode" = fail ]; then printf '#!/bin/sh\nexit 3\n' > "$fb/$tool"
-    else printf '#!/bin/sh\ncat > /dev/null 2>&1\necho "zz9 x"\n' > "$fb/$tool"; fi
+    else
+      cat > "$fb/$tool" <<'EOF'
+#!/bin/sh
+for a in "$@"; do
+  if [ -f "$a" ]; then echo "zz9 x"; exit 0; fi
+done
+cat > /dev/null 2>&1
+echo "zz9 x"
+EOF
+    fi
     chmod +x "$fb/$tool"
     for shl in $SHELLS; do
       (cd "$work/p6 cos" && unset CLAUDE_PROJECT_DIR && PATH="$fb:$PATH" "$shl" "$HOOK" > "$work/out" 2>/dev/null)
@@ -445,11 +462,13 @@ for tool in awk wc tr; do
       nl=$(LC_ALL=C awk 'END { print NR + 0 }' "$work/out")
       good=0
       # A pack counts only whole: line 1 the header, line 4 stating the
-      # measured size, a footer, valid UTF-8. A header alone is no pack.
+      # measured size, at most 8000 bytes, a footer, valid UTF-8. A header
+      # alone is no pack.
       if [ "$l1" = "$HEADER" ]; then
         p6size=$(LC_ALL=C wc -c < "$work/out" | tr -d ' ')
         case "$(sed -n 4p "$work/out")" in
-          "Sizes: "*", this pack $p6size bytes (limit 8000).") good=1 ;;
+          "Sizes: "*", this pack $p6size bytes (limit 8000).")
+            [ "$p6size" -le 8000 ] 2>/dev/null && good=1 ;;
         esac
         LC_ALL=C grep -qxF -- "--- not in this pack ---" "$work/out" \
           || LC_ALL=C grep -Eq '^Nothing is left out of this pack; the files are in .+\.$' "$work/out" \

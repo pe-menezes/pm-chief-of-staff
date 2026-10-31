@@ -13,6 +13,9 @@
 # rules of setup in both languages; and the two manifests carry one version.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 VOC="$ROOT/modules/vocabulary.md"
 SETUP="$ROOT/skills/setup/SKILL.md"

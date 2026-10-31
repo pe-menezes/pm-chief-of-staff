@@ -12,6 +12,9 @@
 # The hook reads CLAUDE_PROJECT_DIR first; one inherited from the caller
 # would point every hook case away from its folder.
 unset CLAUDE_PROJECT_DIR
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 HOOK="$ROOT/hooks/boot-memory.sh"
 BRIDGE="$ROOT/modules/codex-bridge.sh"

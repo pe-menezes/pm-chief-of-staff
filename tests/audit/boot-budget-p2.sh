@@ -10,8 +10,15 @@
 #    line to a live engine and the one-line internal failure) leaves the
 #    person's folder and HOME exactly as they were: the same paths, files
 #    and folders, hidden ones included, with the same content.
+# A fake date in front of the PATH makes "today" 2031-05-17 09:30 for the
+# hook, and the probe names the same day for its own files, so the day
+# cannot turn between them. The internal failure comes from a fake awk that
+# exits 3, which no privilege can read past.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 HOOK="$ROOT/hooks/boot-memory.sh"
 failures=0
@@ -27,11 +34,28 @@ fi
 work=$(cd "$work" && pwd)
 
 # A fake uname names the host "audithost", so the engine's proof of life
-# lives in a known folder.
+# lives in a known folder. The fake date answers DAY for the day, so the
+# hook's today and the probe's log name are one value.
+DAY=2031-05-17
 fakes="$work/fakes"
 mkdir -p "$fakes"
 printf '#!/bin/sh\necho audithost\n' > "$fakes/uname"
-chmod +x "$fakes/uname"
+cat > "$fakes/date" <<'EOF'
+#!/bin/sh
+case "$*" in
+  '+%Y-%m-%d') echo 2031-05-17 ;;
+  '+%Y-%m-%d %H:%M') echo '2031-05-17 09:30' ;;
+  *) exec /bin/date "$@" ;;
+esac
+EOF
+chmod +x "$fakes/uname" "$fakes/date"
+# The broken case runs with the same fakes plus an awk that exits 3, as B10
+# of hooks/boot-memory-test.sh: the hook's internal failure path.
+fakes_broken="$work/fakes broken"
+mkdir -p "$fakes_broken"
+cp "$fakes/uname" "$fakes/date" "$fakes_broken/"
+printf '#!/bin/sh\nexit 3\n' > "$fakes_broken/awk"
+chmod +x "$fakes_broken/awk"
 
 # snapshot DIR: every path under DIR (type and name) and the checksum of
 # every file, sorted.
@@ -51,7 +75,7 @@ new_cos() {
   echo "nav W1" > "$1/navigation.md"
   echo "manual W1" > "$1/AGENTS.md"
   echo "@AGENTS.md" > "$1/CLAUDE.md"
-  printf '## [09:00] W1 topic\nbody\n' > "$1/memory/$(date +%Y-%m-%d).md"
+  printf '## [09:00] W1 topic\nbody\n' > "$1/memory/$DAY.md"
 }
 
 home="$work/home"
@@ -59,15 +83,16 @@ mkdir -p "$home"
 
 # Case folders. "big": every section over its cap. "small": no log and
 # nothing cut.
-# "engine": a live engine, handoff. "broken": unreadable CRITICAL_FACTS.md.
+# "engine": a live engine, handoff. "broken": a whole folder, run with the
+# failing awk.
 big="$work/big cos"
 new_cos "$big"
 i=1; while [ $i -le 120 ]; do printf 'fact line %03d of the W1 probe, long enough to fill\n' $i; i=$((i + 1)); done > "$big/CRITICAL_FACTS.md"
 i=1; while [ $i -le 200 ]; do printf 'nav line %03d of the W1 probe, long enough to fill\n' $i; i=$((i + 1)); done > "$big/navigation.md"
-i=1; while [ $i -le 80 ]; do printf '## [10:%02d] W1 topic %02d\nbody %02d\n' $((i % 60)) $i $i; i=$((i + 1)); done > "$big/memory/$(date +%Y-%m-%d).md"
+i=1; while [ $i -le 80 ]; do printf '## [10:%02d] W1 topic %02d\nbody %02d\n' $((i % 60)) $i $i; i=$((i + 1)); done > "$big/memory/$DAY.md"
 small="$work/small cos"
 new_cos "$small"
-rm -f "$small/memory/$(date +%Y-%m-%d).md"
+rm -f "$small/memory/$DAY.md"
 engine="$work/engine cos"
 new_cos "$engine"
 mkdir -p "$engine/.claude/data/sensor-efeito/audithost"
@@ -75,19 +100,20 @@ echo '{}' > "$engine/.claude/memoria-config.json"
 echo '{}' > "$engine/.claude/data/sensor-efeito/audithost/events.jsonl"
 broken="$work/broken cos"
 new_cos "$broken"
-chmod 000 "$broken/CRITICAL_FACTS.md"
 
 why=""
 for spec in "big|claude|^=== MEMORY BOOT" "big|codex|^=== MEMORY BOOT" "small|claude|^Nothing is left out" \
   "engine|claude|^memoria-agente present" "broken|claude|^Memory boot pack not assembled"; do
   name=${spec%%|*}; rest=${spec#*|}; rt=${rest%%|*}; want=${rest#*|}
   eval "dir=\$$name"
+  fb=$fakes
+  [ "$name" = broken ] && fb=$fakes_broken
   before=$(snapshot "$dir")
   hbefore=$(snapshot "$home")
   if [ "$rt" = codex ]; then
-    out=$(cd "$dir" && unset CLAUDE_PROJECT_DIR && HOME="$home" PATH="$fakes:$PATH" "$HOOK" codex 2>/dev/null)
+    out=$(cd "$dir" && unset CLAUDE_PROJECT_DIR && HOME="$home" PATH="$fb:$PATH" "$HOOK" codex 2>/dev/null)
   else
-    out=$(cd "$dir" && unset CLAUDE_PROJECT_DIR && HOME="$home" PATH="$fakes:$PATH" "$HOOK" 2>/dev/null)
+    out=$(cd "$dir" && unset CLAUDE_PROJECT_DIR && HOME="$home" PATH="$fb:$PATH" "$HOOK" 2>/dev/null)
   fi
   rc=$?
   after=$(snapshot "$dir")
@@ -98,7 +124,6 @@ for spec in "big|claude|^=== MEMORY BOOT" "big|codex|^=== MEMORY BOOT" "small|cl
   elif [ "$hbefore" != "$hafter" ]; then why="$why [$name $rt: HOME changed]"
   fi
 done
-chmod 600 "$broken/CRITICAL_FACTS.md"
 
 if [ -z "$why" ]; then
   ok "W1 every exit path leaves the folder and HOME exactly as they were"

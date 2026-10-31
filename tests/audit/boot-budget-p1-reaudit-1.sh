@@ -12,8 +12,8 @@
 #    to letters) gives exit 0 and exactly the one failure line, whether the
 #    bad number comes from the size of CRITICAL_FACTS.md, from the size of
 #    the manual, or from the size of the text the hook measures in memory;
-#    a number of 10 or 20 digits gives exit 0 and either a pack or the one
-#    failure line, never an empty stdout.
+#    a number of 10 or 20 digits gives exit 0 and either a whole pack of at
+#    most 8000 bytes or the one failure line, never an empty stdout.
 # Q2 date failing, printing garbage or printing another format: line 3 is
 #    "time now: unknown" exactly when the date and time are not available;
 #    the log is today's when the day is available and the latest dated log
@@ -24,6 +24,9 @@
 #    without naming the sites): exit 0 and exactly the one failure line.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from ROOT.
+unset CDPATH
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 HOOK="$ROOT/hooks/boot-memory.sh"
 HEADER="=== MEMORY BOOT (pm-chief-of-staff) ==="
@@ -169,10 +172,12 @@ if [ -z "$q1" ]; then
       run "$d1"
       good=0
       # A pack counts only whole: line 1 the header, line 4 stating the
-      # measured size, a footer, valid UTF-8. A header alone is no pack.
+      # measured size, at most 8000 bytes, a footer, valid UTF-8. A header
+      # alone is no pack.
       if [ "$(sed -n 1p "$work/out")" = "$HEADER" ]; then
         case "$(sed -n 4p "$work/out")" in
-          "Sizes: "*", this pack $size bytes (limit 8000).") good=1 ;;
+          "Sizes: "*", this pack $size bytes (limit 8000).")
+            [ "$size" -le 8000 ] 2>/dev/null && good=1 ;;
         esac
         LC_ALL=C grep -qxF -- "--- not in this pack ---" "$work/out" \
           || LC_ALL=C grep -Eq '^Nothing is left out of this pack; the files are in .+\.$' "$work/out" \

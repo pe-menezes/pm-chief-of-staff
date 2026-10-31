@@ -32,6 +32,9 @@
 # 4) Claude regression: session with --plugin-dir on this repo, boot and
 #    handoff.
 
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from DIR.
+unset CDPATH
 DIR=$(cd "$(dirname "$0")/.." && pwd) || exit 1
 BRIDGE="$DIR/modules/codex-bridge.sh"
 SENT="COS_BRIDGE_SENTINEL"

@@ -27,6 +27,9 @@
 # The hook reads CLAUDE_PROJECT_DIR first; one inherited from the caller
 # would point every case away from its folder.
 unset CLAUDE_PROJECT_DIR
+# An exported CDPATH makes cd print the folder inside $(...), which would
+# double every path built from DIR.
+unset CDPATH
 DIR=$(cd "$(dirname "$0")" && pwd) || exit 1
 HOOK="$DIR/boot-memory.sh"
 MARCA="=== MEMORY BOOT (pm-chief-of-staff) ==="
