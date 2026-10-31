@@ -43,6 +43,26 @@
             }
           ]
         }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/size-gate.sh\" prompt codex"
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/size-gate.sh\" stop codex"
+            }
+          ]
+        }
       ]
     }
   },

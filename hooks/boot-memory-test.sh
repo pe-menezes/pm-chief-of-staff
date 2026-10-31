@@ -956,13 +956,25 @@ case_r "R6 Claude compact registration with spaces hands off" hands-off \
 case_r "R7 Codex compact registration with spaces boots" boots \
   .codex-plugin/plugin.json hooks.hooks.SessionStart.2.hooks.0.command CLAUDE_PLUGIN_ROOT
 
-# R8 (boot-budget spec): matchers in order startup, clear, compact in both
-# registries, and every Codex SessionStart handler raises its context limit
-# to 3500.
-m_claude=$(grep -o '"matcher": *"[a-z]*"' "$ROOT/hooks/hooks.json" | sed 's/.*"\([a-z]*\)"$/\1/' | tr '\n' ' ')
-m_codex=$(grep -o '"matcher": *"[a-z]*"' "$ROOT/.codex-plugin/plugin.json" | sed 's/.*"\([a-z]*\)"$/\1/' | tr '\n' ' ')
-n_cmd=$(grep -c '"command": ' "$ROOT/.codex-plugin/plugin.json")
-n_lim=$(grep -c '"additionalContextLimit": 3500' "$ROOT/.codex-plugin/plugin.json")
+# R8 (boot-budget spec, scoped to SessionStart by the stop-size-gate spec):
+# only the SessionStart handlers count, since both registries also carry
+# the UserPromptSubmit and Stop handlers of size-gate.sh. Matchers in order
+# startup, clear, compact in both registries, and in Codex three
+# SessionStart commands, each raising its context limit to 3500.
+# session_start FILE: the lines of the SessionStart array, from its key to
+# the closing bracket at the same indentation.
+session_start() {
+  awk '
+    !on && /"SessionStart": *\[/ { on = 1; match($0, /^ */); ind = RLENGTH; print; next }
+    on { print; if (match($0, /^ *\]/) && RLENGTH - 1 == ind) exit }
+  ' "$1"
+}
+ss_claude=$(session_start "$ROOT/hooks/hooks.json")
+ss_codex=$(session_start "$ROOT/.codex-plugin/plugin.json")
+m_claude=$(printf '%s\n' "$ss_claude" | grep -o '"matcher": *"[a-z]*"' | sed 's/.*"\([a-z]*\)"$/\1/' | tr '\n' ' ')
+m_codex=$(printf '%s\n' "$ss_codex" | grep -o '"matcher": *"[a-z]*"' | sed 's/.*"\([a-z]*\)"$/\1/' | tr '\n' ' ')
+n_cmd=$(printf '%s\n' "$ss_codex" | grep -c '"command": ')
+n_lim=$(printf '%s\n' "$ss_codex" | grep -c '"additionalContextLimit": 3500')
 if [ "$m_claude" = "startup clear compact " ] && [ "$m_codex" = "startup clear compact " ] \
   && [ "$n_cmd" -eq 3 ] && [ "$n_lim" -eq 3 ]; then
   echo "ok    R8 compact matcher in both registries and the Codex context limit"
