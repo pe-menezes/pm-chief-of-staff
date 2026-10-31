@@ -88,35 +88,44 @@ else
   fail "AH2 fallback to the latest log" "exit $rc"
 fi
 
-# AH3 no memory folder: full boot, header and second line, the time line last.
+# AH3 no memory folder: full boot, header and second line, the time line on
+# line 3 (boot-budget spec: it moved from the last line to line 3).
 cos AH3
 boot
 first=$(printf '%s\n' "$out" | sed -n 1p)
 second=$(printf '%s\n' "$out" | sed -n 2p)
-last=$(printf '%s\n' "$out" | tail -n 1)
+third=$(printf '%s\n' "$out" | sed -n 3p)
 if [ "$rc" -eq 0 ] && [ "$first" = "$HEADER" ] && [ "$second" = "$SECOND" ] \
-  && [ "$last" = "time now: 2031-05-17 09:30" ] && has AUD_CF && has AUD_NAV \
+  && [ "$third" = "time now: 2031-05-17 09:30" ] && has AUD_CF && has AUD_NAV \
   && ! printf '%s\n' "$out" | grep -q '^--- memory/'; then
-  ok "AH3 boot without memory/: header, second line, time line last"
+  ok "AH3 boot without memory/: header, second line, time line on line 3"
 else
-  fail "AH3 boot without memory/" "exit $rc, lines: $first / $second / $last"
+  fail "AH3 boot without memory/" "exit $rc, lines: $first / $second / $third"
 fi
 
-# AH4 size limit: a file above 32768 bytes gives only the warning line; a
-# file of exactly 32768 bytes is printed.
+# AH4 size limit (boot-budget spec: the 32768-byte rule per file became a
+# cut at whole lines with a footer): a CRITICAL_FACTS.md of 40008 bytes and a
+# navigation.md of exactly 32768 both give their first line, only whole
+# lines, a footer line naming what is left out of each, and a pack of at
+# most 8000 bytes.
 cos AH4
 awk 'BEGIN { print "AUD_BIG"; for (i = 0; i < 4000; i++) print "xxxxxxxxx" }' > "$f/CRITICAL_FACTS.md"
 awk 'BEGIN { print "AUD_EDGE"; for (i = 0; i < 4094; i++) print "xxxxxxx"; printf "xxxxxxx" }' > "$f/navigation.md"
 size_cf=$(wc -c < "$f/CRITICAL_FACTS.md" | tr -d ' ')
 size_nav=$(wc -c < "$f/navigation.md" | tr -d ' ')
 boot
+size_out=$(printf '%s\n' "$out" | wc -c | tr -d ' ')
+partial=$(printf '%s\n' "$out" | grep -c '^x\{1,6\}$\|^x\{8\}$\|^x\{10,\}$')
 if [ "$size_cf" -eq 40008 ] && [ "$size_nav" -eq 32768 ] && [ "$rc" -eq 0 ] \
-  && has "CRITICAL_FACTS.md: 39KB, above the expected size for the session-start load; read it from disk" \
-  && ! has AUD_BIG && ! has "--- CRITICAL_FACTS.md ---" \
-  && has "--- navigation.md ---" && has AUD_EDGE; then
-  ok "AH4 above 32KB only the warning, exactly 32768 bytes is printed"
+  && [ "$size_out" -le 8000 ] && [ "$partial" -eq 0 ] \
+  && has "--- CRITICAL_FACTS.md ---" && has AUD_BIG && has xxxxxxxxx \
+  && printf '%s\n' "$out" | grep -Eqx 'CRITICAL_FACTS\.md: lines [0-9]+ to 4001 of 4001 are not shown\.' \
+  && has "--- navigation.md ---" && has AUD_EDGE && has xxxxxxx \
+  && printf '%s\n' "$out" | grep -Eqx 'navigation\.md: lines [0-9]+ to 4096 of 4096 are not shown\.' \
+  && ! printf '%s\n' "$out" | grep -qi 'read it from disk'; then
+  ok "AH4 files above the budget are cut at whole lines, with a footer"
 else
-  fail "AH4 size limit" "exit $rc, sizes $size_cf and $size_nav"
+  fail "AH4 size limit" "exit $rc, sizes $size_cf and $size_nav, pack $size_out bytes, $partial partial lines"
 fi
 
 # AH5 the gate reads the navigation file by name: AGENTS.md and

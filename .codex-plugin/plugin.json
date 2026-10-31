@@ -18,7 +18,8 @@
           "hooks": [
             {
               "type": "command",
-              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex"
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex",
+              "additionalContextLimit": 3500
             }
           ]
         },
@@ -27,7 +28,18 @@
           "hooks": [
             {
               "type": "command",
-              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex"
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex",
+              "additionalContextLimit": 3500
+            }
+          ]
+        },
+        {
+          "matcher": "compact",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/boot-memory.sh\" codex",
+              "additionalContextLimit": 3500
             }
           ]
         }
