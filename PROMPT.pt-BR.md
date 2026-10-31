@@ -1,6 +1,6 @@
 # O setup em versão colável (plano B)
 
-Sem o plugin, ou travou na instalação dele? Cole o bloco abaixo inteiro numa ferramenta de agente com acesso a arquivos (Claude Code ou Codex são as ideais), **aberta dentro de uma pasta vazia**, e vá respondendo um bloco por vez. É o mesmo discovery do plugin, sem o canal de atualização, sem o hook de abertura e sem as skills-semente (uma "semente" é uma skill starter do plugin que vira um arquivo seu quando plantada: copiada pra sua pasta, onde fica editável). Foi assim que as primeiras pessoas usaram esse sistema.
+Sem o plugin, ou travou na instalação dele? Cole o bloco abaixo inteiro numa ferramenta de agente com acesso a arquivos (Claude Code ou Codex são as ideais), **aberta dentro de uma pasta vazia**, e vá respondendo um bloco por vez. É o mesmo discovery do plugin, sem o canal de atualização, sem os hooks (a carga de memória na abertura e a trava de tamanho no fim de cada turno) e sem as skills-semente (uma "semente" é uma skill starter do plugin que vira um arquivo seu quando plantada: copiada pra sua pasta, onde fica editável). Foi assim que as primeiras pessoas usaram esse sistema.
 
 Este é o mesmo prompt de [PROMPT.md](PROMPT.md), traduzido pra quem prefere colar o texto em português: ele monta a pasta com os nomes em português.
 

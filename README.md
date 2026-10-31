@@ -51,7 +51,7 @@ In Codex the command is `plugin add` (`plugin install` is the Claude Code form).
 
 **3.** Ask for the setup in natural language, for example "run the pm-chief-of-staff setup" or "build my chief of staff". The language you ask in becomes the language of the conversation and of the files. The discovery, the proposal and the review are the same as in Claude Code, and apart from `setup-notes.md`, nothing is created until you approve it.
 
-The plugin also ships a session-start hook that does the memory load (see [The memory](#the-memory)). **Installing the package does not authorize the hook.** Codex asks you to trust it through its normal hook approval mechanism; until you approve it, the session opens without the memory load, and `AGENTS.md` still tells the agent to read the same files.
+The plugin also ships two hooks: the memory load at session start (see [The memory](#the-memory)) and the size gate at the end of each turn (see [Where is my data?](#where-is-my-data)). **Installing the package does not authorize the hooks.** Codex asks you to trust them through its normal hook approval mechanism; until you approve them, the session opens without the memory load and without the size gate, and `AGENTS.md` still tells the agent to read the same files.
 
 During planting, the setup runs the Codex bridge in your folder (see [The same folder in Claude and Codex](#the-same-folder-in-claude-and-codex)). A sandbox that does not allow creating `.agents/` blocks this step, and the agent stops there and tells you. In that case, ask it for the bridge command with the full path filled in and read it. Then either approve it through Codex's normal approval request or run it yourself in your terminal, from inside the folder. Without the bridge the folder still works, but the planted skills do not show up in Codex.
 
@@ -101,16 +101,17 @@ The manual lives in `AGENTS.md`, which Claude Code, Codex and Cursor read. Next 
 
 The daily loop runs on its own. `start-day` reads what yesterday's `close-day` left for it, and `close-day` moves anything still unfiled in the log into the hubs. After two weeks of use, the agent knows your team, your projects and your patterns.
 
-If the external engine `memoria-agente` is set up in the same folder, the two work together. This plugin provides the structure and the rituals, and the engine provides mechanical enforcement and takes over the memory load in Claude Code (the hook detects the engine and steps aside). In Codex, the plugin's hook always does the memory load. The telemetry the engine leaves in the folder does not prove that the engine is running in the current Codex session, so the hook registered for Codex does not step aside because of it.
+If the external engine `memoria-agente` is set up in the same folder, the two work together. This plugin provides the structure and the rituals, and the engine provides mechanical enforcement and takes over the memory load in Claude Code (the hook detects the engine and steps aside). In Codex, the plugin's hook always does the memory load. The telemetry the engine leaves in the folder does not prove that the engine is running in the current Codex session, so the hook registered for Codex does not step aside because of it. The same split holds for the size gate: with the engine alive in Claude Code, the engine's own gate takes care of `CRITICAL_FACTS.md` and the plugin's gate keeps measuring the manual; in Codex the plugin's gate measures both.
 
 ## Where is my data?
 
-**It stays on your computer and nowhere else.** The whole system is a folder of markdown that you open, read, version and delete whenever you want. Nothing is sent to me, and the plugin installs no server, connector or MCP integration. It has two short scripts, both local, and you can read each one in full in 2 minutes:
+**It stays on your computer and nowhere else.** The whole system is a folder of markdown that you open, read, version and delete whenever you want. Nothing is sent to me, and the plugin installs no server, connector or MCP integration. It has three short scripts, all local, and you can read each one in full in 2 minutes:
 
 * **`hooks/boot-memory.sh` runs at session start and only reads.** It reads from your own folder the state (`CRITICAL_FACTS.md`), the index (`navigation.md`, and the older `navegacao.md` if there is one) and the day's log, or the latest dated log when today has none, and puts into the conversation a pack of at most 8,000 bytes: the start of the state, the latest headings of that log and the start of the index, and it ends by saying what was left out. It runs when the session opens and again after the conversation is compacted, so the agent keeps knowing where things are. It writes nothing and sends nothing anywhere.
 * **`modules/codex-bridge.sh` writes locally during planting.** It runs when setup, plant or create-skill ask for it, with your permission, and writes only inside `.agents/` in your folder (the link or the short files that point to your skills).
+* **`hooks/size-gate.sh` measures sizes on each request and at the end of each turn.** It runs only in a Chief of Staff folder (one with `CRITICAL_FACTS.md` and the manual). It reads the sizes in bytes of `AGENTS.md`, `CLAUDE.md` and `CRITICAL_FACTS.md`. It writes one small file per session, with those sizes and the path of your folder, in the plugin's own data folder, outside your folder, and deletes its own files there once they are more than a month old. It sends nothing anywhere. The effect: a turn that makes the manual (`AGENTS.md` plus `CLAUDE.md`) or `CRITICAL_FACTS.md` grow and end above its cap (13,000 and 3,900 bytes) goes back to the agent once, with the curation to do in three buckets (consolidate, move, and deletions, which are yours to decide), and the agent can answer in one line why the growth was intentional. A turn that does not make those files grow passes in silence. Known limits: the turn in which the folder becomes a Chief of Staff is not measured, and an edit made outside a session is not judged. When the script cannot record the start of a turn, the gate stays quiet, because it never stops a turn without a measured start.
 
-Plugin updates never touch your files, your planted skills, or your `AGENTS.md` or `CLAUDE.md`, and neither script deletes, renames or replaces any file of yours.
+Plugin updates never touch your files, your planted skills, or your `AGENTS.md` or `CLAUDE.md`, and none of the three scripts deletes, renames or replaces any file of yours.
 
 The conversation itself falls under the policies of your agent's provider, which is Anthropic for Claude Code and OpenAI for Codex.
 
@@ -125,6 +126,8 @@ One thing is on you: meeting and 1:1 transcripts carry sensitive data about othe
 An update replaces only the plugin (setup, plugin skills and the seed catalog).
 
 **A folder built before 0.9.0:** the session routine in its manual (`AGENTS.md`, or `CLAUDE.md` in a folder from before 0.6) still says to read the most recent log in full. The session-start pack now brings the headings of that log, so you can ask the agent to change that line to reading the headings and reading an entry when it needs one. The plugin does not change anyone's manual, so that edit is yours to ask for.
+
+**Updating to 0.10.0:** in Codex, approve the plugin's hooks again (each update asks for the approval again). If your folder has its own end-of-turn check on the manual (a local `Stop` hook), remove it after updating, because the plugin now does that check.
 
 ## Upgrading from 0.7
 
@@ -158,11 +161,11 @@ The first five rows are plugin commands (`/pm-chief-of-staff:<name>` in Claude C
 * **I planted a skill and the command (`/start-day`) does not show up:** a planted skill registers when the session opens. In a new session it is there, and the trigger phrase ("good morning") works the same way.
 * **I connected my calendar (or email) and the agent does not see it:** a connector turned on while the session is open only appears in the next session. Close and reopen the session. If you do not use connectors, ignore this item: everything works by pasting the material.
 * **In Codex, the planted skills do not show up:** the bridge either did not run or found a conflict. Check whether `.agents/skills` exists in the folder. If it does not, ask the agent to run the plugin's bridge again (plant also runs it) or follow the sandbox steps in [Installing in Codex](#installing-in-codex-desktop-app-or-cli). If the bridge listed conflicts, go through each line with the agent and decide what to do.
-* **In Codex, the session opens without the memory load:** the hook is still waiting for your approval (see [Installing in Codex](#installing-in-codex-desktop-app-or-cli)).
+* **In Codex, the session opens without the memory load:** the hooks are still waiting for your approval (see [Installing in Codex](#installing-in-codex-desktop-app-or-cli)).
 
 ## Don't want to install the plugin?
 
-Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (Claude Code and Codex included) and run the same setup by chatting with it. You end up with `AGENTS.md`, the one-line `CLAUDE.md` that points to `AGENTS.md`, the rules index and the skills in a single source, and Codex skill discovery is set up without overwriting anything that already exists. The plugin adds the seed skills, the `connect`, `create-skill` and `remove-ai-tells` skills, the session-start hook, the bridge as a script and the update channel.
+Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (Claude Code and Codex included) and run the same setup by chatting with it. You end up with `AGENTS.md`, the one-line `CLAUDE.md` that points to `AGENTS.md`, the rules index and the skills in a single source, and Codex skill discovery is set up without overwriting anything that already exists. The plugin adds the seed skills, the `connect`, `create-skill` and `remove-ai-tells` skills, the session-start hook, the end-of-turn size gate, the bridge as a script and the update channel.
 
 ## Philosophy, in 4 principles
 

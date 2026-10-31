@@ -1,6 +1,6 @@
 # The setup as a pastable prompt (plan B)
 
-No plugin, or stuck installing it? Paste the whole block below into an agent tool with file access (Claude Code or Codex are the best fit), **opened inside an empty folder**, and answer one block at a time. It is the same discovery as the plugin's, without the update channel, without the session-start hook and without the seed skills (a "seed" is a starter skill from the plugin that becomes a file of yours when planted: copied into your folder, where it stays editable). This is how the first people used this system.
+No plugin, or stuck installing it? Paste the whole block below into an agent tool with file access (Claude Code or Codex are the best fit), **opened inside an empty folder**, and answer one block at a time. It is the same discovery as the plugin's, without the update channel, without the hooks (the memory load at session start and the size gate at the end of each turn) and without the seed skills (a "seed" is a starter skill from the plugin that becomes a file of yours when planted: copied into your folder, where it stays editable). This is how the first people used this system.
 
 The prompt is in English and works in any language: the agent talks to you and writes your files in the language you answer in. To paste the same setup in Portuguese, use [PROMPT.pt-BR.md](PROMPT.pt-BR.md).
 
