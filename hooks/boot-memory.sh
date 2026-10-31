@@ -221,10 +221,16 @@ assemble() {
     case "$v" in ''|*[!0-9]*) return 1 ;; esac
   done
 
+  # The largest footer: every file cut right before its last line, so the
+  # "lines K to N" start has as many digits as N, and every log heading left
+  # out.
   cf_shown=0
+  [ "$cf_total" -gt 0 ] && cf_shown=$((cf_total - 1))
   log_shown=0
   nav1_shown=0
+  [ "$nav1_total" -gt 0 ] && nav1_shown=$((nav1_total - 1))
   nav2_shown=0
+  [ "$nav2_total" -gt 0 ] && nav2_shown=$((nav2_total - 1))
   footer
   reserve_all=$(bytes_of "$foot")
   cf_shown=$cf_total
@@ -246,10 +252,34 @@ assemble() {
   line4b=" bytes (limit $LIMIT)."
   head_a="$line1$NL$line2$NL$line3$NL$line4a"
   head_reserve=$(bytes_of "$head_a${LIMIT}$line4b$NL")
-  left=$((LIMIT - head_reserve - reserve))
+
+  # A pack over the limit with readable files is never the failure line: the
+  # overflow becomes slack taken from the sections, and the last section
+  # loses whole lines, until the pack fits. Bounded, as a safety net.
+  slack=0
+  tries=0
+  while :; do
+    build_sections || return 1
+    [ "$size" -le "$LIMIT" ] && return 0
+    slack=$((slack + size - LIMIT))
+    tries=$((tries + 1))
+    [ "$tries" -lt 8 ] || return 1
+  done
+}
+
+# build_sections: the sections, the footer and line 4 for the current slack.
+# Sets pack and size. Returns 1 on an internal failure.
+build_sections() {
+  left=$((LIMIT - head_reserve - reserve - slack))
 
   # CRITICAL_FACTS.md, up to its section cap.
+  # The slack also comes off the cap of the section that is last in the
+  # pack, so that section is the one that loses lines.
+  last=cf
+  [ -n "$log" ] && last=log
+  [ -n "$nav1" ] && last=nav
   cap=$CF_CAP
+  [ "$last" = cf ] && cap=$((cap - slack))
   [ "$cap" -gt "$left" ] && cap=$left
   hdr_max=$(bytes_of "$NL--- CRITICAL_FACTS.md ---$NL$cf_total of $cf_total lines shown.$NL")
   cut_prefix CRITICAL_FACTS.md $((cap - hdr_max)) || return 1
@@ -261,6 +291,7 @@ assemble() {
   log_sec=""
   if [ -n "$log" ]; then
     cap=$LOG_CAP
+    [ "$last" = log ] && cap=$((cap - slack))
     [ "$cap" -gt "$left" ] && cap=$left
     hdr_max=$(bytes_of "$NL--- $log ---$NL$log_total of $log_total headings shown, the latest ones, in file order; the entry bodies are not in this pack.$NL")
     cut_headings "$log" $((cap - hdr_max)) || return 1
@@ -306,7 +337,6 @@ assemble() {
   [ -n "$size" ] || return 1
   pack="$head_a$size$line4b$NL$body"
   [ "$(bytes_of "$pack")" = "$size" ] || return 1
-  [ "$size" -le "$LIMIT" ] || return 1
   return 0
 }
 

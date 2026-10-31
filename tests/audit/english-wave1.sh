@@ -62,27 +62,30 @@ boot() {
 
 has() { printf '%s\n' "$out" | grep -qxF -- "$1"; }
 
-# AH1 today's log wins over a log with a later name.
+# AH1 today's log wins over a log with a later name (boot-budget spec: the
+# pack carries the "## " headings of the log, so the sentinels are headings).
 cos AH1
 mkdir -p "$f/memory"
-echo "AUD_TODAY" > "$f/memory/2031-05-17.md"
-echo "AUD_LATER" > "$f/memory/2031-06-01.md"
+echo "## AUD_TODAY" > "$f/memory/2031-05-17.md"
+echo "## AUD_LATER" > "$f/memory/2031-06-01.md"
 boot
-if [ "$rc" -eq 0 ] && has "--- memory/2031-05-17.md ---" && has AUD_TODAY && ! has AUD_LATER; then
+if [ "$rc" -eq 0 ] && has "--- memory/2031-05-17.md ---" && has "## AUD_TODAY" \
+  && ! printf '%s\n' "$out" | grep -qF AUD_LATER; then
   ok "AH1 today's log is printed, not the one with a later name"
 else
   fail "AH1 today's log" "exit $rc"
 fi
 
-# AH2 without today's log, the latest dated log by name, and only it.
+# AH2 without today's log, the latest dated log by name, and only it (the
+# sentinels are headings, as in AH1).
 cos AH2
 mkdir -p "$f/memory"
-echo "AUD_OLD" > "$f/memory/2026-01-02.md"
-echo "AUD_LATEST" > "$f/memory/2026-10-28.md"
-echo "AUD_NOTES" > "$f/memory/notes.md"
+echo "## AUD_OLD" > "$f/memory/2026-01-02.md"
+echo "## AUD_LATEST" > "$f/memory/2026-10-28.md"
+echo "## AUD_NOTES" > "$f/memory/notes.md"
 boot
-if [ "$rc" -eq 0 ] && has "--- memory/2026-10-28.md ---" && has AUD_LATEST \
-  && ! has AUD_OLD && ! has AUD_NOTES; then
+if [ "$rc" -eq 0 ] && has "--- memory/2026-10-28.md ---" && has "## AUD_LATEST" \
+  && ! printf '%s\n' "$out" | grep -qF AUD_OLD && ! printf '%s\n' "$out" | grep -qF AUD_NOTES; then
   ok "AH2 fallback prints only the latest dated log"
 else
   fail "AH2 fallback to the latest log" "exit $rc"
@@ -343,13 +346,15 @@ if git -C "$ROOT" cat-file -e 318ea9c^{commit} 2>/dev/null; then
   fi
 
   # AF3 the new hook boots on the 0.7.0 fixture: header, the facts, the
-  # legacy navegacao.md and the latest log.
+  # legacy navegacao.md and the heading of the latest log, whose body stays
+  # on disk (boot-budget spec).
   f="$fl"
   boot
   if [ "$rc" -eq 0 ] && [ "$(printf '%s\n' "$out" | sed -n 1p)" = "$HEADER" ] \
     && printf '%s\n' "$out" | grep -qF COS07_CRITICAL_FACTS \
     && has "--- navegacao.md ---" && printf '%s\n' "$out" | grep -qF COS07_NAVEGACAO \
-    && has "--- memory/2026-10-28.md ---" && printf '%s\n' "$out" | grep -qF COS07_MEMORY; then
+    && has "--- memory/2026-10-28.md ---" && has "## [18:40] Fechamento do dia" \
+    && ! printf '%s\n' "$out" | grep -qF COS07_MEMORY; then
     ok "AF3 new hook boots on the 0.7.0 fixture"
   else
     fail "AF3 new hook on the fixture" "exit $rc"
