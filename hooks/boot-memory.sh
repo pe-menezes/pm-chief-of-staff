@@ -54,8 +54,13 @@ runtime="${1:-claude}"
 
 # Project root: CLAUDE_PROJECT_DIR when it is a directory, else the cwd. The
 # gate, the handoff and the pack all read paths relative to it.
+# CDPATH is dropped and the cd writes nothing: with CDPATH set, cd prints the
+# directory it reached on stdout, which would land before the pack and
+# outside its count, and a relative CLAUDE_PROJECT_DIR could resolve under a
+# CDPATH entry instead of the cwd.
+unset CDPATH
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  cd "$CLAUDE_PROJECT_DIR" 2>/dev/null || exit 0
+  cd -- "$CLAUDE_PROJECT_DIR" >/dev/null 2>&1 || exit 0
 fi
 root=$(pwd 2>/dev/null)
 [ -n "$root" ] || exit 0
@@ -89,7 +94,7 @@ host_dir=$(uname -n 2>/dev/null | LC_ALL=C cut -c1-64 2>/dev/null \
 [ -n "$host_dir" ] || host_dir=sem-host
 if [ "$runtime" != codex ] && [ -f .claude/memoria-config.json ] \
   && find ".claude/data/sensor-efeito/$host_dir" -mindepth 1 -maxdepth 1 -type f -name '*.jsonl' -mtime -2 2>/dev/null | grep -q .; then
-  echo "memoria-agente present, session-start injection handed to the engine"
+  printf '%s\n' "memoria-agente present, session-start injection handed to the engine"
   exit 0
 fi
 
@@ -198,15 +203,30 @@ assemble() {
   is_num "$manual_bytes" || return 1
 
   # The day's log, or the latest dated one when today's does not exist or
-  # date gives no date.
+  # date gives no date. A dated log is a regular file named exactly
+  # memory/YYYY-MM-DD.md; nothing else in memory/ is ever the log. The
+  # choice is a glob loop that compares the dates as numbers, with no ls or
+  # sort whose failure would leave the log out unseen, and a name with a
+  # newline never matches the pattern.
   today=$(date +%Y-%m-%d 2>/dev/null)
   case "$today" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) today="" ;; esac
   log=""
   if [ -n "$today" ] && [ -f "memory/$today.md" ]; then
     log="memory/$today.md"
   else
-    latest=$(ls memory/[0-9]*.md 2>/dev/null | sort | tail -1)
-    [ -n "$latest" ] && [ -f "$latest" ] && log="$latest"
+    best=0
+    for f in memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md; do
+      [ -f "$f" ] || continue
+      d=${f#memory/}
+      d=${d%.md}
+      # "1" in front keeps a year like 0999 from a leading zero: 9 digits,
+      # safe for is_num and the arithmetic.
+      key="1${d%%-*}"
+      d=${d#*-}
+      key="$key${d%%-*}${d#*-}"
+      is_num "$key" || continue
+      if [ "$key" -gt "$best" ]; then best=$key; log=$f; fi
+    done
   fi
 
   # Both navigation files are shown when both exist, navigation.md first:
@@ -383,6 +403,8 @@ build_sections() {
 if assemble 2>/dev/null; then
   printf '%s' "$pack"
 else
-  echo "Memory boot pack not assembled; the files are on disk in $root."
+  # printf, never echo: echo reads backslashes in the root (\c ends the
+  # line, \0303 writes a lone byte).
+  printf '%s\n' "Memory boot pack not assembled; the files are on disk in $root."
 fi
 exit 0

@@ -405,17 +405,25 @@ printf 'old manual\nsecond line\n' > "$d/CLAUDE.md"
 echo "CF_OLD" > "$d/CRITICAL_FACTS.md"
 run "$d"
 check_pack "$d"
-r=0
-[ -z "$why" ] && ! LC_ALL=C grep -q -- '^--- navigation.md ---$' "$work/out" && LC_ALL=C grep -qxF CF_OLD "$work/out" || r=1
-p5why=$why
+# The verdict of the first check lives in its own variable: run sets $r, so
+# a second run must never wash out a failure of the first.
+p5old=""
+if [ -n "$why" ]; then p5old="old layout: $why"
+elif LC_ALL=C grep -q -- '^--- navigation.md ---$' "$work/out"; then p5old="old layout: a navigation section"
+elif ! LC_ALL=C grep -qxF CF_OLD "$work/out"; then p5old="old layout: no CF_OLD"
+fi
 echo "the new manual, longer" > "$d/AGENTS.md"
 echo "NAV_P5" > "$d/navigation.md"
 run "$d"
 check_pack "$d"
-if [ "$r" -eq 0 ] && [ -z "$why" ] && LC_ALL=C grep -qxF NAV_P5 "$work/out"; then
+p5new=""
+if [ -n "$why" ]; then p5new="with AGENTS.md: $why"
+elif ! LC_ALL=C grep -qxF NAV_P5 "$work/out"; then p5new="with AGENTS.md: no NAV_P5"
+fi
+if [ -z "$p5old" ] && [ -z "$p5new" ]; then
   ok "P5 old CLAUDE.md layout boots and line 4 names the manual it has"
 else
-  fail "P5 old layout" "${p5why:-}${why:-}"
+  fail "P5 old layout" "$p5old${p5new:+ ${p5new}}"
 fi
 
 # P6 internal failure from the hook's tools: a tool that fails silently or
@@ -436,8 +444,19 @@ for tool in awk wc tr; do
       l1=$(sed -n 1p "$work/out")
       nl=$(LC_ALL=C awk 'END { print NR + 0 }' "$work/out")
       good=0
-      [ "$l1" = "$HEADER" ] && good=1
+      # A pack counts only whole: line 1 the header, line 4 stating the
+      # measured size, a footer, valid UTF-8. A header alone is no pack.
+      if [ "$l1" = "$HEADER" ]; then
+        p6size=$(LC_ALL=C wc -c < "$work/out" | tr -d ' ')
+        case "$(sed -n 4p "$work/out")" in
+          "Sizes: "*", this pack $p6size bytes (limit 8000).") good=1 ;;
+        esac
+        LC_ALL=C grep -qxF -- "--- not in this pack ---" "$work/out" \
+          || LC_ALL=C grep -Eq '^Nothing is left out of this pack; the files are in .+\.$' "$work/out" \
+          || good=0
+      fi
       printf '%s\n' "$l1" | LC_ALL=C grep -Eq "$FAILLINE_RE" && [ "$nl" -eq 1 ] && good=1
+      iconv -f UTF-8 -t UTF-8 < "$work/out" > "$work/conv" 2>/dev/null || good=0
       if [ "$r" -ne 0 ] || [ "$good" -ne 1 ]; then
         p6_bad="$p6_bad [$tool $mode $(basename "$shl"): exit $r, $nl lines]"
       fi

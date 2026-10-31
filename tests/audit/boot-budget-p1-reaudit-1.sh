@@ -168,8 +168,18 @@ if [ -z "$q1" ]; then
       AUD_WC_VALUE=$v
       run "$d1"
       good=0
-      [ "$(sed -n 1p "$work/out")" = "$HEADER" ] && good=1
+      # A pack counts only whole: line 1 the header, line 4 stating the
+      # measured size, a footer, valid UTF-8. A header alone is no pack.
+      if [ "$(sed -n 1p "$work/out")" = "$HEADER" ]; then
+        case "$(sed -n 4p "$work/out")" in
+          "Sizes: "*", this pack $size bytes (limit 8000).") good=1 ;;
+        esac
+        LC_ALL=C grep -qxF -- "--- not in this pack ---" "$work/out" \
+          || LC_ALL=C grep -Eq '^Nothing is left out of this pack; the files are in .+\.$' "$work/out" \
+          || good=0
+      fi
       is_failline && good=1
+      iconv -f UTF-8 -t UTF-8 < "$work/out" > "$work/conv" 2>/dev/null || good=0
       if [ -n "$shdiff" ] || [ "$rc" -ne 0 ] || [ "$good" -ne 1 ]; then
         q1="$q1 [$target '$v': exit $rc, $nl lines $shdiff]"
       fi

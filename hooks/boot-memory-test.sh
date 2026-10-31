@@ -13,7 +13,9 @@
 # to R8 (boot-budget spec: 8000 bytes, cut at whole lines, footer,
 # CLAUDE_PROJECT_DIR, the compact matcher). B11 (audit round 1, D1), and
 # from fix round 1: B10w (a failing or garbage wc), B12 (a failing date) and
-# U1 (the UTF-8 check itself).
+# U1 (the UTF-8 check itself). From fix round 2 (Codex review): B13 (the
+# failure line with backslashes in the root), B14 (CDPATH) and B15 (only a
+# regular memory/YYYY-MM-DD.md is the latest log).
 # Run by hand: sh hooks/boot-memory-test.sh
 # Each case builds a folder with mktemp -d, runs the hook inside it in a
 # subshell (the hook reads paths relative to the cwd, as in a real session)
@@ -22,6 +24,9 @@
 # fixture in the load, never by the whole text.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# The hook reads CLAUDE_PROJECT_DIR first; one inherited from the caller
+# would point every case away from its folder.
+unset CLAUDE_PROJECT_DIR
 DIR=$(cd "$(dirname "$0")" && pwd) || exit 1
 HOOK="$DIR/boot-memory.sh"
 MARCA="=== MEMORY BOOT (pm-chief-of-staff) ==="
@@ -528,6 +533,112 @@ elif utf8_ok "$fakes/u1-invalid"; then why="invalid byte accepted"
 else r=0
 fi
 verdict "U1 the UTF-8 check accepts valid text and rejects an invalid byte" "$r" "$why"
+
+# Fix round 2 cases run the hook under every shell found among /bin/sh and
+# /bin/dash, named on the command line, not through the shebang.
+SHELLS2=""
+for s in /bin/sh /bin/dash; do [ -x "$s" ] && SHELLS2="$SHELLS2 $s"; done
+
+# run_shell SHELL DIR FRONT: runs the hook with SHELL in DIR, FRONT in front
+# of PATH and no CLAUDE_PROJECT_DIR; $out, $rc and $size are set.
+run_shell() {
+  (cd "$2" && unset CLAUDE_PROJECT_DIR && PATH="$3:$PATH" "$1" "$HOOK" > "$fakes/stdout" 2>/dev/null)
+  rc=$?
+  size=$(wc -c < "$fakes/stdout" | tr -d ' ')
+  out=$(cat "$fakes/stdout")
+}
+
+# B13 (Codex review, CX1): the failure line carries the root byte for byte.
+# A root whose name holds a literal backslash-c and backslash-0303 (which
+# echo reads as "stop here" and as an octal byte) gives the whole line,
+# valid UTF-8 and exit 0, under every shell.
+b13=""
+if new_cos "B13 root with backslashes"; then
+  d="$tmp/"'raiz \c meio \0303 fim'
+  mkdir -p "$d/memory"
+  cp "$tmp/AGENTS.md" "$tmp/CRITICAL_FACTS.md" "$tmp/navigation.md" "$d/"
+  want="Memory boot pack not assembled; the files are on disk in $(cd "$d" && pwd)."
+  for shl in $SHELLS2; do
+    run_shell "$shl" "$d" "$fakes/awk:$fakes/date"
+    lines=$(awk 'END { print NR + 0 }' "$fakes/stdout")
+    if [ "$rc" -ne 0 ] || [ "$lines" -ne 1 ] || [ "$out" != "$want" ] || ! utf8_ok "$fakes/stdout"; then
+      b13="$b13 [$(basename "$shl"): exit $rc, $lines lines, $size bytes]"
+    fi
+  done
+  rm -rf "$tmp"
+  r=0
+  [ -n "$b13" ] && r=1
+  verdict "B13 the failure line keeps a root with backslashes whole, valid UTF-8, exit 0 (shells:$SHELLS2)" "$r" "$b13"
+fi
+
+# B14 (Codex review, CX2): with CDPATH set and a relative
+# CLAUDE_PROJECT_DIR, the cd prints nothing: a folder that is not a Chief of
+# Staff stays silent, and in a Chief of Staff line 1 is the header and the
+# pack keeps its budget and the size it states.
+b14=""
+if new_cos "B14 CDPATH"; then
+  mkdir -p "$tmp/not cos"
+  echo "CF only" > "$tmp/not cos/CRITICAL_FACTS.md"
+  mkdir -p "$tmp/the cos/memory"
+  cp "$tmp/AGENTS.md" "$tmp/CRITICAL_FACTS.md" "$tmp/navigation.md" "$tmp/the cos/"
+  for shl in $SHELLS2; do
+    (cd "$tmp" && CDPATH=. CLAUDE_PROJECT_DIR="not cos" PATH="$fakes/date:$PATH" "$shl" "$HOOK" > "$fakes/stdout" 2>/dev/null)
+    rc=$?
+    size=$(wc -c < "$fakes/stdout" | tr -d ' ')
+    if [ "$rc" -ne 0 ] || [ "$size" -ne 0 ]; then
+      b14="$b14 [$(basename "$shl") not a CoS: exit $rc, $size bytes]"
+    fi
+    (cd "$tmp" && CDPATH=. CLAUDE_PROJECT_DIR="the cos" PATH="$fakes/date:$PATH" "$shl" "$HOOK" > "$fakes/stdout" 2>/dev/null)
+    rc=$?
+    size=$(wc -c < "$fakes/stdout" | tr -d ' ')
+    out=$(cat "$fakes/stdout")
+    if ! common || ! printf '%s\n' "$out" | grep -qx "$FIXTURE"; then
+      b14="$b14 [$(basename "$shl") CoS: ${why:-no fixture}; line 1: $(printf '%s\n' "$out" | sed -n 1p)]"
+    fi
+  done
+  rm -rf "$tmp"
+  r=0
+  [ -n "$b14" ] && r=1
+  verdict "B14 CDPATH with a relative CLAUDE_PROJECT_DIR prints nothing from the cd (shells:$SHELLS2)" "$r" "$b14"
+fi
+
+# B15 (Codex review, CX3): with no log for today, the log is the latest
+# regular file named memory/YYYY-MM-DD.md. An undated name that sorts later,
+# a folder with a dated name and names with a newline are never the log,
+# also with ls and sort failing.
+b15=""
+mkdir -p "$fakes/nolssort"
+printf '#!/bin/sh\necho "fake: error" >&2\nexit 3\n' > "$fakes/nolssort/ls"
+printf '#!/bin/sh\necho "fake: error" >&2\nexit 3\n' > "$fakes/nolssort/sort"
+chmod +x "$fakes/nolssort/ls" "$fakes/nolssort/sort"
+if new_cos "B15 latest dated log"; then
+  printf '## [08:00] B15_NOTES\n' > "$tmp/memory/9-notes.md"
+  mkdir -p "$tmp/memory/2026-10-29.md"
+  printf '## [08:00] B15_INSIDE\n' > "$tmp/memory/2026-10-29.md/2026-10-30.md"
+  printf '## [08:00] B15_NEWLINE\n' > "$tmp/memory/2026-10-30
+x.md"
+  printf '## [08:00] B15_NEWLINE2\n' > "$tmp/memory/2026-10-31.md
+"
+  printf '## [08:00] B15_RIGHT\n' > "$tmp/memory/2026-10-28.md"
+  for front in "$fakes/date" "$fakes/nolssort:$fakes/date"; do
+    tag2=""
+    [ "$front" = "$fakes/date" ] || tag2=" without ls and sort"
+    for shl in $SHELLS2; do
+      run_shell "$shl" "$tmp" "$front"
+      tag="$(basename "$shl")$tag2"
+      if ! common; then b15="$b15 [$tag: $why]"
+      elif ! printf '%s\n' "$out" | grep -qxF -- "--- memory/2026-10-28.md ---"; then b15="$b15 [$tag: no section memory/2026-10-28.md]"
+      elif ! printf '%s\n' "$out" | grep -qxF -- "## [08:00] B15_RIGHT"; then b15="$b15 [$tag: no B15_RIGHT heading]"
+      elif [ "$(printf '%s\n' "$out" | grep -c -- '^--- memory/')" -ne 1 ]; then b15="$b15 [$tag: more than one log section]"
+      elif printf '%s\n' "$out" | grep -q 'B15_NOTES\|B15_INSIDE\|B15_NEWLINE'; then b15="$b15 [$tag: a decoy taken as the log]"
+      fi
+    done
+  done
+  rm -rf "$tmp"
+  r=0
+  [ -n "$b15" ] && r=1
+  verdict "B15 the latest log is the latest regular memory/YYYY-MM-DD.md, never a decoy (shells:$SHELLS2)" "$r" "$b15"
+fi
 
 # B11 (audit round 1, finding D1: the footer reserve was smaller than the
 # real footer, so a full pack overflowed into the failure line). The cases

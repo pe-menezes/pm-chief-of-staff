@@ -9,6 +9,9 @@
 # (commit 318ea9c); without it they print "info" and the rest runs the same.
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
+# The hook reads CLAUDE_PROJECT_DIR first; one inherited from the caller
+# would point every hook case away from its folder.
+unset CLAUDE_PROJECT_DIR
 ROOT=$(cd "$(dirname "$0")/../.." && pwd) || exit 1
 HOOK="$ROOT/hooks/boot-memory.sh"
 BRIDGE="$ROOT/modules/codex-bridge.sh"
