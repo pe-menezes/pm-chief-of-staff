@@ -131,6 +131,8 @@ What an 0.7.0 folder or the 0.7.0 plugin uses. Accepted wherever the plugin read
 | plugin file (repository only) | `modules/vocabulary.md` | (none) |
 | plugin file (repository only) | `hooks/boot-memory.sh` (keeps the execute bit) | `hooks/boot-memoria.sh` |
 | plugin file (repository only) | `hooks/boot-memory-test.sh` (keeps the execute bit) | `hooks/boot-memoria-teste.sh` |
+| plugin file (repository only) | `hooks/size-gate.sh` (keeps the execute bit) | (none) |
+| plugin file (repository only) | `hooks/size-gate-test.sh` | (none) |
 | plugin file (repository only) | `hooks/hooks.json` | `hooks/hooks.json` |
 | plugin file (repository only) | `tests/codex-bridge-test.sh` | `testes/ponte-codex-teste.sh` |
 | plugin file (repository only) | `tests/audit/codex-compat-final.sh` | `testes/auditoria/codex-compat-final.sh` |

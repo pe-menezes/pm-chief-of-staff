@@ -51,7 +51,7 @@ No Codex o comando é `plugin add` (`plugin install` é a forma do Claude Code).
 
 **3.** Peça o setup em linguagem natural, por exemplo "roda o setup do pm-chief-of-staff" ou "monta meu chief of staff". O idioma em que você pede vira o idioma da conversa e dos arquivos. O discovery, a proposta e a revisão são os mesmos do Claude Code: fora o `setup-notes.md`, nada é criado antes do seu ok.
 
-O plugin também traz um hook de abertura (a carga de memória descrita em [A memória](#a-memória)). **Instalar o pacote não autoriza o hook.** O Codex pede sua confiança pra ele pelo mecanismo normal de aprovação de hooks; enquanto você não aprovar, a sessão abre sem a carga de memória, e o `AGENTS.md` continua mandando ler os mesmos arquivos.
+O plugin também traz dois hooks: a carga de memória na abertura (descrita em [A memória](#a-memória)) e a trava de tamanho no fim de cada turno (veja [Onde ficam meus dados?](#onde-ficam-meus-dados)). **Instalar o pacote não autoriza os hooks.** O Codex pede sua confiança pra eles pelo mecanismo normal de aprovação de hooks; enquanto você não aprovar, a sessão abre sem a carga de memória e sem a trava, e o `AGENTS.md` continua mandando ler os mesmos arquivos.
 
 No plantio, o setup roda a ponte do Codex na sua pasta (veja [A mesma pasta no Claude e no Codex](#a-mesma-pasta-no-claude-e-no-codex)). Sandbox que não deixa criar `.agents/` bloqueia esse passo, e o agente para ali e avisa. Nesse caso, peça a ele o comando da ponte com o caminho resolvido e leia. Depois, ou você autoriza a execução pelo pedido de aprovação normal do Codex, ou roda o comando você mesmo, no seu terminal, de dentro da pasta. Sem a ponte, a pasta funciona, mas as skills plantadas não aparecem no Codex.
 
@@ -101,16 +101,17 @@ O manual mora no `AGENTS.md`, que Claude Code, Codex e Cursor leem. Ao lado dele
 
 O ciclo diário fecha sozinho. O `start-day` lê o que o `close-day` de ontem deixou pra ele, e o `close-day` promove o que ficou solto no log pros hubs. Em duas semanas de uso, o agente conhece seu time, seus projetos e seus padrões.
 
-Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois funcionam juntos. Este plugin dá a estrutura e os rituais, e a engine dá o enforcement mecânico e assume a carga de memória no Claude Code (o hook detecta a engine e cede a vez). No Codex, o hook do plugin faz a carga de memória sempre. A telemetria que a engine deixa na pasta não comprova que ela está rodando nesta sessão do Codex, então o hook registrado no Codex não cede a vez por causa dela.
+Se a engine externa `memoria-agente` estiver configurada na mesma pasta, os dois funcionam juntos. Este plugin dá a estrutura e os rituais, e a engine dá o enforcement mecânico e assume a carga de memória no Claude Code (o hook detecta a engine e cede a vez). No Codex, o hook do plugin faz a carga de memória sempre. A telemetria que a engine deixa na pasta não comprova que ela está rodando nesta sessão do Codex, então o hook registrado no Codex não cede a vez por causa dela. A trava de tamanho segue a mesma divisão: com a engine viva no Claude Code, a trava do plugin deixa o `CRITICAL_FACTS.md` pra engine (que só o mede quando a trava da própria engine está ligada) e continua medindo o manual; no Codex a trava do plugin mede os dois.
 
 ## Onde ficam meus dados?
 
-**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala servidor, conector nem integração MCP. Ele tem dois scripts curtos, os dois locais, e dá pra ler cada um inteiro em 2 minutos:
+**No seu computador, e só nele.** O sistema inteiro é uma pasta de markdown que você abre, lê, versiona e apaga quando quiser. Nada é enviado pra mim, e o plugin não instala servidor, conector nem integração MCP. Ele tem três scripts curtos, todos locais, e dá pra ler cada um inteiro em 2 minutos:
 
-* **`hooks/boot-memory.sh`, leitura na abertura da sessão.** Lê da sua própria pasta o estado (`CRITICAL_FACTS.md`), o índice (`navigation.md`, e o antigo `navegacao.md` se houver) e o log do dia, ou o último log datado quando hoje não tem, e põe na conversa um pacote de até 8.000 bytes: o começo do estado, os títulos mais recentes desse log e o começo do índice, e termina dizendo o que ficou de fora. Roda quando a sessão abre e de novo depois que a conversa é compactada, pro agente seguir sabendo onde as coisas estão. Não escreve nada e não manda nada pra lugar nenhum.
+* **`hooks/boot-memory.sh`, leitura na abertura da sessão.** Lê da sua própria pasta o estado (`CRITICAL_FACTS.md`), o índice (`navigation.md`, e o antigo `navegacao.md` se houver) e o log do dia, ou o último log datado quando hoje não tem, e põe na conversa um pacote de até 8.000 bytes: o começo do estado, os títulos mais recentes desse log e o começo do índice, e termina dizendo o que ficou de fora. Roda quando a sessão abre e de novo depois que a conversa é compactada, pro agente seguir sabendo onde as coisas estão. Também lê o nome da máquina e, no Claude Code, confere se existem o `.claude/memoria-config.json` e telemetria recente da engine `memoria-agente` pra esta máquina. Não escreve nada e não manda nada pra lugar nenhum.
 * **`modules/codex-bridge.sh`, escrita local no plantio.** Roda quando o setup, o plant ou o create-skill pedem, com sua permissão, e escreve só dentro de `.agents/` da sua pasta (o link ou os arquivos curtos que apontam pras suas skills).
+* **`hooks/size-gate.sh`, medida de tamanho a cada pedido e no fim de cada turno.** Roda só em pasta de Chief of Staff (uma pasta com o `CRITICAL_FACTS.md` e, além dele, o `CLAUDE.md` ou o `AGENTS.md` com o índice, como o setup monta). Lê os tamanhos em bytes do `AGENTS.md`, do `CLAUDE.md` e do `CRITICAL_FACTS.md`. Também lê o nome da máquina e, no Claude Code, confere se existem o `.claude/memoria-config.json` e telemetria recente da engine `memoria-agente` pra esta máquina. Escreve um arquivo pequeno por sessão, com esses tamanhos e o caminho da sua pasta, na pasta de dados do próprio plugin, fora da sua pasta, e apaga ali os arquivos dele com mais de um mês. Não manda nada pra lugar nenhum. O efeito: o turno que faz o manual (`AGENTS.md` mais `CLAUDE.md`) ou o `CRITICAL_FACTS.md` crescer e terminar acima do teto (13.000 e 3.900 bytes) volta ao agente uma vez, com a curadoria a fazer em três baldes (consolidar, mover e apagar, que é decisão sua), e o agente pode responder numa linha por que o crescimento foi intencional. O turno que não faz esses arquivos crescerem passa calado. Limites conhecidos: o turno em que a pasta vira Chief of Staff não é medido, e edição feita fora de uma sessão não é julgada. Quando o script não consegue gravar o começo do turno, a trava fica quieta, porque nunca trava um turno sem um começo medido.
 
-Atualização do plugin nunca toca nos seus arquivos, nas suas skills plantadas nem no seu `AGENTS.md` ou `CLAUDE.md`, e nenhum dos dois scripts apaga, renomeia ou substitui arquivo seu.
+Atualização do plugin nunca toca nos seus arquivos, nas suas skills plantadas nem no seu `AGENTS.md` ou `CLAUDE.md`, e nenhum dos três scripts apaga, renomeia ou substitui arquivo seu.
 
 A conversa em si segue as regras da conta do agente que você usa: a Anthropic, no Claude Code; a OpenAI, no Codex.
 
@@ -125,6 +126,8 @@ Um cuidado que é seu: transcrição de reunião e 1:1 carrega dado sensível de
 Atualização troca só o plugin (setup, skills do plugin e catálogo de sementes).
 
 **Pasta montada antes da 0.9.0:** a rotina de sessão do manual dela (o `AGENTS.md`, ou o `CLAUDE.md` em pasta anterior à 0.6) ainda manda ler o log mais recente inteiro. O pacote da abertura agora traz os títulos desse log, então você pode pedir ao agente pra trocar essa linha pela leitura dos títulos, lendo um registro quando precisar. O plugin não muda o manual de ninguém, então essa troca fica com você.
+
+**Atualizando pra 0.10.0:** no Codex, revise e confie nos hooks do plugin quando o Codex pedir, porque esta versão traz dois e o Codex segura pra revisão o hook novo ou alterado até você confiar nele. Se a sua pasta tem uma trava própria no fim do turno sobre o manual (um hook `Stop` local), tire essa trava depois de atualizar, porque agora o plugin faz essa conferência.
 
 ## Atualizando da 0.7
 
@@ -158,11 +161,11 @@ As cinco primeiras linhas são comandos do plugin (`/pm-chief-of-staff:<nome>` n
 * **Plantei uma skill e o comando (`/start-day`) não aparece:** skill plantada registra quando a sessão abre. Numa sessão nova ela está lá, e o gatilho por frase ("bom dia") funciona igual.
 * **Conectei minha agenda (ou e-mail) e o agente não vê:** conector ligado com a sessão aberta só aparece na sessão seguinte. Feche e abra a sessão. Se você não usa conectores, ignore este item: tudo funciona colando o material.
 * **No Codex, as skills plantadas não aparecem:** a ponte não rodou ou achou conflito. Confira se existe `.agents/skills` na pasta. Se não existir, peça ao agente pra rodar a ponte do plugin de novo (o plant também roda) ou siga o caminho de sandbox de [Instalação no Codex](#instalação-no-codex-app-desktop-ou-cli). Se a ponte listou conflito, decida com o agente o que fazer com cada linha.
-* **No Codex, a sessão abre sem a carga de memória:** o hook ainda espera sua aprovação (veja [Instalação no Codex](#instalação-no-codex-app-desktop-ou-cli)).
+* **No Codex, a sessão abre sem a carga de memória:** os hooks ainda esperam sua aprovação (veja [Instalação no Codex](#instalação-no-codex-app-desktop-ou-cli)).
 
 ## Não quer instalar o plugin?
 
-Cola o conteúdo de [`PROMPT.pt-BR.md`](PROMPT.pt-BR.md) em qualquer agente com acesso a arquivos (Claude Code e Codex incluídos) e roda o mesmo setup por conversa, em português. A pasta sai com `AGENTS.md`, o `CLAUDE.md` de uma linha que aponta pro `AGENTS.md`, o índice de regras e as skills numa fonte só, com a descoberta do Codex criada sem passar por cima do que já existe. O plugin acrescenta as skills-semente, as skills `connect`, `create-skill` e `remove-ai-tells`, o hook de abertura, a ponte em script e o canal de atualização.
+Cola o conteúdo de [`PROMPT.pt-BR.md`](PROMPT.pt-BR.md) em qualquer agente com acesso a arquivos (Claude Code e Codex incluídos) e roda o mesmo setup por conversa, em português. A pasta sai com `AGENTS.md`, o `CLAUDE.md` de uma linha que aponta pro `AGENTS.md`, o índice de regras e as skills numa fonte só, com a descoberta do Codex criada sem passar por cima do que já existe. O plugin acrescenta as skills-semente, as skills `connect`, `create-skill` e `remove-ai-tells`, o hook de abertura, a trava de tamanho no fim do turno, a ponte em script e o canal de atualização.
 
 ## Filosofia, em 4 princípios
 
