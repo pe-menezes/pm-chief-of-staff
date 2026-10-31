@@ -28,7 +28,11 @@
 #      a folder with spaces;
 #   R  differential oracle: boot-memory.sh and size-gate.sh agree on which
 #      folders are a Chief of Staff, over generated folder shapes;
-#   S  project root: CLAUDE_PROJECT_DIR, a relative one under CDPATH=.
+#   S  project root: CLAUDE_PROJECT_DIR, a relative one under CDPATH=.;
+#   T  fix round 1: session_id filter under UTF-8 locales, a failing
+#      measure or write drops the old record, mkdir losing a race, a record
+#      with any field out of form, session_id only as a string and
+#      stop_hook_active only as true or false.
 # Run by hand: sh hooks/size-gate-test.sh < /dev/null
 # Each case builds its own folder with mktemp -d (work folder and plugin
 # data folder inside it) and removes it. Fake tools never read stdin.
@@ -61,14 +65,15 @@ else
 fi
 
 # json_command FILE KEY: the string at the dotted KEY of the JSON in FILE,
-# read by plutil or node (the same reader as hooks/boot-memory-test.sh).
+# read by plutil or node (node parses the file content, so a file without
+# the .json extension is still read as JSON).
 # Empty, with exit 1, when the key is missing, is not a string or the file
 # is not JSON.
 json_command() {
   if command -v plutil >/dev/null 2>&1; then
     plutil -extract "$2" raw -o - "$1" 2>/dev/null
   elif command -v node >/dev/null 2>&1; then
-    node -e 'let v=require(process.argv[1]);for(const k of process.argv[2].split("."))v=v==null?v:v[k];if(typeof v!=="string")process.exit(1);process.stdout.write(v)' "$1" "$2" 2>/dev/null
+    node -e 'let v=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));for(const k of process.argv[2].split("."))v=v==null?v:v[k];if(typeof v!=="string")process.exit(1);process.stdout.write(v)' "$1" "$2" 2>/dev/null
   else
     return 1
   fi
@@ -103,6 +108,8 @@ new_case() {
   data_val="$D"
   path_front=""
   project_dir=""
+  loc_var=""
+  loc_val=""
   return 0
 }
 
@@ -157,11 +164,19 @@ stop_payload() {
 # run_hook EVENT PAYLOAD [MARKER]: runs the hook in W (or in run_dir when
 # set) with the payload on stdin; sets rc and out, raw stdout in $T/out.
 # Knobs: data_val ("-unset-" unsets CLAUDE_PLUGIN_DATA), path_front,
-# project_dir.
+# project_dir, loc_var and loc_val (LANG or LC_ALL set to loc_val, every
+# other locale variable unset). The hook runs by its #! line, /bin/sh.
 run_hook() {
   printf '%s' "$2" > "$T/in"
   (
     cd "${run_dir:-$W}" || exit 97
+    if [ -n "$loc_var" ]; then
+      unset LC_ALL LC_CTYPE LC_COLLATE LANG
+      case "$loc_var" in
+        LANG) LANG="$loc_val"; export LANG ;;
+        LC_ALL) LC_ALL="$loc_val"; export LC_ALL ;;
+      esac
+    fi
     if [ "$data_val" = "-unset-" ]; then
       unset CLAUDE_PLUGIN_DATA
     else
@@ -489,7 +504,12 @@ new_case "J5" && {
     run_hook stop '{"hook_event_name":"Stop","stop_hook_active":false}'
     j_pass "J5 session_id missing"
     run_hook stop '{"session_id":null,"hook_event_name":"Stop","stop_hook_active":false}'
-    j_pass "J5b session_id null"
+    # J5b also checks that no record was born: only the prompt's own.
+    if [ "$(listing "$D/size-gate")" = "$(printf '%s\n%s' "$D/size-gate" "$D/size-gate/turn-$SID.state")" ]; then
+      j_pass "J5b session_id null"
+    else
+      fail "J5b session_id null: a record was born: $(listing "$D/size-gate" | tr '\n' ' ')"
+    fi
   }
   end_case
 }
@@ -951,6 +971,189 @@ new_case "S4" && {
   prompt_silent "S4b no event" && ok "S4b no event is silent"
   end_case
 }
+
+# ---------------------------------------------------------------- T
+# T1: the session_id filter does not depend on the locale. The non-ASCII
+# bytes of the audit probe X5 (e acute in UTF-8, a lone 0xff, a full-width
+# A), in the middle of the id, under every installed UTF-8 locale, set by
+# LANG alone and by LC_ALL, with the hook under /bin/sh: prompt silent,
+# stop {}, nothing written. The allowed id still blocks in the same locale,
+# so the case cannot pass by a hook that does nothing.
+T1_LOCALES=""
+for l in C.UTF-8 C.utf8 en_US.UTF-8 en_US.utf8 pt_BR.UTF-8 pt_BR.utf8; do
+  if locale -a 2>/dev/null | grep -qx "$l"; then T1_LOCALES="$T1_LOCALES $l"; fi
+done
+[ -n "$T1_LOCALES" ] || fail "T1 no UTF-8 locale installed among C, en_US and pt_BR: the locale cases cannot run"
+T1_BYTES=$(printf '\303\251 \377 \357\274\241')
+for l in $T1_LOCALES; do
+  for var in LANG LC_ALL; do
+    name="T1 non-ASCII session_id under $var=$l"
+    new_case "$name" || continue
+    layout new
+    loc_var="$var"
+    loc_val="$l"
+    t1_bad=""
+    for c in $T1_BYTES; do
+      hex=$(printf '%s' "$c" | od -An -tx1 | tr -d ' ')
+      set_size manual 2000
+      before=$(snapshot)
+      run_hook prompt "$(prompt_payload "a${c}b")"
+      [ "$rc" -eq 0 ] && [ ! -s "$T/out" ] || t1_bad="$t1_bad prompt $hex not silent;"
+      set_size manual 14000
+      run_hook stop "{\"session_id\":\"a${c}b\",\"hook_event_name\":\"Stop\",\"stop_hook_active\":false}"
+      is_pass || t1_bad="$t1_bad stop $hex not {};"
+      [ "$before" = "$(snapshot)" ] || t1_bad="$t1_bad $hex wrote $(find "$D" -mindepth 1 -print | tr '\n' ' ');"
+    done
+    set_size manual 2000
+    run_hook prompt "$(prompt_payload)"
+    set_size manual 14000
+    run_hook stop "$(stop_payload false)"
+    block_ok claude "$MANUAL_LABEL" 2000 14000 13000 10000 || t1_bad="$t1_bad the allowed id did not block ($why);"
+    if [ -z "$t1_bad" ]; then ok "$name"; else fail "$name:$t1_bad"; fi
+    end_case
+  done
+done
+
+# Fakes for T2 to T4, none reading stdin: wc and mv failing with no output;
+# wc printing a partial count and failing; mkdir that loses a race (the
+# folder gets created, by the real mkdir, and the call fails).
+TF=$(mktemp -d 2>/dev/null)
+REAL_MKDIR=$(command -v mkdir)
+mkdir -p "$TF/wc" "$TF/mv" "$TF/wc-partial" "$TF/mkdir-race"
+printf '#!/bin/sh\necho "fake wc: error" >&2\nexit 1\n' > "$TF/wc/wc"
+printf '#!/bin/sh\necho "fake mv: error" >&2\nexit 1\n' > "$TF/mv/mv"
+printf '#!/bin/sh\necho "       1"\necho "fake wc: read error" >&2\nexit 1\n' > "$TF/wc-partial/wc"
+printf '#!/bin/sh\n"%s" "$@"\necho "fake mkdir: File exists" >&2\nexit 1\n' "$REAL_MKDIR" > "$TF/mkdir-race/mkdir"
+chmod +x "$TF/wc/wc" "$TF/mv/mv" "$TF/wc-partial/wc" "$TF/mkdir-race/mkdir"
+
+# T2: an event that fails after it knows the record path (measuring or
+# writing) drops the record of this session, so no later turn compares with
+# an old start. For each failing tool and each event: a real prompt records
+# the manual at 2000; the manual grows to 14000 (another session, or this
+# turn); the event runs under the fake; then a stop with real tools and no
+# change passes, and the record was gone after the failure.
+for tool in wc mv wc-partial; do
+  for ev in prompt stop; do
+    name="T2 failing $tool at the $ev drops the old record"
+    new_case "$name" || continue
+    layout new
+    run_hook prompt "$(prompt_payload)"
+    if prompt_silent "$name"; then
+      set_size manual 14000
+      path_front="$TF/$tool"
+      if [ "$ev" = prompt ]; then
+        run_hook prompt "$(prompt_payload)"
+        prompt_silent "$name" || { end_case; continue; }
+      else
+        run_hook stop "$(stop_payload false)"
+        is_pass || { fail "$name: the failing stop must print {} (exit $rc, stdout: $out)"; end_case; continue; }
+      fi
+      path_front=""
+      why=""
+      [ -e "$D/size-gate/turn-$SID.state" ] && why=" the record stayed after the failure;"
+      run_hook stop "$(stop_payload false)"
+      is_pass || why="$why the next stop without change did not pass (stdout: $out);"
+      if [ -z "$why" ]; then ok "$name"; else fail "$name:$why"; fi
+    fi
+    end_case
+  done
+done
+
+# T3: the mkdir of the hook's folder loses a race with another session: the
+# folder exists after the failed call, so the prompt goes on and records
+# the start, and the stop that grows the manual past the cap blocks.
+new_case "T3" && {
+  layout new
+  path_front="$TF/mkdir-race"
+  run_hook prompt "$(prompt_payload)"
+  if prompt_silent "T3 mkdir race"; then
+    path_front=""
+    set_size manual 14000
+    run_hook stop "$(stop_payload false)"
+    if block_ok claude "$MANUAL_LABEL" 2000 14000 13000 10000; then
+      ok "T3 the prompt goes on when mkdir loses a race"
+    else
+      fail "T3 the prompt goes on when mkdir loses a race: expected a block ($why)"
+    fi
+  fi
+  end_case
+}
+rm -rf "$TF"
+
+# T4: the record holds whole or not at all. Each of the four fields of line
+# 1 spoiled one at a time, the others valid (start 12000 and 1000), with the
+# manual ending at 14000 and CRITICAL_FACTS.md at 4500: the stop passes.
+# The same record unspoiled blocks for both, so the written form is one the
+# hook reads.
+new_case "T4" && {
+  layout new
+  mkdir "$D/size-gate"
+  rec="$D/size-gate/turn-$SID.state"
+  set_size manual 14000
+  set_size cf 4500
+  why=""
+  printf 'size-gate 1 12000 1000\n%s\n' "$W" > "$rec"
+  run_hook stop "$(stop_payload false)"
+  block_ok claude "$MANUAL_LABEL" 12000 14000 13000 10000 \
+    && grep -qF "$CF_LABEL grew from 1000 to 4500 bytes" "$T/msg" \
+    || why=" the unspoiled record did not block for both ($why);"
+  for pos in 1 2 3 4; do
+    for bad in INVALID -5 012 1x '' 1234567890 -; do
+      [ "$pos" = 4 ] && [ "$bad" = - ] && continue
+      set -- size-gate 1 12000 1000
+      case "$pos" in
+        1) line="$bad $2 $3 $4" ;;
+        2) line="$1 $bad $3 $4" ;;
+        3) line="$1 $2 $bad $4" ;;
+        4) line="$1 $2 $3 $bad" ;;
+      esac
+      printf '%s\n%s\n' "$line" "$W" > "$rec"
+      run_hook stop "$(stop_payload false)"
+      is_pass || why="$why field $pos as [$bad] did not pass;"
+    done
+  done
+  if [ -z "$why" ]; then ok "T4 a record with any field out of form gives no start"
+  else fail "T4 a record with any field out of form gives no start:$why"; fi
+  end_case
+}
+
+# T5: session_id counts only as a JSON string. Each other JSON value in both
+# events: prompt silent, stop {}, nothing written.
+for v in null true false 123 '{}' '[]'; do
+  m_case "T5 session_id as $v" \
+    "{\"session_id\":$v,\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"x\"}" \
+    "{\"session_id\":$v,\"hook_event_name\":\"Stop\",\"stop_hook_active\":false}"
+done
+
+# T6: stop_hook_active counts only as true or false. Every other form
+# (missing, truncated after the colon, truncated after the value, null, a
+# number, a string, another word) does not block a turn that grew past the
+# cap; false still blocks.
+t6_case() {
+  name="T6 stop_hook_active $1"
+  new_case "$name" || return
+  layout new
+  run_hook prompt "$(prompt_payload)"
+  if prompt_silent "$name"; then
+    set_size manual 14000
+    run_hook stop "$2"
+    if [ "$3" = pass ]; then
+      if is_pass; then ok "$name"; else fail "$name: expected {} (exit $rc, stdout: $out)"; fi
+    else
+      if block_ok claude "$MANUAL_LABEL" 2000 14000 13000 10000; then ok "$name"
+      else fail "$name: expected a block ($why)"; fi
+    fi
+  fi
+  end_case
+}
+t6_case "missing" "{\"session_id\":\"$SID\",\"hook_event_name\":\"Stop\"}" pass
+t6_case "truncated after the colon" "{\"session_id\":\"$SID\",\"hook_event_name\":\"Stop\",\"stop_hook_active\":" pass
+t6_case "truncated after false" "{\"session_id\":\"$SID\",\"hook_event_name\":\"Stop\",\"stop_hook_active\":false" pass
+for v in null 0 1 '"false"' '"true"' fals falsey False tru; do
+  t6_case "as $v" "{\"session_id\":\"$SID\",\"hook_event_name\":\"Stop\",\"stop_hook_active\":$v}" pass
+done
+t6_case "false, last key" "{\"session_id\":\"$SID\",\"stop_hook_active\":false}" block
+t6_case "false, then another key" "{\"session_id\":\"$SID\",\"stop_hook_active\" : false , \"x\":1}" block
 
 [ "$failures" -eq 0 ] || exit 1
 exit 0

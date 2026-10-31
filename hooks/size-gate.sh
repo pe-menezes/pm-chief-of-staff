@@ -47,20 +47,30 @@ MANUAL_TARGET=10000
 CF_TARGET=3000
 NL='
 '
+# A space and a tab.
+BLANKS=' 	'
+
+# Pattern matching: bracket expressions list their characters one by one,
+# never as a range, because the /bin/sh of macOS (bash 3.2) matches a range
+# by the locale's collation, where letters like e acute fall inside A-Z.
 
 # is_num VALUE: digits only, no leading zero, at most 9 digits, so it is safe
 # in $((...)), where a bad operand ends the whole shell.
 is_num() {
-  case "$1" in ''|*[!0-9]*|0?*|??????????*) return 1 ;; esac
+  case "$1" in ''|*[!0123456789]*|0?*|??????????*) return 1 ;; esac
   return 0
 }
 
 # size_of FILE: sets sz to the size of FILE in bytes, 0 when it is not a
-# regular file. Returns 1 when wc or tr give no number.
+# regular file. Returns 1 when wc fails, even after printing a number, or
+# gives no number. The blanks around the count leave by parameter
+# expansion, so no second process can hide the status of wc.
 size_of() {
   sz=0
   [ -f "$1" ] || return 0
-  sz=$(LC_ALL=C wc -c < "$1" 2>/dev/null | LC_ALL=C tr -d ' \t' 2>/dev/null)
+  sz=$(LC_ALL=C wc -c < "$1" 2>/dev/null) || return 1
+  sz=${sz#"${sz%%[!"$BLANKS"]*}"}
+  sz=${sz%"${sz##*[!"$BLANKS"]}"}
   is_num "$sz"
 }
 
@@ -79,33 +89,50 @@ measure() {
   return 0
 }
 
-# json_field KEY: the first "KEY" : value pair of the payload, with any
-# whitespace around the colon. A key inside a string value never matches,
-# because JSON escapes its quotes. Prints the raw value (a quoted string is
-# printed without its quotes); prints nothing when the key is missing.
+# json_field KEY TYPE: the value of the first "KEY" : value pair of the
+# payload, with any whitespace around the colon. A key inside a string value
+# never matches, because JSON escapes its quotes. TYPE string: prints the
+# content of a quoted string, and nothing when the value is not a string
+# (null, a number, true, an object). TYPE bool: prints true or false only
+# when the value is that literal followed by a comma or the closing brace,
+# and nothing for any other value or a truncated payload. Prints nothing
+# when the key is missing.
 json_field() {
   printf '%s' "$payload" | LC_ALL=C tr '\n\r\t' '   ' 2>/dev/null \
-    | LC_ALL=C awk -v k="$1" '
+    | LC_ALL=C awk -v k="$1" -v t="$2" '
       { s = s $0 }
       END {
         if (!match(s, "\"" k "\"[ ]*:[ ]*")) exit 0
         r = substr(s, RSTART + RLENGTH)
-        if (substr(r, 1, 1) == "\"") {
+        if (t == "string") {
+          if (substr(r, 1, 1) != "\"") exit 0
           r = substr(r, 2)
           i = index(r, "\"")
           if (i == 0) exit 0
           print substr(r, 1, i - 1)
-        } else if (match(r, /^[a-z]+/)) {
-          print substr(r, 1, RLENGTH)
+        } else if (t == "bool") {
+          if (match(r, /^true[ ]*[,}]/)) print "true"
+          else if (match(r, /^false[ ]*[,}]/)) print "false"
         }
       }' 2>/dev/null
 }
 
-# valid_sid VALUE: only [A-Za-z0-9._-], not starting with a dot, 1 to 128
-# characters.
+# valid_sid VALUE: only the letters A to Z and a to z, the digits, dot,
+# underscore and hyphen, not starting with a dot, 1 to 128 characters.
 valid_sid() {
-  case "$1" in ''|.*|*[!A-Za-z0-9._-]*) return 1 ;; esac
+  case "$1" in
+    ''|.*|*[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-]*) return 1 ;;
+  esac
   [ "${#1}" -le 128 ]
+}
+
+# drop_record: removes the record of this session, best effort; rm removes
+# a link itself, never its target, and leaves a folder in place. Called on
+# any failure after the record path is known, so no later turn compares
+# with an old start.
+drop_record() {
+  rm -f -- "$rec" 2>/dev/null
+  return 0
 }
 
 # write_record: the record of this session, atomically. Line 1 holds the
@@ -168,14 +195,17 @@ gate() {
 
   # Session and state folder. Nothing is written unless all of these hold.
   payload=$(cat 2>/dev/null)
-  sid=$(json_field session_id)
+  # session_id counts only as a JSON string.
+  sid=$(json_field session_id string)
   valid_sid "$sid" || return 0
   data="${CLAUDE_PLUGIN_DATA:-}"
   case "$data" in /*) ;; *) return 0 ;; esac
   [ -d "$data" ] && [ ! -L "$data/size-gate" ] || return 0
   sd="$data/size-gate"
   if [ ! -d "$sd" ]; then
-    mkdir -- "$sd" 2>/dev/null || return 0
+    # A failed mkdir may have lost a race with another session that created
+    # the folder: the check below decides, not the status of mkdir.
+    mkdir -- "$sd" 2>/dev/null
   fi
   [ -d "$sd" ] && [ ! -L "$sd" ] && [ -w "$sd" ] || return 0
   rec="$sd/turn-$sid.state"
@@ -191,15 +221,15 @@ gate() {
     engine=yes
   fi
 
-  measure || return 1
+  measure || { drop_record; return 1; }
 
   if [ "$event" = prompt ]; then
     # Old records leave: regular files with the hook's names, in its own
     # folder only; find does not follow links by default.
-    find "$sd" -mindepth 1 -maxdepth 1 -type f \
+    LC_ALL=C find "$sd" -mindepth 1 -maxdepth 1 -type f \
       \( -name 'turn-*.state' -o -name 'turn-*.state.tmp.*' \) -mtime +30 \
       -exec rm -f -- {} + 2>/dev/null
-    write_record || return 1
+    write_record || { drop_record; return 1; }
     return 0
   fi
 
@@ -213,17 +243,22 @@ gate() {
     rest=${saved#*"$NL"}
     if [ "$rest" = "$root$NL" ]; then
       set -- $head
-      if [ "$#" -eq 4 ] && [ "$1" = size-gate ] && [ "$2" = 1 ]; then
-        is_num "$3" && start_manual=$3
-        { is_num "$4" || [ "$4" = - ]; } && start_cf=$4
+      # The record holds whole or not at all: one field out of form and
+      # there is no start.
+      if [ "$#" -eq 4 ] && [ "$1" = size-gate ] && [ "$2" = 1 ] \
+        && is_num "$3" && { is_num "$4" || [ "$4" = - ]; }; then
+        start_manual=$3
+        start_cf=$4
       fi
     fi
   fi
 
-  active=$(json_field stop_hook_active)
+  # stop_hook_active counts only as true or false; any other form (missing,
+  # truncated, another value) never blocks.
+  active=$(json_field stop_hook_active bool)
   grew_manual=no
   grew_cf=no
-  if [ "$active" != true ] && [ -n "$start_manual" ]; then
+  if [ "$active" = false ] && [ -n "$start_manual" ]; then
     if [ "$manual" -gt "$start_manual" ] && [ "$manual" -gt "$MANUAL_CAP" ]; then
       grew_manual=yes
     fi
@@ -234,7 +269,7 @@ gate() {
   fi
 
   # The end of this turn is the start of the next one.
-  write_record || return 1
+  write_record || { drop_record; return 1; }
 
   if [ "$grew_manual" = yes ] || [ "$grew_cf" = yes ]; then
     message
