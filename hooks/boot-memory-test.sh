@@ -11,7 +11,9 @@
 # with spaces). Time line: T1 (english spec, format only, never the clock;
 # line 3 since the boot-budget spec). Pack with a byte budget: B1 to B10, R6
 # to R8 (boot-budget spec: 8000 bytes, cut at whole lines, footer,
-# CLAUDE_PROJECT_DIR, the compact matcher).
+# CLAUDE_PROJECT_DIR, the compact matcher). B11 (audit round 1, D1), and
+# from fix round 1: B10w (a failing or garbage wc), B12 (a failing date) and
+# U1 (the UTF-8 check itself).
 # Run by hand: sh hooks/boot-memory-test.sh
 # Each case builds a folder with mktemp -d, runs the hook inside it in a
 # subshell (the hook reads paths relative to the cwd, as in a real session)
@@ -154,6 +156,13 @@ esac
 EOF
 printf '#!/bin/sh\necho "fake awk: error" >&2\nexit 2\n' > "$fakes/awk/awk"
 chmod +x "$fakes/date/date" "$fakes/awk/awk"
+# A wc that fails with nothing on stdout, a wc that prints garbage, and a
+# date that fails with nothing on stdout.
+mkdir -p "$fakes/wcfail" "$fakes/wcjunk" "$fakes/nodate"
+printf '#!/bin/sh\necho "fake wc: error" >&2\nexit 3\n' > "$fakes/wcfail/wc"
+printf '#!/bin/sh\ncat > /dev/null 2>&1\necho "zz9 x"\n' > "$fakes/wcjunk/wc"
+printf '#!/bin/sh\necho "fake date: error" >&2\nexit 1\n' > "$fakes/nodate/date"
+chmod +x "$fakes/wcfail/wc" "$fakes/wcjunk/wc" "$fakes/nodate/date"
 
 # gen FILE BYTES PREFIX: exactly BYTES bytes of ASCII lines of 60 bytes,
 # each starting with PREFIX and its line number.
@@ -219,6 +228,13 @@ section() {
     on { print }'
 }
 
+# utf8_ok FILE: FILE is valid UTF-8. The conversion goes to a regular file:
+# on macOS, iconv writing to /dev/null fails on valid UTF-8 at some byte
+# offsets ("Inappropriate ioctl for device"), measured in audit round 1.
+utf8_ok() {
+  iconv -f UTF-8 -t UTF-8 < "$1" > "$fakes/iconv.out" 2>/dev/null
+}
+
 # common: the checks every pack case runs; prints the first broken one in
 # $why and returns 1.
 common() {
@@ -235,7 +251,7 @@ common() {
   elif [ "$said" != "$size" ]; then why="line 4 says $said bytes, measured $size"
   elif ! printf '%s\n' "$out" | grep -qxF -- "$FOOTER_HEAD" \
     && ! printf '%s\n' "$out" | grep -Eq "$FOOTER_NONE_RE"; then why="footer missing"
-  elif ! iconv -f UTF-8 -t UTF-8 < "$fakes/stdout" >/dev/null 2>&1; then why="output is not valid UTF-8"
+  elif ! utf8_ok "$fakes/stdout"; then why="output is not valid UTF-8"
   elif printf '%s\n' "$out" | grep -qi 'read it from disk'; then why="old imperative text"
   fi
   [ -z "$why" ]
@@ -462,6 +478,56 @@ if new_cos "B10 failure"; then
   rm -rf "$tmp"
   verdict "B10 failure while assembling gives one statement line and exit 0" "$r" "$why"
 fi
+
+# B10w (audit round 1, finding A-D1): a wc that fails or prints garbage
+# gives the same one statement line and exit 0, never an empty stdout.
+for mode in wcfail wcjunk; do
+  if new_cos "B10w $mode"; then
+    run_pack "$tmp" "$fakes/$mode:$fakes/date"
+    lines=$(printf '%s\n' "$out" | awk 'END { print NR + 0 }')
+    [ -s "$fakes/stdout" ] || lines=0
+    r=1
+    if [ "$rc" -eq 0 ] && [ "$lines" -eq 1 ] \
+      && printf '%s\n' "$out" | grep -Eqx 'Memory boot pack not assembled; the files are on disk in .+\.'; then r=0
+    else why="exit $rc, $lines lines: $(printf '%s\n' "$out" | sed -n 1p)"
+    fi
+    rm -rf "$tmp"
+    verdict "B10w a $mode wc gives one statement line and exit 0" "$r" "$why"
+  fi
+done
+
+# B12 (audit round 1, finding B-3): a date that fails gives "time now:
+# unknown" on line 3; the rest of the pack stays whole, and with no today's
+# log the latest dated log gives the headings.
+if new_cos "B12 date fails"; then
+  printf '## [08:10] B12_HEAD\n' > "$tmp/memory/2031-05-16.md"
+  run_pack "$tmp" "$fakes/nodate"
+  l3=$(printf '%s\n' "$out" | sed -n 3p)
+  r=1
+  if [ "$rc" -ne 0 ]; then why="exit $rc"
+  elif [ "$(printf '%s\n' "$out" | sed -n 1p)" != "$MARCA" ]; then why="line 1: $(printf '%s\n' "$out" | sed -n 1p)"
+  elif [ "$l3" != "time now: unknown" ]; then why="line 3: $l3"
+  elif [ "$size" -gt "$BUDGET" ]; then why="output of $size bytes"
+  elif ! printf '%s\n' "$out" | grep -qxF -- "--- memory/2031-05-16.md ---"; then why="no log section"
+  elif ! printf '%s\n' "$out" | grep -qxF -- "## [08:10] B12_HEAD"; then why="no log heading"
+  elif ! printf '%s\n' "$out" | grep -Eq "$FOOTER_NONE_RE"; then why="footer missing"
+  else r=0
+  fi
+  rm -rf "$tmp"
+  verdict "B12 a failing date gives 'time now: unknown' and a whole pack" "$r" "$why"
+fi
+
+# U1 (audit round 1, finding B-2): the UTF-8 check of the common checks
+# accepts valid UTF-8 whatever its byte offset (iconv to /dev/null fails on
+# macOS for some offsets of valid text) and rejects an invalid byte.
+LC_ALL=C awk 'BEGIN { printf "xxx"; for (i = 0; i < 100; i++) printf "linha %d com acentua\303\247\303\243o: decis\303\243o\n", i }' > "$fakes/u1-valid"
+printf 'abc\377def\n' > "$fakes/u1-invalid"
+r=1
+if ! utf8_ok "$fakes/u1-valid"; then why="valid UTF-8 rejected"
+elif utf8_ok "$fakes/u1-invalid"; then why="invalid byte accepted"
+else r=0
+fi
+verdict "U1 the UTF-8 check accepts valid text and rejects an invalid byte" "$r" "$why"
 
 # B11 (audit round 1, finding D1: the footer reserve was smaller than the
 # real footer, so a full pack overflowed into the failure line). The cases

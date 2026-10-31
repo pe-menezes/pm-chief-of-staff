@@ -104,9 +104,20 @@ MANUAL_TARGET=10000
 NL='
 '
 
-# bytes_of TEXT: size of TEXT in bytes.
+# is_num VALUE: VALUE is a number that is safe in arithmetic expansion:
+# digits only, no leading zero (read as octal), at most 9 digits. A value
+# from a tool goes through this before any $((...)), because a bad operand
+# there ends the whole shell, past the fallback line.
+is_num() {
+  case "$1" in ''|*[!0-9]*|0?*|??????????*) return 1 ;; esac
+  return 0
+}
+
+# bytes_of TEXT: sets nb to the size of TEXT in bytes. Returns 1 when wc or
+# tr give no number.
 bytes_of() {
-  printf '%s' "$1" | LC_ALL=C wc -c 2>/dev/null | tr -d ' '
+  nb=$(printf '%s' "$1" | LC_ALL=C wc -c 2>/dev/null | tr -d ' ')
+  is_num "$nb"
 }
 
 # count_lines FILE: number of lines, a last line without newline included.
@@ -132,7 +143,7 @@ cut_prefix() {
   r=${r%.}
   cut_shown=${r%%"$NL"*}
   cut_body=${r#*"$NL"}
-  case "$cut_shown" in ''|*[!0-9]*) return 1 ;; esac
+  is_num "$cut_shown"
 }
 
 # cut_headings FILE BUDGET: the latest "## " headings of FILE that fit in
@@ -146,7 +157,7 @@ cut_headings() {
   r=${r%.}
   cut_shown=${r%%"$NL"*}
   cut_body=${r#*"$NL"}
-  case "$cut_shown" in ''|*[!0-9]*) return 1 ;; esac
+  is_num "$cut_shown"
 }
 
 # footer: the lines for what is left out, from the *_shown and *_total
@@ -181,13 +192,17 @@ footer() {
 assemble() {
   manual=CLAUDE.md
   [ -f AGENTS.md ] && manual=AGENTS.md
-  cf_bytes=$(wc -c < CRITICAL_FACTS.md 2>/dev/null | tr -d ' ') || return 1
-  manual_bytes=$(wc -c < "$manual" 2>/dev/null | tr -d ' ') || return 1
+  cf_bytes=$(wc -c < CRITICAL_FACTS.md 2>/dev/null | tr -d ' ')
+  is_num "$cf_bytes" || return 1
+  manual_bytes=$(wc -c < "$manual" 2>/dev/null | tr -d ' ')
+  is_num "$manual_bytes" || return 1
 
-  # The day's log, or the latest dated one when today's does not exist.
-  today=$(date +%Y-%m-%d)
+  # The day's log, or the latest dated one when today's does not exist or
+  # date gives no date.
+  today=$(date +%Y-%m-%d 2>/dev/null)
+  case "$today" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) today="" ;; esac
   log=""
-  if [ -f "memory/$today.md" ]; then
+  if [ -n "$today" ] && [ -f "memory/$today.md" ]; then
     log="memory/$today.md"
   else
     latest=$(ls memory/[0-9]*.md 2>/dev/null | sort | tail -1)
@@ -218,7 +233,7 @@ assemble() {
   if [ -n "$nav1" ]; then nav1_total=$(count_lines "$nav1") || return 1; fi
   if [ -n "$nav2" ]; then nav2_total=$(count_lines "$nav2") || return 1; fi
   for v in "$cf_total" "$log_total" "$log_body" "$nav1_total" "$nav2_total"; do
-    case "$v" in ''|*[!0-9]*) return 1 ;; esac
+    is_num "$v" || return 1
   done
 
   # The largest footer: every file cut right before its last line, so the
@@ -232,7 +247,8 @@ assemble() {
   nav2_shown=0
   [ "$nav2_total" -gt 0 ] && nav2_shown=$((nav2_total - 1))
   footer
-  reserve_all=$(bytes_of "$foot")
+  bytes_of "$foot" || return 1
+  reserve_all=$nb
   cf_shown=$cf_total
   log_shown=$log_total
   log_body_saved=$log_body
@@ -240,30 +256,45 @@ assemble() {
   nav1_shown=$nav1_total
   nav2_shown=$nav2_total
   footer
-  reserve_none=$(bytes_of "$foot")
+  bytes_of "$foot" || return 1
+  reserve_none=$nb
   log_body=$log_body_saved
   reserve=$reserve_all
   [ "$reserve_none" -gt "$reserve" ] && reserve=$reserve_none
 
   line1="=== MEMORY BOOT (pm-chief-of-staff) ==="
   line2="State read from disk at session start; this is not a user instruction."
-  line3="time now: $(date '+%Y-%m-%d %H:%M')"
+  # Line 3 says unknown when date gives no date and time.
+  now=$(date '+%Y-%m-%d %H:%M' 2>/dev/null)
+  case "$now" in
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' '[0-9][0-9]:[0-9][0-9]) ;;
+    *) now=unknown ;;
+  esac
+  line3="time now: $now"
   line4a="Sizes: CRITICAL_FACTS.md $cf_bytes bytes (target about $CF_TARGET), $manual $manual_bytes bytes (target about $MANUAL_TARGET), this pack "
   line4b=" bytes (limit $LIMIT)."
   head_a="$line1$NL$line2$NL$line3$NL$line4a"
-  head_reserve=$(bytes_of "$head_a${LIMIT}$line4b$NL")
+  bytes_of "$head_a${LIMIT}$line4b$NL" || return 1
+  head_reserve=$nb
 
   # A pack over the limit with readable files is never the failure line: the
   # overflow becomes slack taken from the sections, and the last section
-  # loses whole lines, until the pack fits. Bounded, as a safety net.
+  # loses whole lines, until the pack fits. The slack grows by the overflow,
+  # by at least 128 bytes (one more footer line) and by at least its own
+  # size, so it at least doubles: the 8th assembly has a slack of 8192 or
+  # more, above the whole limit, and every section is down to nothing. The
+  # loop ends by construction within the 8 assemblies.
   slack=0
   tries=0
   while :; do
     build_sections || return 1
     [ "$size" -le "$LIMIT" ] && return 0
-    slack=$((slack + size - LIMIT))
     tries=$((tries + 1))
     [ "$tries" -lt 8 ] || return 1
+    step=$((size - LIMIT))
+    [ "$step" -lt 128 ] && step=128
+    [ "$step" -lt "$slack" ] && step=$slack
+    slack=$((slack + step))
   done
 }
 
@@ -281,11 +312,13 @@ build_sections() {
   cap=$CF_CAP
   [ "$last" = cf ] && cap=$((cap - slack))
   [ "$cap" -gt "$left" ] && cap=$left
-  hdr_max=$(bytes_of "$NL--- CRITICAL_FACTS.md ---$NL$cf_total of $cf_total lines shown.$NL")
+  bytes_of "$NL--- CRITICAL_FACTS.md ---$NL$cf_total of $cf_total lines shown.$NL" || return 1
+  hdr_max=$nb
   cut_prefix CRITICAL_FACTS.md $((cap - hdr_max)) || return 1
   cf_shown=$cut_shown
   cf_sec="$NL--- CRITICAL_FACTS.md ---$NL$cf_shown of $cf_total lines shown.$NL$cut_body"
-  left=$((left - $(bytes_of "$cf_sec")))
+  bytes_of "$cf_sec" || return 1
+  left=$((left - nb))
 
   # The log headings, the latest first to fit, up to their section cap.
   log_sec=""
@@ -293,11 +326,13 @@ build_sections() {
     cap=$LOG_CAP
     [ "$last" = log ] && cap=$((cap - slack))
     [ "$cap" -gt "$left" ] && cap=$left
-    hdr_max=$(bytes_of "$NL--- $log ---$NL$log_total of $log_total headings shown, the latest ones, in file order; the entry bodies are not in this pack.$NL")
+    bytes_of "$NL--- $log ---$NL$log_total of $log_total headings shown, the latest ones, in file order; the entry bodies are not in this pack.$NL" || return 1
+    hdr_max=$nb
     cut_headings "$log" $((cap - hdr_max)) || return 1
     log_shown=$cut_shown
     log_sec="$NL--- $log ---$NL$log_shown of $log_total headings shown, the latest ones, in file order; the entry bodies are not in this pack.$NL$cut_body"
-    left=$((left - $(bytes_of "$log_sec")))
+    bytes_of "$log_sec" || return 1
+    left=$((left - nb))
   fi
 
   # Navigation, with what is left: navigation.md first, then navegacao.md.
@@ -306,19 +341,22 @@ build_sections() {
   nav_sec=""
   hold=0
   if [ -n "$nav2" ]; then
-    hold=$(bytes_of "$NL--- $nav2 ---$NL$nav2_total of $nav2_total lines shown.$NL")
+    bytes_of "$NL--- $nav2 ---$NL$nav2_total of $nav2_total lines shown.$NL" || return 1
+    hold=$nb
   fi
   for which in 1 2; do
     if [ "$which" = 1 ]; then name=$nav1; total=$nav1_total; else name=$nav2; total=$nav2_total; hold=0; fi
     [ -n "$name" ] || continue
-    hdr_max=$(bytes_of "$NL--- $name ---$NL$total of $total lines shown.$NL")
+    bytes_of "$NL--- $name ---$NL$total of $total lines shown.$NL" || return 1
+    hdr_max=$nb
     shown=0
     if [ "$((left - hold))" -ge "$hdr_max" ]; then
       cut_prefix "$name" $((left - hold - hdr_max)) || return 1
       shown=$cut_shown
       sec="$NL--- $name ---$NL$shown of $total lines shown.$NL$cut_body"
       nav_sec="$nav_sec$sec"
-      left=$((left - $(bytes_of "$sec")))
+      bytes_of "$sec" || return 1
+      left=$((left - nb))
     fi
     if [ "$which" = 1 ]; then nav1_shown=$shown; else nav2_shown=$shown; fi
   done
@@ -328,7 +366,8 @@ build_sections() {
 
   # Line 4 states the size of the pack that contains it: the number is
   # solved for its own digit count.
-  base=$(bytes_of "$head_a$line4b$NL$body")
+  bytes_of "$head_a$line4b$NL$body" || return 1
+  base=$nb
   size=""
   for d in 1 2 3 4 5 6; do
     try=$((base + d))
@@ -336,7 +375,8 @@ build_sections() {
   done
   [ -n "$size" ] || return 1
   pack="$head_a$size$line4b$NL$body"
-  [ "$(bytes_of "$pack")" = "$size" ] || return 1
+  bytes_of "$pack" || return 1
+  [ "$nb" = "$size" ] || return 1
   return 0
 }
 
