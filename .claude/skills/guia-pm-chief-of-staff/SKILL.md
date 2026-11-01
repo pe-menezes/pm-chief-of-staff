@@ -41,6 +41,8 @@ The size gate blocks a turn only when a measured file grew in it (end above star
 
 `AGENTS.md` is the generated manual; `CLAUDE.md` is its one-line bridge. Situational rules stay in `.claude/rules/` and need an index entry in `AGENTS.md` for runtimes without native `paths:` loading. A change to the two manifests keeps the same version in both. Setup changes that also exist in `PROMPT.md` (and `PROMPT.pt-BR.md`) must reach the pastable prompt before the release.
 
+The destination yardstick (the script question first, then the skill that owns it, the module, the rule with `paths:` and the manual last) appears in one order in six places: setup, `create-skill`, the two PROMPTs and the two READMEs. `tests/audit/yardstick-p1.sh` pins that order in setup, `create-skill` and the two PROMPTs; the READMEs are checked by reading. A change to the yardstick changes the six places in the same commit.
+
 Language contract (common spec, I4): text the agent reads in order to act is English; text the person reads is in the person's language, recorded in `AGENTS.md` and in the folder vocabulary.
 What is born from the person's own words inside the folder (a skill from `create-skill`, a rule in `.claude/rules/`, `AGENTS.md` itself) is in the person's language, because the person edits it.
 Plugin skill and seed descriptions carry the English triggers plus the 0.7.0 Portuguese trigger phrases, verbatim.

@@ -1,6 +1,6 @@
 {
   "name": "pm-chief-of-staff",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Personal Chief of Staff for product people: a work second brain built from your answers in a setup interview, kept in your own markdown files and adapted to you through use. Run the setup skill in an empty folder.",
   "author": {
     "name": "Pedro Menezes",
