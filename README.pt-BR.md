@@ -129,7 +129,7 @@ Atualização troca só o plugin (setup, skills do plugin e catálogo de semente
 
 **Atualizando pra 0.10.0:** no Codex, revise e confie nos hooks do plugin quando o Codex pedir, porque esta versão traz dois e o Codex segura pra revisão o hook novo ou alterado até você confiar nele. Se a sua pasta tem uma trava própria no fim do turno sobre o manual (um hook `Stop` local), tire essa trava depois de atualizar, porque agora o plugin faz essa conferência.
 
-**Atualizando pra 0.11.0:** pasta montada a partir desta versão já nasce com a ordem nova de onde vai cada mudança (primeiro a skill dona dela, o `AGENTS.md` por último). Pasta montada antes guarda a ordem antiga escrita no próprio `AGENTS.md`, que a atualização nunca toca. Se você quiser a ordem nova, peça ao agente pra trazê-la pro seu `AGENTS.md` e revise a mudança, porque o arquivo é seu.
+**Atualizando pra 0.11.0:** pasta montada a partir desta versão já nasce com a ordem nova de onde vai cada mudança (primeiro a skill dona dela, o `AGENTS.md` por último). Pasta montada antes guarda a ordem antiga escrita no próprio manual (o `AGENTS.md`, ou o `CLAUDE.md` em pasta anterior à 0.6), que a atualização nunca toca. Se você quiser a ordem nova, peça ao agente pra trazê-la pra esse manual e revise a mudança, porque o arquivo é seu.
 
 ## Atualizando da 0.7
 
@@ -171,7 +171,7 @@ Cola o conteúdo de [`PROMPT.pt-BR.md`](PROMPT.pt-BR.md) em qualquer agente com 
 
 ## Filosofia, em 4 princípios
 
-1. **Você muda o sistema pedindo.** Pedido de mudança vira edição na hora, nesta ordem: a skill dona dele, um arquivo compartilhado entre skills, uma regra e, por último, o AGENTS.md, guardado pro que vale em quase todo turno e custa caro esquecer. O sistema se molda ao seu jeito de pensar.
+1. **Você muda o sistema pedindo.** Pedido de mudança vira edição na hora, nesta ordem: a skill dona dele, um arquivo compartilhado entre skills, uma regra ou, por último, o AGENTS.md, guardado pro que vale em quase todo turno e custa caro esquecer. O sistema se molda ao seu jeito de pensar.
 2. **Você tem que ler tudo.** Erro que você não pega se propaga pros arquivos que toda sessão seguinte carrega.
 3. **Ele é thought partner, não assistente obediente.** Franqueza acima de validação, diagnóstico antes de sugestão, e anti-padrões nomeados na hora (executar sem questionar, escalar sem recomendação, showcase sem "e daí", otimismo ingênuo, e os de liderança pra quem lidera: Super-Líder, babá de luxo, feedback genérico, decisão dura adiada).
 4. **Os arquivos são a memória:** a próxima sessão carrega só o que foi escrito na pasta.

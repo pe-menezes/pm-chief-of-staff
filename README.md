@@ -129,7 +129,7 @@ An update replaces only the plugin (setup, plugin skills and the seed catalog).
 
 **Updating to 0.10.0:** in Codex, review and trust the plugin's hooks when Codex asks, because this version brings two and Codex holds a new or changed hook for review until you trust it. If your folder has its own end-of-turn check on the manual (a local `Stop` hook), remove it after updating, because the plugin now does that check.
 
-**Updating to 0.11.0:** a folder set up from this version on gets the new order for where a change goes (the skill that owns it first, `AGENTS.md` last). A folder set up before keeps the old order written in its own `AGENTS.md`, which an update never touches. If you want the new order, ask the agent to bring it into your `AGENTS.md` and review the change, because the file is yours.
+**Updating to 0.11.0:** a folder set up from this version on gets the new order for where a change goes (the skill that owns it first, `AGENTS.md` last). A folder set up before keeps the old order written in its own manual (`AGENTS.md`, or `CLAUDE.md` in a folder from before 0.6), which an update never touches. If you want the new order, ask the agent to bring it into that manual and review the change, because the file is yours.
 
 ## Upgrading from 0.7
 
@@ -171,7 +171,7 @@ Paste the content of [`PROMPT.md`](PROMPT.md) into any agent with file access (C
 
 ## Philosophy, in 4 principles
 
-1. **You change the system by asking.** A change request becomes an edit on the spot, in this order: the skill that owns it, a file shared between skills, a rule and, last, `AGENTS.md`, kept for what holds in almost every turn and is costly to forget. The system adapts to the way you think.
+1. **You change the system by asking.** A change request becomes an edit on the spot, in this order: the skill that owns it, a file shared between skills, a rule or, last, `AGENTS.md`, kept for what holds in almost every turn and is costly to forget. The system adapts to the way you think.
 2. **You have to read everything.** An error you do not catch propagates into the files every later session loads.
 3. **It is a thought partner, not an obedient assistant.** Candor over validation, diagnosis before suggestion, and anti-patterns named on the spot (executing without questioning, escalating without a recommendation, a showcase without a "so what", naive optimism and, if you manage a team, the Super-Leader, the glorified babysitter, generic feedback and the hard decision postponed).
 4. **The files are the memory:** the next session loads only what was written in the folder.
