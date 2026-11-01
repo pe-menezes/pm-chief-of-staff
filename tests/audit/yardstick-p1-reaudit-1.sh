@@ -107,7 +107,13 @@ fi
 # that sets user-invocable: false makes the subject rule a skill with no line
 # in the rules index. A line in the index would load, in every turn, what the
 # skill description already carries.
+# The absence of the index line is pinned to a negation word right before it
+# ("no", "without"; "sem", "nem"), alone or carried over "steps or" / "passos
+# nem", so "with steps or index line" fails. The word boundary keeps "no" or
+# "sem" from matching the end of another word.
 
+en_noindex='(^|[^[:alpha:]])(no|without) (steps (or|nor) )?(index line|line in the rules index)'
+pt_noindex='(^|[^[:alpha:]])(sem|nem) (passos (nem|ou) )?linha no índice'
 r2=""
 for y in setup-y create-y en-y pt-y; do
   joined "$work/$y" | clauses | grep -F 'user-invocable: false' > "$work/$y-c"
@@ -117,8 +123,8 @@ for y in setup-y create-y en-y pt-y; do
   fi
   grep -q -F 'skill' "$work/$y-c" || r2="$r2 [$y: the subject rule is not a skill]"
   case $y in
-    pt-y) grep -q -E '(sem|nem) (passos nem )?linha no índice' "$work/$y-c" || r2="$r2 [$y: the subject rule may take an index line]" ;;
-    *) grep -q -E '(no|without|or) (index line|line in the rules index)' "$work/$y-c" || r2="$r2 [$y: the subject rule may take an index line]" ;;
+    pt-y) grep -q -E "$pt_noindex" "$work/$y-c" || r2="$r2 [$y: the subject rule may take an index line]" ;;
+    *) grep -q -E "$en_noindex" "$work/$y-c" || r2="$r2 [$y: the subject rule may take an index line]" ;;
   esac
 done
 if [ -z "$r2" ]; then
