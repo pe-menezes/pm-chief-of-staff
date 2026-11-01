@@ -8,8 +8,8 @@
 # the cross-file contract it acts on: the five places give the destinations in
 # one order (skill, module, rule, manual last); the script question comes
 # before the destinations and never lets the agent create a hook alone; the
-# manual destination carries the double test, the pointer for a rule with no
-# trigger file and the format of the line; the sentence setup sends "copied
+# manual destination carries the double test and the format of the line, and a
+# rule fired by a subject becomes a hidden skill; the sentence setup sends "copied
 # literally" into the generated AGENTS.md is the CLAUDE.md bridge sentence;
 # the rule destination keeps the rules index with the vocabulary's order
 # sentence; the who-they-are bound reaches both PROMPTs; and connect swaps the
@@ -219,16 +219,26 @@ fi
 
 # ---------------------------------------------------------------------------
 # Y5 the manual destination of the four yardsticks takes only what passes the
-# double test, sends a rule with no trigger file as a one-line pointer, and
-# keeps the line without the story and without what another file carries.
+# double test and keeps the line without the story and without what another
+# file carries. A rule fired by the subject of the conversation (paths: cannot
+# load it, and a rule file without paths: loads in every session) becomes a
+# skill hidden from the / menu whose description names the subject, so only
+# the description sits in context; the manual gets no pointer to it.
 
 y5=""
-r=$(has "$work/setup-m" "almost every turn" "costly" "one-line pointer" "no story" "the date" "\`CRITICAL_FACTS.md\`" "navigation" "another repository"); [ -z "$r" ] || y5="$y5 [setup:$r]"
-r=$(has "$work/create-m" "almost every turn" "costly" "one-line pointer" "no story" "the date" "\`CRITICAL_FACTS.md\`" "navigation" "another repository"); [ -z "$r" ] || y5="$y5 [create-skill:$r]"
-r=$(has "$work/en-m" "almost every turn" "costly to forget" "one-line pointer" "no story" "the date" "CRITICAL_FACTS.md" "navigation.md" "another repository"); [ -z "$r" ] || y5="$y5 [PROMPT.md:$r]"
-r=$(has "$work/pt-m" "quase todo turno" "custa caro esquecer" "ponteiro de uma linha" "sem a história" "a data" "CRITICAL_FACTS.md" "navigation.md" "outro repositório"); [ -z "$r" ] || y5="$y5 [PROMPT.pt-BR.md:$r]"
+r=$(has "$work/setup-y" "user-invocable: false" "description names the subject"); [ -z "$r" ] || y5="$y5 [setup subject rule:$r]"
+r=$(has "$work/create-y" "user-invocable: false" "description names the subject"); [ -z "$r" ] || y5="$y5 [create-skill subject rule:$r]"
+r=$(has "$work/en-y" "user-invocable: false" "description names the subject"); [ -z "$r" ] || y5="$y5 [PROMPT.md subject rule:$r]"
+r=$(has "$work/pt-y" "user-invocable: false" "descrição nomeia o assunto"); [ -z "$r" ] || y5="$y5 [PROMPT.pt-BR.md subject rule:$r]"
+for m in setup-m create-m en-m pt-m; do
+  grep -q -i -E 'pointer|ponteiro' "$work/$m" && y5="$y5 [$m: the manual still takes a pointer]"
+done
+r=$(has "$work/setup-m" "almost every turn" "costly" "no story" "the date" "\`CRITICAL_FACTS.md\`" "navigation" "another repository"); [ -z "$r" ] || y5="$y5 [setup:$r]"
+r=$(has "$work/create-m" "almost every turn" "costly" "no story" "the date" "\`CRITICAL_FACTS.md\`" "navigation" "another repository"); [ -z "$r" ] || y5="$y5 [create-skill:$r]"
+r=$(has "$work/en-m" "almost every turn" "costly to forget" "no story" "the date" "CRITICAL_FACTS.md" "navigation.md" "another repository"); [ -z "$r" ] || y5="$y5 [PROMPT.md:$r]"
+r=$(has "$work/pt-m" "quase todo turno" "custa caro esquecer" "sem a história" "a data" "CRITICAL_FACTS.md" "navigation.md" "outro repositório"); [ -z "$r" ] || y5="$y5 [PROMPT.pt-BR.md:$r]"
 if [ -z "$y5" ]; then
-  ok "Y5 the manual destination carries the double test, the pointer and the line format"
+  ok "Y5 a subject rule becomes a hidden skill named by its subject, and the manual keeps the double test and the line format"
 else
   fail "Y5 manual destination" "$y5"
 fi
