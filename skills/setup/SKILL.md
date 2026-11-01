@@ -204,7 +204,7 @@ Session routine the generated AGENTS.md carries: every new session starts from t
 
 ### The 4-destination yardstick of self-modulation (the generated AGENTS.md carries it)
 
-A change request or a correction has 1 destination among 4, tested in this order; AGENTS.md v1 writes the yardstick in full, with the last sentence of the fourth destination copied literally in the person's language. First ask: can a script fail it? If so, propose to the person a hook or script, never creating or changing a hook yourself (persistent configuration).
+A change request or a correction has 1 destination among 4, tested in this order; AGENTS.md v1 writes the yardstick in full, with the last sentence of the fourth destination copied literally in the person's language. First ask: can a script fail it? If so, propose to the person a hook or script instead of a line, never creating or changing a hook yourself (persistent configuration).
 
 1. **Format or step of an artifact that only one skill uses** (the agenda, the note, the report): an edit in the skill that owns it.
 2. **What 2 or more skills need** ("before writing the note, apply this"): a module in `.claude/skills/_shared/{name}.md`, which each consumer skill tells to be read at its step.
