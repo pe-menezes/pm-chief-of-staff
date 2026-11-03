@@ -98,7 +98,7 @@ Known limits: the bridge depends on the session being able to write `.agents/` i
 
 The agent's memory is its files, and anything written in the folder is loaded by every future session. The system starts with 4 layers, all in readable markdown:
 
-* **`CRITICAL_FACTS.md`**: the live state (your priorities with numbers, active events). Read at the start of every session, it exists so the agent never asks you again what has already been decided.
+* **`CRITICAL_FACTS.md`**: the live state (your priorities with numbers, active events). Read at the start of every session, it exists so the agent never asks you again what has already been decided. Setup writes into it, as an active event, the review of your pains on the date set in `context/pains.md`, so a past review comes up as an open question in any session, and once you do the review the agent moves the dates in `context/pains.md` and swaps the line for the next review, or drops it when no pain is left open.
 * **`memory/`**: the daily log, dated and immutable. Each entry records what happened and when, and points to where the details are.
 * **People and project hubs**: what has stabilized, along with recent signals and history.
 * **`AGENTS.md` and the skills**: how it works with you, and the layer that changes when you ask for a change.
@@ -140,7 +140,7 @@ An update replaces only the plugin (setup, plugin skills and the seed catalog).
 
 **Updating to 0.12.0:** an update does not bring the active event format or the routine for an overdue event into your files, so ask the agent to rewrite the active events in `CRITICAL_FACTS.md` as `(event YYYY-MM-DD, checked YYYY-MM-DD) → {source}` (`evento` and `conferido` in Portuguese) and to add to your `AGENTS.md` the sentence that a past event is an open question, whose outcome it looks for in the later logs and the source before asking you, and review the change, because the files are yours.
 
-**Updating to 0.13.0:** a routine already planted in your folder (`start-day`, `close-day`, `close-week`) stays, because it is your file; to drop one, delete its folder in `.claude/skills/` or ask the agent to. The new write rules (curation at write time, the log entry with its destination in the same step, the week's journal on its first task, the dated follow-up that expired) live in the `AGENTS.md` and `.claude/skills/_shared/write-gate.md` that setup generates, and an update never touches those files: to bring them into an older folder, ask the agent and review the change, because the files are yours.
+**Updating to 0.13.0:** a routine already planted in your folder (`start-day`, `close-day`, `close-week`) stays, because it is your file; to drop one, delete its folder in `.claude/skills/` or ask the agent to. The new write rules (curation at write time, the log entry with its destination in the same step, the week's journal on its first task, the dated follow-up that expired) live in the `AGENTS.md` and `.claude/skills/_shared/write-gate.md` that setup generates, and an update never touches those files: to bring them into an older folder, ask the agent and review the change, because the files are yours. The same goes for the pains review line in `CRITICAL_FACTS.md`: an older folder gets it by asking the agent to add it with the review date of `context/pains.md`.
 
 ## Upgrading from 0.7
 

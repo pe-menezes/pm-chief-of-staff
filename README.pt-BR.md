@@ -98,7 +98,7 @@ Limites conhecidos: a ponte depende de a sessão poder escrever `.agents/` na pa
 
 A memória do agente são os arquivos: o que está escrito na pasta, qualquer sessão futura carrega. O sistema nasce com 4 camadas, todas em markdown legível:
 
-* **`CRITICAL_FACTS.md`**: o estado vivo (suas prioridades com número, eventos ativos). Lido no começo de toda sessão, existe pra ele nunca te perguntar de novo o que já foi decidido.
+* **`CRITICAL_FACTS.md`**: o estado vivo (suas prioridades com número, eventos ativos). Lido no começo de toda sessão, existe pra ele nunca te perguntar de novo o que já foi decidido. O setup grava nele, como evento ativo, a revisão das suas dores na data marcada em `contexto/dores.md`, então uma revisão vencida volta como pergunta em aberto em qualquer sessão, e quando você faz a revisão o agente atualiza as datas em `contexto/dores.md` e troca a linha pela próxima revisão, ou a tira quando não sobra dor aberta.
 * **`memory/`**: o log diário, datado e imutável. Cada entrada diz o que aconteceu e quando, e aponta pra onde está o detalhe.
 * **Hubs de pessoas e projetos**: o que estabilizou, junto com sinais recentes e histórico.
 * **`AGENTS.md` e as skills**: como ele opera com você, e a camada que muda quando você pede uma mudança.
@@ -140,7 +140,7 @@ Atualização troca só o plugin (setup, skills do plugin e catálogo de semente
 
 **Atualizando pra 0.12.0:** a atualização não leva aos seus arquivos o formato do evento ativo nem a rotina do evento vencido, então peça ao agente pra reescrever os eventos ativos do `CRITICAL_FACTS.md` como `(evento AAAA-MM-DD, conferido AAAA-MM-DD) → {fonte}` (`event` e `checked` em inglês) e pra acrescentar ao seu `AGENTS.md` a frase de que evento com data passada é pergunta em aberto, cujo desfecho ele procura nos logs posteriores e na fonte antes de te perguntar, e revise a mudança, porque os arquivos são seus.
 
-**Atualizando pra 0.13.0:** rotina já plantada na sua pasta (`start-day`, `close-day`, `close-week`) continua, porque é arquivo seu; pra tirar uma, apague a pasta dela em `.claude/skills/` ou peça ao agente. As regras novas de escrita (curadoria na escrita, o registro do log com o destino no mesmo passo, o diário da semana na primeira tarefa, o follow-up datado que venceu) moram no `AGENTS.md` e no `.claude/skills/_shared/write-gate.md` que o setup gera, e a atualização nunca toca nesses arquivos: pra trazê-las a uma pasta antiga, peça ao agente e revise a mudança, porque os arquivos são seus.
+**Atualizando pra 0.13.0:** rotina já plantada na sua pasta (`start-day`, `close-day`, `close-week`) continua, porque é arquivo seu; pra tirar uma, apague a pasta dela em `.claude/skills/` ou peça ao agente. As regras novas de escrita (curadoria na escrita, o registro do log com o destino no mesmo passo, o diário da semana na primeira tarefa, o follow-up datado que venceu) moram no `AGENTS.md` e no `.claude/skills/_shared/write-gate.md` que o setup gera, e a atualização nunca toca nesses arquivos: pra trazê-las a uma pasta antiga, peça ao agente e revise a mudança, porque os arquivos são seus. O mesmo vale pra linha da revisão das dores no `CRITICAL_FACTS.md`: uma pasta antiga ganha a linha pedindo ao agente que a acrescente com a data de revisão de `contexto/dores.md`.
 
 ## Atualizando da 0.7
 
