@@ -113,7 +113,8 @@ fi
 
 # ---------------------------------------------------------------------------
 # AP2 setup always plants exactly prep-conversation, process-meeting and
-# absorb; it offers start-day, close-day and close-week in one question, and
+# absorb; it offers start-day, close-day and close-week in one question that
+# marks none of them, and
 # cites the plant command for a routine not picked; the six together are the
 # whole catalog, with no seed in both lists; and its map of 0.7.0 predecessors
 # (never overwritten) covers the six, equal to the vocabulary's.
@@ -134,10 +135,16 @@ printf '%s\n' $always $offered | sort > "$work/setup-six"
 [ -z "$(sort "$work/setup-six" | uniq -d)" ] || ap2_bad="$ap2_bad [seed both planted and offered: $(sort "$work/setup-six" | uniq -d | tr '\n' ' ')]"
 ls "$ROOT/seeds" | sort | cmp -s - "$work/setup-six" || ap2_bad="$ap2_bad [catalog vs setup lists: $(ls "$ROOT/seeds" | sort | diff - "$work/setup-six" | grep '^[<>]' | tr '\n' ' ')]"
 grep -qF '`/pm-chief-of-staff:plant <name>`' "$SETUP" || ap2_bad="$ap2_bad [no /pm-chief-of-staff:plant <name> for a routine not picked]"
+# The question that introduces the offered list (its last non-blank line
+# before the list): one question only, with no routine marked.
+awk '/^\* offered/ { print prev; exit } NF { prev = $0 }' "$SETUP" > "$work/ap2-question"
+[ -s "$work/ap2-question" ] || ap2_bad="$ap2_bad [no question before the offered list]"
+grep -qF 'ask one question' "$work/ap2-question" || ap2_bad="$ap2_bad [the routines are not offered in one question]"
+grep -qF 'marks none of them' "$work/ap2-question" || ap2_bad="$ap2_bad [the question does not leave every routine unmarked]"
 grep -o -E '`[a-z-]+` for `[a-z-]+`' "$SETUP" | sed -E 's/^`([a-z-]+)` for `([a-z-]+)`$/\2 \1/' | sort -u > "$work/setup-seeds"
 cmp -s "$work/voc-seeds" "$work/setup-seeds" || ap2_bad="$ap2_bad [setup predecessor map differs: $(diff "$work/voc-seeds" "$work/setup-seeds" | grep '^[<>]' | tr '\n' ' ')]"
 if [ -z "$ap2_bad" ]; then
-  ok "AP2 setup plants three seeds always, offers the three routines, covers the catalog and checks the six 0.7.0 predecessors"
+  ok "AP2 setup plants three seeds always, offers the three routines in one question with none marked, covers the catalog and checks the six 0.7.0 predecessors"
 else
   fail "AP2 setup seeds" "$ap2_bad"
 fi
