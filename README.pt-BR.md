@@ -132,6 +132,8 @@ Atualização troca só o plugin (setup, skills do plugin e catálogo de semente
 
 **Atualizando pra 0.11.0:** pasta montada a partir desta versão já nasce com a ordem nova de onde vai cada mudança (primeiro a skill dona dela, o `AGENTS.md` por último). Pasta montada antes guarda a ordem antiga escrita no próprio manual (o `AGENTS.md`, ou o `CLAUDE.md` em pasta anterior à 0.6), que a atualização nunca toca. Se você quiser a ordem nova, peça ao agente pra trazê-la pra esse manual e revise a mudança, porque o arquivo é seu.
 
+**Pasta montada antes da marca OVERDUE:** a atualização não leva aos seus arquivos o formato do evento ativo nem a rotina do evento vencido, então peça ao agente pra reescrever os eventos ativos do `CRITICAL_FACTS.md` como `(evento AAAA-MM-DD, conferido AAAA-MM-DD) → {fonte}` (`event` e `checked` em inglês) e pra acrescentar ao seu `AGENTS.md` a frase de que evento com data passada é pergunta em aberto, cujo desfecho ele procura nos logs posteriores e na fonte antes de te perguntar, e revise a mudança, porque os arquivos são seus.
+
 ## Atualizando da 0.7
 
 Na 0.8.0 o plugin é escrito em inglês, e os comandos e as sementes ganharam nomes em inglês:

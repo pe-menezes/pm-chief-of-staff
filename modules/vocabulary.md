@@ -22,7 +22,7 @@ The same in every language, because a script or a skill reads them by name.
 
 ## Person-facing vocabulary
 
-Names that follow the person's language. The `pt-BR` column is exactly what 0.7.0 creates, so an 0.7.0 folder is a pt-BR folder. In another language, setup translates the `en` column with the person while proposing the structure and records the result in the folder copy, together with any folder the person renamed in review.
+Names that follow the person's language. The `pt-BR` column is exactly what 0.7.0 creates, so an 0.7.0 folder is a pt-BR folder. In another language, setup translates the `en` column with the person while proposing the structure and records the result in the folder copy, together with any folder the person renamed in review; the three active event rows are the exception, never translated nor renamed, and a folder in any language other than `en` and `pt-BR` keeps their `en` column.
 
 | role | en | pt-BR |
 |---|---|---|
@@ -53,9 +53,9 @@ Names that follow the person's language. The `pt-BR` column is exactly what 0.7.
 | superseded mark (hub) | `superseded on YYYY-MM-DD by {what superseded it}` | `superada em DD/MM por {o que a superou}` |
 | superseded mark (write gate) | `superseded on YYYY-MM-DD by {what superseded it}` | `superado em DD/MM por {o que o superou}` |
 | expired mark | `expired on YYYY-MM-DD` | `expirado em DD/MM` |
-| active event in `CRITICAL_FACTS.md`: event date (the boot hook reads it; `YYYY-MM-DD` in every language) | `(event YYYY-MM-DD` | `(evento YYYY-MM-DD` |
-| active event in `CRITICAL_FACTS.md`: checked date (`YYYY-MM-DD` in every language) | `checked YYYY-MM-DD)` | `conferido YYYY-MM-DD)` |
-| active event line, whole (a list item) | `{event} (event YYYY-MM-DD, checked YYYY-MM-DD) → {source path}` | `{evento} (evento YYYY-MM-DD, conferido YYYY-MM-DD) → {caminho da fonte}` |
+| active event in `CRITICAL_FACTS.md`: event date (the boot hook reads it; `YYYY-MM-DD` in every language; not translated: outside `en` and `pt-BR` the `en` column holds) | `(event YYYY-MM-DD` | `(evento YYYY-MM-DD` |
+| active event in `CRITICAL_FACTS.md`: checked date (`YYYY-MM-DD` in every language; not translated: outside `en` and `pt-BR` the `en` column holds) | `checked YYYY-MM-DD)` | `conferido YYYY-MM-DD)` |
+| active event line, whole (a list item; not translated: outside `en` and `pt-BR` the `en` column holds) | `{event} (event YYYY-MM-DD, checked YYYY-MM-DD) → {source path}` | `{evento} (evento YYYY-MM-DD, conferido YYYY-MM-DD) → {caminho da fonte}` |
 | rules index heading | `## Rules by topic` | `## Regras por assunto` |
 | rules index, empty | `no rules yet` | `nenhuma regra ainda` |
 | rules index, order | `Before acting on a topic in this index, read its rule.` | `antes de atuar num assunto do índice, leia a regra dele` |
