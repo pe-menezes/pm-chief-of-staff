@@ -13,6 +13,9 @@
 #       Chief of Staff gate reads, the guard refuses exactly where
 #       boot-memory.sh boots
 #   L14 the registration in hooks/hooks.json, run as Claude Code runs it
+#   L15 equivalent spellings of the log's path (repeated "/", ".", "..",
+#       "~/") are refused; spellings of another file pass
+#   L16 a command that fails after printing output makes the guard pass
 # Run by hand: sh hooks/log-guard-test.sh < /dev/null
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
@@ -302,6 +305,62 @@ else
   if [ "$s1" -eq 0 ] && [ "$s2" -eq 0 ]; then ok "L14 the hooks.json registration on Write refuses the overwrite and passes a new log"
   else fail "L14 registration run: overwrite exit $r1, new log exit $rc"
   fi
+fi
+
+# L15: a path that names the log through repeated slashes, "." or ".."
+# components, or a leading "~/" (the home folder) is the same file, and it
+# is refused like the plain path; a path that names another file still
+# passes.
+for p in "memory/./$LOG" "memory//$LOG" ".//memory/././$LOG" "$C//memory/./$LOG" \
+  "$C/memory//$LOG" "$C/memory/archive/../$LOG" "$C/notes/../memory/$LOG" \
+  "memory/archive/../$LOG" "$C/memory/no-such-folder/../$LOG"; do
+  payload Write "$p" "$C"
+  run_guard "$C"
+  expect "L15 an equivalent path is refused ($p)" refused
+done
+for p in "memory/./2031-05-18.md" "$C/memory//2031-05-18.md" "$C/memory/archive/./$LOG/" \
+  "$C/memory/archive/../../notes/$LOG" "memory/$LOG/" "memory/$LOG/." "$C/memory/../$LOG"; do
+  payload Write "$p" "$C"
+  run_guard "$C"
+  expect "L15b a path that names another file passes ($p)" passed
+done
+payload Write "~/cos/memory/$LOG" /
+(cd / && HOME="$T" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+rc=$?
+expect "L15c a path under ~/ resolves against the home folder and is refused" refused
+(cd / && HOME=relative sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+rc=$?
+expect "L15d a path under ~/ with a home that is not absolute passes" passed
+
+# L16: fail-open when a command fails after printing usable output. Each
+# command below is replaced, in front of PATH, by one that runs the real
+# command and, on its K-th call only, exits 1 after the real output, leaving
+# a mark. The payload has a relative path, so the guard reads tool_name,
+# file_path and cwd. A guard whose K-th call failed must pass in silence; a
+# guard that never made a K-th call refuses as usual. The production script
+# is not changed.
+l16=""
+for c in cat awk tr sed head grep dirname basename; do
+  real=$(command -v "$c" 2>/dev/null)
+  case "$real" in /*) ;; *) continue ;; esac
+  for k in 1 2 3 4; do
+    F="$T/failing-$c-$k"
+    mkdir -p "$F"
+    printf '#!/bin/sh\nn=0\n[ -f "%s/count" ] && read n < "%s/count"\nn=$((n + 1))\necho "$n" > "%s/count"\n"%s" "$@"\ns=$?\n[ "$n" -eq %s ] || exit "$s"\n: > "%s/ran"\nexit 1\n' \
+      "$F" "$F" "$F" "$real" "$k" "$F" > "$F/$c"
+    chmod +x "$F/$c"
+    payload Write "memory/$LOG" "$C"
+    (cd "$C" && PATH="$F:$PATH" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+    rc=$?
+    if [ -f "$F/ran" ]; then
+      passed || l16="${l16}$c failed on call $k after its output and the guard exited $rc; "
+    else
+      refused || l16="${l16}$c made no call $k and the guard exited $rc; "
+    fi
+  done
+done
+if [ -z "$l16" ]; then ok "L16 a command that fails after printing output makes the guard pass in silence"
+else fail "L16 $l16"
 fi
 
 rm -rf "$T"

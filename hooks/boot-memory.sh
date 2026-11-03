@@ -160,7 +160,8 @@ cut_prefix() {
 # mark. An active event line carries "(event YYYY-MM-DD" or, in a Portuguese
 # folder, "(evento YYYY-MM-DD" (I1 of the overdue-events spec); the checked
 # date and the source after it are for the person and the agent, not for this
-# hook. Outside a code fence (``` or ~~~, at most 3 spaces in), when that date
+# hook. Outside a code fence (CommonMark: 3 or more ` or ~, at most 3 spaces
+# in, closed by the same character at least as long), when that date
 # is a real calendar date strictly before $today, the line is shown with
 # $MARK and the date at its end, before a trailing carriage return. The
 # marked length is what counts against BUDGET, and the first shown mark also
@@ -178,12 +179,34 @@ cut_facts() {
       if (m == 2) last = ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0) ? 29 : 28
       return dd <= last
     }
-    { line = $0; out = line; marked = 0
-      if (match(line, /^ *(```|~~~)/) && RLENGTH <= 6) {
-        c = substr(line, RLENGTH, 1)
-        if (!fence) fence = c
-        else if (c == fence) fence = ""
-      } else if (!fence && today != "" \
+    # fence_run: when the line starts, at most 3 spaces in, with a run of 3 or
+    # more backticks or tildes, sets run_c (the character), run_n (its
+    # length) and run_rest (the text after it) and returns 1.
+    function fence_run(s,   i, n) {
+      i = 1
+      while (i <= 4 && substr(s, i, 1) == " ") i++
+      if (i > 4) return 0
+      run_c = substr(s, i, 1)
+      if (run_c != "`" && run_c != "~") return 0
+      n = 0
+      while (substr(s, i + n, 1) == run_c) n++
+      if (n < 3) return 0
+      run_n = n; run_rest = substr(s, i + n)
+      return 1
+    }
+    { line = $0; out = line; marked = 0; is_fence = 0
+      # CommonMark: a fence opens with a run of 3 or more, a backtick run with
+      # no backtick in its info string; it closes only with a run of the same
+      # character, at least as long, followed by nothing but spaces, tabs or
+      # the carriage return of a CRLF line.
+      if (fence_run(line)) {
+        if (!fence) {
+          if (run_c == "~" || index(run_rest, "`") == 0) { fence = run_c; fence_n = run_n; is_fence = 1 }
+        } else if (run_c == fence && run_n >= fence_n && run_rest ~ /^[ \t\r]*$/) {
+          fence = ""; is_fence = 1
+        }
+      }
+      if (!is_fence && !fence && today != "" \
         && match(line, /\((event|evento) [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/)) {
         d = substr(line, RSTART + RLENGTH - 10, 10)
         if (real_date(d) && d < today) {

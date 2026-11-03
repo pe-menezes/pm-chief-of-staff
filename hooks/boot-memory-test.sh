@@ -699,7 +699,7 @@ else
   failures=$((failures + 1))
 fi
 
-# Cases D0 and O1 to O9 (overdue-events spec, I1 and I2). An active event in
+# Cases D0, O1 to O9 and O5b (overdue-events spec, I1 and I2). An active event in
 # CRITICAL_FACTS.md carries "(event YYYY-MM-DD" or, in a Portuguese folder,
 # "(evento YYYY-MM-DD"; the pack marks the line " · OVERDUE YYYY-MM-DD" when
 # that date is strictly before today, and the section then carries one fixed
@@ -906,6 +906,53 @@ if new_cos "O5 fences"; then
   rm -rf "$tmp"
   verdict "O5 fenced lines and near misses of the pattern are not marked" "$r" "$why"
 fi
+
+# O5b: fences follow CommonMark. A fence opens with 3 or more backticks or
+# tildes, at most 3 spaces in; a backtick opening carries no backtick in its
+# info string. It closes only with the same character, at least as long, with
+# nothing after it but spaces, tabs or the carriage return of a CRLF file. In
+# each group exactly the lines named "out" are outside a fence and marked.
+fake_today 2031-05-17
+y=$(day_shift 2031-05-17 -1)
+o5b=""
+o5b_n=0
+CR=$(printf '\r')
+for g in long-open info-close tilde-long backtick-info indented crlf; do
+  new_cos "O5b $g" || continue
+  o5b_n=$((o5b_n + 1))
+  i1=$(ev en "$y" "$g-in-1")
+  i2=$(ev pt "$y" "$g-in-2")
+  o1=$(ev en "$y" "$g-out-1")
+  o2=$(ev pt "$y" "$g-out-2")
+  case $g in
+    # The review's input: a 3-backtick line inside a 4-backtick fence.
+    long-open) printf '%s\n' "$FIXTURE" '````markdown' '```' "$i1" '````' "$o1" '```' "$i2" '``` ' "$o2" ;;
+    # A line with an info string never closes; a longer fence does.
+    info-close) printf '%s\n' "$FIXTURE" '```text' "$i1" '```text' "$i2" '````' "$o1" '```' "$(ev en "$y" "$g-in-3")" '```' "$o2" ;;
+    # Tildes: a shorter run and a run with text after it do not close.
+    tilde-long) printf '%s\n' "$FIXTURE" '~~~~ a`b' "$i1" '~~~' '~~~~ x' "$i2" '~~~~~	 ' "$o1" '~~~' '```' "$(ev en "$y" "$g-in-3")" '~~~' "$o2" ;;
+    # A backtick run with a backtick in its info string is not a fence.
+    backtick-info) printf '%s\n' "$FIXTURE" '``` a`b' "$o1" '```' "$i1" '`` `' "$i2" '```' "$o2" ;;
+    # Four spaces in is not a fence; three is.
+    indented) printf '%s\n' "$FIXTURE" '    ```' "$o1" '   ```' "$i1" '  ```' "$o2" '```' "$i2" ;;
+    # CRLF: the carriage return after a closing run is not text.
+    crlf) printf '%s\r\n' "$FIXTURE" '````' "$i1" '```' "$i2" '````' "$o1" '~~~' "$(ev en "$y" "$g-in-3")" '~~~' "$o2" ;;
+  esac > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  w=""
+  if ! common; then w="$why"
+  elif [ "$(printf '%s\n' "$out" | grep -c "$MID OVERDUE")" -ne 2 ]; then w="$(printf '%s\n' "$out" | grep -c "$MID OVERDUE") marks, expected 2"
+  elif [ "$g" = crlf ]; then
+    { in_out "$o1 $MID OVERDUE $y$CR" && in_out "$o2 $MID OVERDUE $y$CR"; } || w="a line outside the fences not marked"
+  elif ! in_out "$o1 $MID OVERDUE $y" || ! in_out "$o2 $MID OVERDUE $y"; then w="a line outside the fences not marked"
+  elif ! in_out "$i1" || ! in_out "$i2"; then w="a fenced line changed"
+  fi
+  [ -n "$w" ] && o5b="${o5b}$g: $w; "
+  rm -rf "$tmp"
+done
+r=0
+{ [ -n "$o5b" ] || [ "$o5b_n" -ne 6 ]; } && r=1
+verdict "O5b fences open and close by the CommonMark rule (length, info string, indent, CRLF; $o5b_n groups)" "$r" "$o5b"
 
 # O6: with no date from date, nothing is marked.
 if new_cos "O6 date fails"; then
