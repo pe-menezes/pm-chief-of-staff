@@ -53,6 +53,9 @@ Names that follow the person's language. The `pt-BR` column is exactly what 0.7.
 | superseded mark (hub) | `superseded on YYYY-MM-DD by {what superseded it}` | `superada em DD/MM por {o que a superou}` |
 | superseded mark (write gate) | `superseded on YYYY-MM-DD by {what superseded it}` | `superado em DD/MM por {o que o superou}` |
 | expired mark | `expired on YYYY-MM-DD` | `expirado em DD/MM` |
+| active event in `CRITICAL_FACTS.md`: event date (the boot hook reads it; `YYYY-MM-DD` in every language) | `(event YYYY-MM-DD` | `(evento YYYY-MM-DD` |
+| active event in `CRITICAL_FACTS.md`: checked date (`YYYY-MM-DD` in every language) | `checked YYYY-MM-DD)` | `conferido YYYY-MM-DD)` |
+| active event line, whole (a list item) | `{event} (event YYYY-MM-DD, checked YYYY-MM-DD) → {source path}` | `{evento} (evento YYYY-MM-DD, conferido YYYY-MM-DD) → {caminho da fonte}` |
 | rules index heading | `## Rules by topic` | `## Regras por assunto` |
 | rules index, empty | `no rules yet` | `nenhuma regra ainda` |
 | rules index, order | `Before acting on a topic in this index, read its rule.` | `antes de atuar num assunto do índice, leia a regra dele` |

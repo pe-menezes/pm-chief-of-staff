@@ -108,6 +108,11 @@ CF_TARGET=3000
 MANUAL_TARGET=10000
 NL='
 '
+# Overdue mark (I2 of the overdue-events spec): the text appended to an
+# event line whose date has passed, and the one fixed line the section then
+# carries. The middle dot is written by printf, so this file stays ASCII.
+MARK=" $(printf '\302\267' 2>/dev/null) OVERDUE "
+OVERDUE_NOTE="Lines marked OVERDUE: the event date has passed, and the outcome is in the log or the source."
 
 # is_num VALUE: VALUE is a number that is safe in arithmetic expansion:
 # digits only, no leading zero (read as octal), at most 9 digits. A value
@@ -149,6 +154,54 @@ cut_prefix() {
   cut_shown=${r%%"$NL"*}
   cut_body=${r#*"$NL"}
   is_num "$cut_shown"
+}
+
+# cut_facts FILE BUDGET: cut_prefix for CRITICAL_FACTS.md, with the overdue
+# mark. An active event line carries "(event YYYY-MM-DD" or, in a Portuguese
+# folder, "(evento YYYY-MM-DD" (I1 of the overdue-events spec); the checked
+# date and the source after it are for the person and the agent, not for this
+# hook. Outside a code fence (``` or ~~~, at most 3 spaces in), when that date
+# is a real calendar date strictly before $today, the line is shown with
+# $MARK and the date at its end, before a trailing carriage return. The
+# marked length is what counts against BUDGET, and the first shown mark also
+# reserves the fixed line, so a line that does not fit with its mark is not
+# shown at all and no mark or fixed line is left loose. With no $today or no
+# line in the format, the result is byte for byte that of cut_prefix. Sets
+# cut_shown, cut_marks (marked lines shown) and cut_body.
+cut_facts() {
+  r=$(LC_ALL=C awk -v b="$2" -v today="$today" -v mark="$MARK" -v note="$OVERDUE_NOTE" '
+    function real_date(d,   y, m, dd, last) {
+      y = substr(d, 1, 4) + 0; m = substr(d, 6, 2) + 0; dd = substr(d, 9, 2) + 0
+      if (m < 1 || m > 12 || dd < 1) return 0
+      last = 31
+      if (m == 4 || m == 6 || m == 9 || m == 11) last = 30
+      if (m == 2) last = ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0) ? 29 : 28
+      return dd <= last
+    }
+    { line = $0; out = line; marked = 0
+      if (match(line, /^ *(```|~~~)/) && RLENGTH <= 6) {
+        c = substr(line, RLENGTH, 1)
+        if (!fence) fence = c
+        else if (c == fence) fence = ""
+      } else if (!fence && today != "" \
+        && match(line, /\((event|evento) [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/)) {
+        d = substr(line, RSTART + RLENGTH - 10, 10)
+        if (real_date(d) && d < today) {
+          marked = 1
+          if (sub(/\r$/, "", out)) out = out mark d "\r"
+          else out = out mark d
+        }
+      }
+      n = length(out) + 1
+      if (marked && !marks) n += length(note) + 1
+      if (!stop && used + n <= b) { used += n; k++; keep[k] = out; if (marked) marks++ } else stop = 1 }
+    END { print k + 0; print marks + 0; for (i = 1; i <= k; i++) print keep[i]; print "." }' "$1" 2>/dev/null) || return 1
+  r=${r%.}
+  cut_shown=${r%%"$NL"*}
+  r=${r#*"$NL"}
+  cut_marks=${r%%"$NL"*}
+  cut_body=${r#*"$NL"}
+  is_num "$cut_shown" && is_num "$cut_marks"
 }
 
 # cut_headings FILE BUDGET: the latest "## " headings of FILE that fit in
@@ -334,9 +387,13 @@ build_sections() {
   [ "$cap" -gt "$left" ] && cap=$left
   bytes_of "$NL--- CRITICAL_FACTS.md ---$NL$cf_total of $cf_total lines shown.$NL" || return 1
   hdr_max=$nb
-  cut_prefix CRITICAL_FACTS.md $((cap - hdr_max)) || return 1
+  cut_facts CRITICAL_FACTS.md $((cap - hdr_max)) || return 1
   cf_shown=$cut_shown
-  cf_sec="$NL--- CRITICAL_FACTS.md ---$NL$cf_shown of $cf_total lines shown.$NL$cut_body"
+  # The fixed line rides only with a shown mark, right under the count line;
+  # cut_facts already counted it in the budget.
+  cf_note=""
+  [ "$cut_marks" -gt 0 ] && cf_note="$OVERDUE_NOTE$NL"
+  cf_sec="$NL--- CRITICAL_FACTS.md ---$NL$cf_shown of $cf_total lines shown.$NL$cf_note$cut_body"
   bytes_of "$cf_sec" || return 1
   left=$((left - nb))
 
