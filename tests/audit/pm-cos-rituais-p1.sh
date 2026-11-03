@@ -336,10 +336,10 @@ fill "$W/CRITICAL_FACTS.md" 1000
 SID="rituais-p1-rg1"
 printf '{"session_id":"%s","hook_event_name":"UserPromptSubmit","prompt":"hello"}' "$SID" > "$work/in1"
 printf '{"session_id":"%s","hook_event_name":"Stop","stop_hook_active":false,"last_assistant_message":"done"}' "$SID" > "$work/in2"
-(cd "$W" && CLAUDE_PLUGIN_DATA="$D" sh "$HOOK" prompt) < "$work/in1" > "$work/out1" 2>/dev/null
+(cd "$W" && CLAUDE_PROJECT_DIR="$W" CLAUDE_PLUGIN_DATA="$D" sh "$HOOK" prompt) < "$work/in1" > "$work/out1" 2>/dev/null
 fill "$W/AGENTS.md" 13989
 fill "$W/CRITICAL_FACTS.md" 4500
-(cd "$W" && CLAUDE_PLUGIN_DATA="$D" sh "$HOOK" stop) < "$work/in2" > "$work/out2" 2>/dev/null
+(cd "$W" && CLAUDE_PROJECT_DIR="$W" CLAUDE_PLUGIN_DATA="$D" sh "$HOOK" stop) < "$work/in2" > "$work/out2" 2>/dev/null
 if json_msg "$work/out2" > "$work/msg" && [ -s "$work/msg" ]; then
   n=$(wc -c < "$work/msg" | tr -d ' ')
   [ "$n" -le 2000 ] || rg1_bad="$rg1_bad [message of $n bytes]"
