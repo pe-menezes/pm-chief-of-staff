@@ -100,7 +100,7 @@ fi
 
 # Budget, in bytes: the whole pack, the CRITICAL_FACTS.md section and the
 # log headings section. Navigation gets what is left. The targets on line 4
-# are the sizes the close-week curation aims at.
+# are the sizes the curation aims at, in any session.
 LIMIT=8000
 CF_CAP=4000
 LOG_CAP=1500

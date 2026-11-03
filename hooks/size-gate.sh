@@ -157,10 +157,10 @@ write_record() {
 message() {
   msg="Size gate (pm-chief-of-staff): a file loaded in almost every turn grew in this turn and ended above its cap."
   if [ "$grew_manual" = yes ]; then
-    msg="$msg In this turn the manual (AGENTS.md plus CLAUDE.md) grew from $start_manual to $manual bytes; its cap is $MANUAL_CAP bytes and the close-week curation aims at about $MANUAL_TARGET."
+    msg="$msg In this turn the manual (AGENTS.md plus CLAUDE.md) grew from $start_manual to $manual bytes; its cap is $MANUAL_CAP bytes and the curation target is about $MANUAL_TARGET."
   fi
   if [ "$grew_cf" = yes ]; then
-    msg="$msg In this turn CRITICAL_FACTS.md grew from $start_cf to $cf bytes; its cap is $CF_CAP bytes and the close-week curation aims at about $CF_TARGET."
+    msg="$msg In this turn CRITICAL_FACTS.md grew from $start_cf to $cf bytes; its cap is $CF_CAP bytes and the curation target is about $CF_TARGET."
   fi
   msg="$msg Before ending the turn, curate in three buckets."
   if [ "$grew_manual" = yes ]; then
