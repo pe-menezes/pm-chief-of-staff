@@ -14,7 +14,8 @@
 #       boot-memory.sh boots
 #   L14 the registration in hooks/hooks.json, run as Claude Code runs it
 #   L15 equivalent spellings of the log's path (repeated "/", ".", "..",
-#       "~/") are refused; spellings of another file pass
+#       "~/") are refused; spellings of another file pass; a relative path
+#       whose first folder starts with "~" resolves against the cwd
 #   L16 a command that fails after printing output makes the guard pass
 # Run by hand: sh hooks/log-guard-test.sh < /dev/null
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
@@ -331,6 +332,19 @@ expect "L15c a path under ~/ resolves against the home folder and is refused" re
 (cd / && HOME=relative sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
 rc=$?
 expect "L15d a path under ~/ with a home that is not absolute passes" passed
+# L15e: a relative path whose first folder name starts with "~" but not "~/"
+# (here ~cos) is relative, so it resolves against the cwd: over the existing
+# log it is refused, and a new log by the same spelling passes.
+mkdir -p "$T/tilde"
+cos "$T/tilde/~cos"
+payload Write "~cos/memory/$LOG" "$T/tilde"
+(cd / && HOME="$T" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+rc=$?
+expect "L15e a relative ~cos/ path over the existing log is refused" refused
+payload Write "~cos/memory/2031-05-18.md" "$T/tilde"
+(cd / && HOME="$T" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+rc=$?
+expect "L15e a relative ~cos/ path to a new log passes" passed
 
 # L16: fail-open when a command fails after printing usable output. Each
 # command below is replaced, in front of PATH, by one that runs the real

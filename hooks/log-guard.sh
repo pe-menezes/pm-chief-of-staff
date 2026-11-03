@@ -75,7 +75,6 @@ decide() {
       case "$HOME" in /*) ;; *) return 0 ;; esac
       path="$HOME/${path#??}"
       ;;
-    '~'*) return 0 ;;
     *)
       base=$(json_field cwd) || return 0
       case "$base" in *\\*) base="" ;; esac
