@@ -132,7 +132,7 @@ An update replaces only the plugin (setup, plugin skills and the seed catalog).
 
 **Updating to 0.11.0:** a folder set up from this version on gets the new order for where a change goes (the skill that owns it first, `AGENTS.md` last). A folder set up before keeps the old order written in its own manual (`AGENTS.md`, or `CLAUDE.md` in a folder from before 0.6), which an update never touches. If you want the new order, ask the agent to bring it into that manual and review the change, because the file is yours.
 
-**A folder set up before the OVERDUE mark:** an update does not bring the active event format or the routine for an overdue event into your files, so ask the agent to rewrite the active events in `CRITICAL_FACTS.md` as `(event YYYY-MM-DD, checked YYYY-MM-DD) → {source}` (`evento` and `conferido` in Portuguese) and to add to your `AGENTS.md` the sentence that a past event is an open question, whose outcome it looks for in the later logs and the source before asking you, and review the change, because the files are yours.
+**Updating to 0.12.0:** an update does not bring the active event format or the routine for an overdue event into your files, so ask the agent to rewrite the active events in `CRITICAL_FACTS.md` as `(event YYYY-MM-DD, checked YYYY-MM-DD) → {source}` (`evento` and `conferido` in Portuguese) and to add to your `AGENTS.md` the sentence that a past event is an open question, whose outcome it looks for in the later logs and the source before asking you, and review the change, because the files are yours.
 
 ## Upgrading from 0.7
 
