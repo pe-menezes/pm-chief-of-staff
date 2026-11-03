@@ -19,7 +19,7 @@ Builds the day on what is already written: priorities, open tasks, calendar, and
 
 ## Flow
 
-1. **Read the state**: `CRITICAL_FACTS.md` (priorities) · the current week's journal · the `**→ tomorrow:**` line from yesterday's close (the strongest candidate for today's #1) · the most recent `memory/` log.
+1. **Read the state**: `CRITICAL_FACTS.md` (priorities) · the current week's journal · the `**→ tomorrow:**` line from yesterday's close (the strongest candidate for today's #1; with no close yesterday, or no `close-day` planted, there is none, and the opening goes on without it) · the most recent `memory/` log.
 2. **Calendar**: if `.claude/skills/_shared/capabilities.md` exists, read the `today's calendar` line and pull today's events with what is in `how to call`, with `provider` identifying the source. Without the module, with that line empty or half filled (only one of the two columns), or if the fetch fails (expired connector, machine without it), ask in 1 line: "what does your calendar look like today? (meetings and free windows)". The day opening does not stop because of the calendar.
 3. **Scan the backlog**: `grep -- "- \[ \]"` across the whole `journal/`, with no start-of-line anchor (an indented subtask counts). Categorize: **today** (due today or settled in a meeting today) · **overdue** · **this week** · **waiting** (blocked by a third party). An overdue task from another topic is read together with the new ones: if a new one invalidates the old one, propose closing the old one.
 4. **Propose today's 3**, each one explicitly anchored ("{task} (anchors priority 1)"). Rules:

@@ -10,7 +10,7 @@ This repository is the plugin and its marketplace. The product is made of Markdo
 ## Map
 
 * `skills/`: the five plugin workflows, registered by the manifests: `setup`, `plant`, `create-skill`, `connect`, `remove-ai-tells` (command `/pm-chief-of-staff:<name>`).
-* `seeds/`: the six workflows copied into the person's folder, outside the plugin registry: `start-day`, `close-day`, `close-week`, `prep-conversation`, `process-meeting`, `absorb`. Setup plants five; `close-week` waits for the first plant the person runs.
+* `seeds/`: the six workflows copied into the person's folder, outside the plugin registry: `start-day`, `close-day`, `close-week`, `prep-conversation`, `process-meeting`, `absorb`. Setup always plants `prep-conversation`, `process-meeting` and `absorb`, and offers the three day and week routines (`start-day`, `close-day`, `close-week`) in one question with none marked; a routine not picked waits in the catalog for `plant`. No memory mechanism depends on a routine: curation happens at write time, through `modules/write-gate.md` and the write rules of the generated `AGENTS.md`.
 * `modules/`: the templates planted into `.claude/skills/_shared/` (`capabilities.md`, `write-gate.md`, and `vocabulary.md`, which is also the single source of names) and the Codex discovery bridge `codex-bridge.sh`.
 * `agents/ai-tells-reviewer.md`: source of the independent reviewer protocol.
 * `.claude-plugin/`: Claude identity and marketplace; `.codex-plugin/`: Codex identity and hooks.

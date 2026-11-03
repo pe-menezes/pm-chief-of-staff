@@ -112,25 +112,32 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# AP2 setup plants five seeds of the catalog, never overwrites the 0.7.0
-# predecessor of any of them (same map as the vocabulary), and leaves exactly
-# the sixth, close-week, for the "/pm-chief-of-staff:plant close-week" it
-# agrees on at the close.
+# AP2 setup always plants exactly prep-conversation, process-meeting and
+# absorb; it offers start-day, close-day and close-week in one question, and
+# cites the plant command for a routine not picked; the six together are the
+# whole catalog, with no seed in both lists; and its map of 0.7.0 predecessors
+# (never overwritten) covers the six, equal to the vocabulary's.
 
 ap2_bad=""
-planted=$(grep -E '^\* `[a-z-]+`( · `[a-z-]+`)+$' "$SETUP" | grep -o '`[a-z-]*`' | tr -d '`' | sort)
-[ "$(printf '%s\n' "$planted" | grep -c .)" -eq 5 ] || ap2_bad="$ap2_bad [setup lists $(printf '%s\n' "$planted" | grep -c .) seeds]"
-for s in $planted; do
+# list_of LABEL: the seeds of setup's "* LABEL...: `a` · `b`" list line.
+list_of() {
+  grep -E "^\* $1[^\`]*: \`[a-z-]+\`( · \`[a-z-]+\`)+\$" "$SETUP" | grep -o '`[a-z-]*`' | tr -d '`' | sort
+}
+always=$(list_of always)
+offered=$(list_of offered)
+[ "$(printf '%s\n' $always | tr '\n' ' ')" = "absorb prep-conversation process-meeting " ] || ap2_bad="$ap2_bad [always planted: $(printf '%s ' $always)]"
+[ "$(printf '%s\n' $offered | tr '\n' ' ')" = "close-day close-week start-day " ] || ap2_bad="$ap2_bad [offered: $(printf '%s ' $offered)]"
+for s in $always $offered; do
   [ -f "$ROOT/seeds/$s/SKILL.md" ] || ap2_bad="$ap2_bad [no seeds/$s]"
 done
-left=$(ls "$ROOT/seeds" | sort | comm -23 - "$(printf '%s\n' "$planted" > "$work/planted"; echo "$work/planted")")
-[ "$left" = close-week ] || ap2_bad="$ap2_bad [catalog seeds setup does not plant: $left]"
-grep -qF '`/pm-chief-of-staff:plant close-week`' "$SETUP" || ap2_bad="$ap2_bad [no /pm-chief-of-staff:plant close-week]"
+printf '%s\n' $always $offered | sort > "$work/setup-six"
+[ -z "$(sort "$work/setup-six" | uniq -d)" ] || ap2_bad="$ap2_bad [seed both planted and offered: $(sort "$work/setup-six" | uniq -d | tr '\n' ' ')]"
+ls "$ROOT/seeds" | sort | cmp -s - "$work/setup-six" || ap2_bad="$ap2_bad [catalog vs setup lists: $(ls "$ROOT/seeds" | sort | diff - "$work/setup-six" | grep '^[<>]' | tr '\n' ' ')]"
+grep -qF '`/pm-chief-of-staff:plant <name>`' "$SETUP" || ap2_bad="$ap2_bad [no /pm-chief-of-staff:plant <name> for a routine not picked]"
 grep -o -E '`[a-z-]+` for `[a-z-]+`' "$SETUP" | sed -E 's/^`([a-z-]+)` for `([a-z-]+)`$/\2 \1/' | sort -u > "$work/setup-seeds"
-grep -v '^close-week ' "$work/voc-seeds" > "$work/voc-five"
-cmp -s "$work/voc-five" "$work/setup-seeds" || ap2_bad="$ap2_bad [setup predecessor map differs: $(diff "$work/voc-five" "$work/setup-seeds" | grep '^[<>]' | tr '\n' ' ')]"
+cmp -s "$work/voc-seeds" "$work/setup-seeds" || ap2_bad="$ap2_bad [setup predecessor map differs: $(diff "$work/voc-seeds" "$work/setup-seeds" | grep '^[<>]' | tr '\n' ' ')]"
 if [ -z "$ap2_bad" ]; then
-  ok "AP2 setup plants five catalog seeds, checks their 0.7.0 predecessors, leaves close-week"
+  ok "AP2 setup plants three seeds always, offers the three routines, covers the catalog and checks the six 0.7.0 predecessors"
 else
   fail "AP2 setup seeds" "$ap2_bad"
 fi
