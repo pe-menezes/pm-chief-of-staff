@@ -15,7 +15,10 @@
 # from fix round 1: B10w (a failing or garbage wc), B12 (a failing date) and
 # U1 (the UTF-8 check itself). From fix round 2 (Codex review): B13 (the
 # failure line with backslashes in the root), B14 (CDPATH) and B15 (only a
-# regular memory/YYYY-MM-DD.md is the latest log).
+# regular memory/YYYY-MM-DD.md is the latest log). Overdue events: D0 (the
+# test date generator) and O1 to O9 (overdue-events spec, I1 and I2: the
+# mark, the fixed line, the date boundary, the budget, and the differential
+# oracle against the hook of dd1520d).
 # Run by hand: sh hooks/boot-memory-test.sh
 # Each case builds a folder with mktemp -d, runs the hook inside it in a
 # subshell (the hook reads paths relative to the cwd, as in a real session)
@@ -695,6 +698,422 @@ else
   echo "FAIL  B11 generated shapes: $b11_bad of $b11_n cases broken; first: $b11_first"
   failures=$((failures + 1))
 fi
+
+# Cases D0, O1 to O9 and O5b (overdue-events spec, I1 and I2). An active event in
+# CRITICAL_FACTS.md carries "(event YYYY-MM-DD" or, in a Portuguese folder,
+# "(evento YYYY-MM-DD"; the pack marks the line " · OVERDUE YYYY-MM-DD" when
+# that date is strictly before today, and the section then carries one fixed
+# line. "Today" comes from a fake date in front of PATH, and every other date
+# is generated from it by day_shift, never read from the real clock.
+OVERDUE_LINE="Lines marked OVERDUE: the event date has passed, and the outcome is in the log or the source."
+MID=$(printf '\302\267')
+ARROW=$(printf '\342\206\222')
+REPO=$(cd "$DIR/.." && pwd)
+
+# day_shift DATE N: the date N days after DATE (N may be negative), from day
+# numbers of the Gregorian calendar, computed here and never by the hook.
+day_shift() {
+  awk -v d="$1" -v n="$2" '
+    function dfc(y, m, dd,   era, yoe, doy, doe) {
+      if (m <= 2) y--
+      era = int((y >= 0 ? y : y - 399) / 400); yoe = y - era * 400
+      doy = int((153 * (m > 2 ? m - 3 : m + 9) + 2) / 5) + dd - 1
+      doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+      return era * 146097 + doe - 719468
+    }
+    function cfd(z,   era, doe, yoe, y, doy, mp, dd, m) {
+      z += 719468
+      era = int((z >= 0 ? z : z - 146096) / 146097); doe = z - era * 146097
+      yoe = int((doe - int(doe / 1460) + int(doe / 36524) - int(doe / 146096)) / 365)
+      y = yoe + era * 400; doy = doe - (365 * yoe + int(yoe / 4) - int(yoe / 100))
+      mp = int((5 * doy + 2) / 153); dd = doy - int((153 * mp + 2) / 5) + 1
+      m = mp < 10 ? mp + 3 : mp - 9
+      if (m <= 2) y++
+      return sprintf("%04d-%02d-%02d", y, m, dd)
+    }
+    BEGIN { split(d, a, "-"); print cfd(dfc(a[1] + 0, a[2] + 0, a[3] + 0) + n) }'
+}
+
+# fake_today DATE: a folder whose date answers DATE (and DATE 09:30); sets td.
+fake_today() {
+  td="$fakes/today-$1"
+  if [ ! -d "$td" ]; then
+    mkdir -p "$td"
+    printf '#!/bin/sh\ncase "$*" in\n  %s) echo %s ;;\n  %s) echo %s ;;\n  *) exec /bin/date "$@" ;;\nesac\n' \
+      "'+%Y-%m-%d'" "$1" "'+%Y-%m-%d %H:%M'" "'$1 09:30'" > "$td/date"
+    chmod +x "$td/date"
+  fi
+}
+
+# ev LANG DATE TEXT: an active event line in the format of I1.
+ev() {
+  if [ "$1" = pt ]; then
+    printf '* %s (evento %s, conferido %s) %s fonte/%s.md\n' "$3" "$2" "$2" "$ARROW" "$3"
+  else
+    printf '* %s (event %s, checked %s) %s source/%s.md\n' "$3" "$2" "$2" "$ARROW" "$3"
+  fi
+}
+
+# in_out LINE: LINE is a whole line of the pack.
+in_out() {
+  printf '%s\n' "$out" | grep -qxF -- "$1"
+}
+
+# D0: the date generator itself, at the turns the O cases cross.
+d0=""
+for t in "2032-01-01 -1 2031-12-31" "2031-12-31 1 2032-01-01" "2032-03-01 -1 2032-02-29" \
+  "2031-03-01 -1 2031-02-28" "2100-03-01 -1 2100-02-28" "2000-03-01 -1 2000-02-29" \
+  "2031-05-17 -366 2030-05-16" "2031-05-01 -1 2031-04-30"; do
+  set -- $t
+  got=$(day_shift "$1" "$2")
+  [ "$got" = "$3" ] || { [ -n "$d0" ] || d0="$1 $2 gave $got, expected $3"; }
+done
+r=0
+[ -n "$d0" ] && r=1
+verdict "D0 the test date generator crosses month, leap day and year turns" "$r" "$d0"
+
+# O1: yesterday marks, in English and in Portuguese; a legacy line passes
+# intact; the fixed line comes once, inside the CRITICAL_FACTS.md section;
+# the file on disk does not change.
+fake_today 2031-05-17
+y=$(day_shift 2031-05-17 -1)
+if new_cos "O1 yesterday"; then
+  en=$(ev en "$y" launch-review)
+  pt=$(ev pt "$y" revisão-do-lançamento)
+  legacy="* Legacy fact with no date, as every installed folder has"
+  printf '%s\n' "$FIXTURE" "$en" "$pt" "$legacy" > "$tmp/CRITICAL_FACTS.md"
+  cp "$tmp/CRITICAL_FACTS.md" "$fakes/o1-before"
+  run_pack "$tmp" "$td"
+  r=1
+  if common; then
+    cfsec=$(section CRITICAL_FACTS.md)
+    if ! printf '%s\n' "$cfsec" | grep -qxF -- "$en $MID OVERDUE $y"; then why="English event not marked"
+    elif ! printf '%s\n' "$cfsec" | grep -qxF -- "$pt $MID OVERDUE $y"; then why="Portuguese event not marked"
+    elif ! printf '%s\n' "$cfsec" | grep -qxF -- "$legacy"; then why="legacy line changed"
+    elif [ "$(printf '%s\n' "$out" | grep -cxF -- "$OVERDUE_LINE")" -ne 1 ] \
+      || ! printf '%s\n' "$cfsec" | grep -qxF -- "$OVERDUE_LINE"; then why="fixed line not once in the section"
+    elif [ "$(printf '%s\n' "$out" | grep -c OVERDUE)" -ne 3 ]; then why="OVERDUE on other lines"
+    elif ! cmp -s "$tmp/CRITICAL_FACTS.md" "$fakes/o1-before"; then why="CRITICAL_FACTS.md on disk changed"
+    else r=0
+    fi
+  fi
+  rm -rf "$tmp"
+  verdict "O1 yesterday's event is marked OVERDUE in both languages, legacy line intact, file unchanged" "$r" "$why"
+fi
+
+# O2: today's and tomorrow's events are not marked, and with no mark there is
+# no fixed line.
+fake_today 2031-05-17
+if new_cos "O2 today and tomorrow"; then
+  e1=$(ev en 2031-05-17 today-review)
+  e2=$(ev pt "$(day_shift 2031-05-17 1)" amanhã)
+  printf '%s\n' "$FIXTURE" "$e1" "$e2" > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  r=1
+  if common; then
+    if ! in_out "$e1" || ! in_out "$e2"; then why="event lines changed"
+    elif printf '%s\n' "$out" | grep -q OVERDUE; then why="OVERDUE in the pack"
+    else r=0
+    fi
+  fi
+  rm -rf "$tmp"
+  verdict "O2 today's and tomorrow's events are not marked, no fixed line" "$r" "$why"
+fi
+
+# O3: the boundary over generated todays (a month turn, the leap day, the
+# year turn): the day before and the year before mark, today and the day
+# after do not, in both languages.
+o3=""
+o3_n=0
+for t in 2031-05-17 2031-05-01 2031-12-31 2032-01-01 2032-02-29 2032-03-01 2031-03-01; do
+  fake_today "$t"
+  new_cos "O3" || continue
+  p1=$(day_shift "$t" -1)
+  p2=$(day_shift "$t" -366)
+  f1=$(day_shift "$t" 1)
+  a=$(ev en "$p1" before-en)
+  b=$(ev pt "$p1" before-pt)
+  c=$(ev en "$p2" year-before)
+  d=$(ev pt "$t" today-pt)
+  e=$(ev en "$t" today-en)
+  f=$(ev pt "$f1" after-pt)
+  printf '%s\n' "$FIXTURE" "$a" "$b" "$c" "$d" "$e" "$f" > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  o3_n=$((o3_n + 1))
+  w=""
+  if ! common; then w="$why"
+  elif ! in_out "$a $MID OVERDUE $p1" || ! in_out "$b $MID OVERDUE $p1" \
+    || ! in_out "$c $MID OVERDUE $p2"; then w="a past event not marked"
+  elif ! in_out "$d" || ! in_out "$e" || ! in_out "$f"; then w="today's or tomorrow's event changed"
+  elif [ "$(printf '%s\n' "$out" | grep -cxF -- "$OVERDUE_LINE")" -ne 1 ]; then w="fixed line not once"
+  fi
+  [ -n "$w" ] && [ -z "$o3" ] && o3="today $t: $w"
+  rm -rf "$tmp"
+done
+r=0
+{ [ -n "$o3" ] || [ "$o3_n" -ne 7 ]; } && r=1
+verdict "O3 day before and year before mark, today and after do not, across month, leap and year turns ($o3_n todays)" "$r" "$o3"
+
+# O4: an impossible date is never marked, a real leap day is.
+fake_today 2031-05-17
+if new_cos "O4 impossible dates"; then
+  : > "$tmp/CRITICAL_FACTS.md"
+  echo "$FIXTURE" >> "$tmp/CRITICAL_FACTS.md"
+  i=0
+  for bad in 2026-02-30 2026-13-01 2026-00-10 2026-04-31 2026-05-00 2027-02-29 2026-04-32 2100-02-29 2026-02-29; do
+    i=$((i + 1))
+    if [ $((i % 2)) -eq 0 ]; then ev pt "$bad" "bad-$i"; else ev en "$bad" "bad-$i"; fi >> "$tmp/CRITICAL_FACTS.md"
+  done
+  g1=$(ev en 2028-02-29 leap-en)
+  g2=$(ev pt 2000-02-29 leap-pt)
+  printf '%s\n' "$g1" "$g2" >> "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  r=1
+  if common; then
+    if [ "$(printf '%s\n' "$out" | grep -c "$MID OVERDUE")" -ne 2 ]; then why="$(printf '%s\n' "$out" | grep -c "$MID OVERDUE") marks, expected 2"
+    elif ! in_out "$g1 $MID OVERDUE 2028-02-29" || ! in_out "$g2 $MID OVERDUE 2000-02-29"; then why="a real leap day not marked"
+    else r=0
+    fi
+  fi
+  rm -rf "$tmp"
+  verdict "O4 impossible dates (2026-02-30, 2026-13-01 and others) are not marked, real leap days are" "$r" "$why"
+fi
+
+# O5: a line inside a code fence is never marked, a fence that opens and
+# never closes holds the rest, and near misses of the pattern pass intact.
+fake_today 2031-05-17
+y=$(day_shift 2031-05-17 -1)
+if new_cos "O5 fences"; then
+  in1=$(ev en "$y" in-backtick-fence)
+  in2=$(ev pt "$y" in-tilde-fence)
+  after=$(ev en "$y" after-fences)
+  n1="* Capitalized (Event $y, checked $y)"
+  n2="* No parenthesis event $y"
+  n3="* Short date (event 2031-5-16, checked 2031-5-16)"
+  n4="* Another word (eventual $y)"
+  tail=$(ev pt "$y" in-open-fence)
+  printf '%s\n' "$FIXTURE" '```text' "$in1" '```' '~~~' "$in2" '~~~' "$after" "$n1" "$n2" "$n3" "$n4" '```' "$tail" > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  r=1
+  if common; then
+    if [ "$(printf '%s\n' "$out" | grep -c "$MID OVERDUE")" -ne 1 ]; then why="$(printf '%s\n' "$out" | grep -c "$MID OVERDUE") marks, expected 1"
+    elif ! in_out "$after $MID OVERDUE $y"; then why="the line after the fences not marked"
+    elif ! in_out "$in1" || ! in_out "$in2" || ! in_out "$tail"; then why="a fenced line changed"
+    elif ! in_out "$n1" || ! in_out "$n2" || ! in_out "$n3" || ! in_out "$n4"; then why="a near miss changed"
+    else r=0
+    fi
+  fi
+  rm -rf "$tmp"
+  verdict "O5 fenced lines and near misses of the pattern are not marked" "$r" "$why"
+fi
+
+# O5b: fences follow CommonMark. A fence opens with 3 or more backticks or
+# tildes, at most 3 spaces in; a backtick opening carries no backtick in its
+# info string. It closes only with the same character, at least as long, with
+# nothing after it but spaces, tabs or the carriage return of a CRLF file. In
+# each group exactly the lines named "out" are outside a fence and marked.
+fake_today 2031-05-17
+y=$(day_shift 2031-05-17 -1)
+o5b=""
+o5b_n=0
+CR=$(printf '\r')
+for g in long-open info-close tilde-long backtick-info indented crlf; do
+  new_cos "O5b $g" || continue
+  o5b_n=$((o5b_n + 1))
+  i1=$(ev en "$y" "$g-in-1")
+  i2=$(ev pt "$y" "$g-in-2")
+  o1=$(ev en "$y" "$g-out-1")
+  o2=$(ev pt "$y" "$g-out-2")
+  case $g in
+    # The review's input: a 3-backtick line inside a 4-backtick fence.
+    long-open) printf '%s\n' "$FIXTURE" '````markdown' '```' "$i1" '````' "$o1" '```' "$i2" '``` ' "$o2" ;;
+    # A line with an info string never closes; a longer fence does.
+    info-close) printf '%s\n' "$FIXTURE" '```text' "$i1" '```text' "$i2" '````' "$o1" '```' "$(ev en "$y" "$g-in-3")" '```' "$o2" ;;
+    # Tildes: a shorter run and a run with text after it do not close.
+    tilde-long) printf '%s\n' "$FIXTURE" '~~~~ a`b' "$i1" '~~~' '~~~~ x' "$i2" '~~~~~	 ' "$o1" '~~~' '```' "$(ev en "$y" "$g-in-3")" '~~~' "$o2" ;;
+    # A backtick run with a backtick in its info string is not a fence.
+    backtick-info) printf '%s\n' "$FIXTURE" '``` a`b' "$o1" '```' "$i1" '`` `' "$i2" '```' "$o2" ;;
+    # Four spaces in is not a fence; three is.
+    indented) printf '%s\n' "$FIXTURE" '    ```' "$o1" '   ```' "$i1" '  ```' "$o2" '```' "$i2" ;;
+    # CRLF: the carriage return after a closing run is not text.
+    crlf) printf '%s\r\n' "$FIXTURE" '````' "$i1" '```' "$i2" '````' "$o1" '~~~' "$(ev en "$y" "$g-in-3")" '~~~' "$o2" ;;
+  esac > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  w=""
+  if ! common; then w="$why"
+  elif [ "$(printf '%s\n' "$out" | grep -c "$MID OVERDUE")" -ne 2 ]; then w="$(printf '%s\n' "$out" | grep -c "$MID OVERDUE") marks, expected 2"
+  elif [ "$g" = crlf ]; then
+    { in_out "$o1 $MID OVERDUE $y$CR" && in_out "$o2 $MID OVERDUE $y$CR"; } || w="a line outside the fences not marked"
+  elif ! in_out "$o1 $MID OVERDUE $y" || ! in_out "$o2 $MID OVERDUE $y"; then w="a line outside the fences not marked"
+  elif ! in_out "$i1" || ! in_out "$i2"; then w="a fenced line changed"
+  fi
+  [ -n "$w" ] && o5b="${o5b}$g: $w; "
+  rm -rf "$tmp"
+done
+r=0
+{ [ -n "$o5b" ] || [ "$o5b_n" -ne 6 ]; } && r=1
+verdict "O5b fences open and close by the CommonMark rule (length, info string, indent, CRLF; $o5b_n groups)" "$r" "$o5b"
+
+# O6: with no date from date, nothing is marked.
+if new_cos "O6 date fails"; then
+  e1=$(ev en 2001-01-01 long-past)
+  printf '%s\n' "$FIXTURE" "$e1" > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$fakes/nodate"
+  r=1
+  if [ "$rc" -ne 0 ]; then why="exit $rc"
+  elif ! in_out "$e1"; then why="event line changed"
+  elif printf '%s\n' "$out" | grep -q OVERDUE; then why="OVERDUE in the pack"
+  else r=0
+  fi
+  rm -rf "$tmp"
+  verdict "O6 a failing date marks nothing" "$r" "$why"
+fi
+
+# o_section_ok: the CRITICAL_FACTS.md section of $out is at most 4000 bytes,
+# every shown line with a past event ends in its mark, every other line has
+# none, the fixed line is there exactly when a mark is, and the footer names
+# the lines after the shown ones. PAST and FUT are the yesterday and the
+# tomorrow of the case. Sets why.
+o_section_ok() {
+  why=""
+  cfsec=$(section CRITICAL_FACTS.md)
+  secb=$(printf '%s\n' "$cfsec" | wc -c | tr -d ' ')
+  marks=$(printf '%s\n' "$cfsec" | grep -c "$MID OVERDUE")
+  unmarked_past=$(printf '%s\n' "$cfsec" | grep -F "(event $PAST" | grep -vc "$MID OVERDUE $PAST\$")
+  marked_future=$(printf '%s\n' "$cfsec" | grep -F "(event $FUT" | grep -c "OVERDUE")
+  loose=$(printf '%s\n' "$out" | grep "OVERDUE" | grep -vF "(event $PAST" | grep -vcxF -- "$OVERDUE_LINE")
+  fixed=$(printf '%s\n' "$out" | grep -cxF -- "$OVERDUE_LINE")
+  shown=$(printf '%s\n' "$cfsec" | sed -n 's/^\([0-9]*\) of \([0-9]*\) lines shown\.$/\1/p')
+  total=$(printf '%s\n' "$cfsec" | sed -n 's/^\([0-9]*\) of \([0-9]*\) lines shown\.$/\2/p')
+  if [ "$secb" -gt 4000 ]; then why="section of $secb bytes"
+  elif [ "$unmarked_past" -ne 0 ]; then why="$unmarked_past past events shown without the mark"
+  elif [ "$marked_future" -ne 0 ]; then why="$marked_future future events marked"
+  elif [ "$loose" -ne 0 ]; then why="$loose loose OVERDUE lines"
+  elif [ "$marks" -gt 0 ] && [ "$fixed" -ne 1 ]; then why="$marks marks and $fixed fixed lines"
+  elif [ "$marks" -eq 0 ] && [ "$fixed" -ne 0 ]; then why="a fixed line with no mark"
+  elif [ -z "$shown" ] || [ -z "$total" ]; then why="no shown line"
+  elif [ "$shown" -lt "$total" ] \
+    && ! in_out "CRITICAL_FACTS.md: lines $((shown + 1)) to $total of $total are not shown."; then why="footer for $shown of $total"
+  fi
+  [ -z "$why" ]
+}
+
+# O7: the pack at its limit with marks. A big log and a big navigation fill
+# the pack; CRITICAL_FACTS.md holds N event lines, odd ones past and even
+# ones future, swept so the marks push the section over its cap at every
+# place. Every case runs the common checks and o_section_ok.
+fake_today 2031-05-17
+PAST=$(day_shift 2031-05-17 -1)
+FUT=$(day_shift 2031-05-17 1)
+o7=""
+o7_n=0
+o7_cut=0
+n=30
+while [ "$n" -le 66 ]; do
+  new_cos "O7" || break
+  gen "$tmp/navigation.md" 9000 NAV_LINE
+  gen_log "$tmp/memory/2031-05-17.md" 20000
+  {
+    echo "$FIXTURE"
+    i=1
+    while [ "$i" -le "$n" ]; do
+      if [ $((i % 2)) -eq 1 ]; then ev en "$PAST" "e$i-padding-padding"; else ev en "$FUT" "e$i-padding-padding"; fi
+      i=$((i + 1))
+    done
+  } > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  o7_n=$((o7_n + 1))
+  w=""
+  if ! common; then w="$why"
+  elif ! o_section_ok; then w="$why"
+  fi
+  [ -n "$shown" ] && [ -n "$total" ] && [ "$shown" -lt "$total" ] && o7_cut=$((o7_cut + 1))
+  [ -n "$w" ] && [ -z "$o7" ] && o7="$n events: $w"
+  rm -rf "$tmp"
+  n=$((n + 1))
+done
+r=0
+{ [ -n "$o7" ] || [ "$o7_n" -ne 37 ] || [ "$o7_cut" -eq 0 ] || [ "$o7_cut" -eq "$o7_n" ]; } && r=1
+verdict "O7 pack at its limit with marks: section within 4000, pack within 8000 ($o7_n cases, $o7_cut cut)" "$r" "${o7:-cut in $o7_cut of $o7_n}"
+
+# O8: a line cut by the budget leaves no loose mark. Filler of every size in
+# a window puts the cap before, inside and after the one past event, which
+# is the last line; the fixed line rides only with a shown mark.
+o8=""
+o8_n=0
+o8_shown=0
+o8_cut=0
+last=$(ev en "$PAST" the-last-line-of-the-file)
+b=3700
+while [ "$b" -le 3960 ]; do
+  new_cos "O8" || break
+  { gen /dev/stdout "$b" CF_FILL; echo "$last"; } > "$tmp/CRITICAL_FACTS.md"
+  run_pack "$tmp" "$td"
+  o8_n=$((o8_n + 1))
+  w=""
+  if ! common; then w="$why"
+  elif ! o_section_ok; then w="$why"
+  elif in_out "$last $MID OVERDUE $PAST"; then o8_shown=$((o8_shown + 1))
+  elif printf '%s\n' "$out" | grep -qF -- "$last"; then w="the event shown without its mark"
+  elif printf '%s\n' "$out" | grep -q OVERDUE; then w="OVERDUE with the event cut"
+  else o8_cut=$((o8_cut + 1))
+  fi
+  [ -n "$w" ] && [ -z "$o8" ] && o8="filler of $b bytes: $w"
+  rm -rf "$tmp"
+  b=$((b + 1))
+done
+r=0
+{ [ -n "$o8" ] || [ "$o8_shown" -eq 0 ] || [ "$o8_cut" -eq 0 ]; } && r=1
+verdict "O8 a line cut by the budget leaves no loose mark ($o8_n cases: $o8_shown shown marked, $o8_cut cut)" "$r" "${o8:-shown $o8_shown, cut $o8_cut}"
+
+# O9: differential oracle. With no line in the new format that is overdue
+# (legacy lines, future and today's events, impossible dates, fenced events,
+# near misses, or past events with a failing date), the pack is byte for
+# byte the pack of the hook at the base dd1520d, over generated shapes.
+base_hook="$fakes/base-boot-memory.sh"
+o9=""
+o9_n=0
+if ! git -C "$REPO" show dd1520d:hooks/boot-memory.sh > "$base_hook" 2>/dev/null || [ ! -s "$base_hook" ]; then
+  o9="base copy dd1520d:hooks/boot-memory.sh not readable from git"
+else
+  y=$(day_shift 2031-05-17 -1)
+  for variant in legacy future impossible fenced pastnodate; do
+    for cf_size in 300 3990 5000; do
+      for nav_size in 40 5543 9000; do
+        for log_kind in none big; do
+          for legacy_nav in no yes; do
+            new_cos "O9" || continue
+            front="$fakes/today-2031-05-17"
+            {
+              echo "$FIXTURE"
+              case "$variant" in
+                legacy) echo "* A legacy fact (with a parenthesis 2031-05-01)" ;;
+                future) ev en 2031-05-17 today-en; ev pt "$(day_shift 2031-05-17 1)" amanhã; ev en 2099-12-31 far ;;
+                impossible) ev en 2026-02-30 feb-30; ev pt 2026-13-01 mes-13; ev en 2027-02-29 not-leap ;;
+                fenced) printf '%s\n' '```' "$(ev en "$y" fenced)" '```' "* (Event $y)" "* event $y" "* (eventual $y)" ;;
+                pastnodate) ev en "$y" past-en; ev pt 2001-01-01 passado; front="$fakes/nodate" ;;
+              esac
+              gen /dev/stdout "$cf_size" CF_ORACLE
+            } > "$tmp/CRITICAL_FACTS.md"
+            gen "$tmp/navigation.md" "$nav_size" NAV_LINE
+            [ "$legacy_nav" = yes ] && cp "$tmp/navigation.md" "$tmp/navegacao.md"
+            [ "$log_kind" = big ] && gen_log "$tmp/memory/2031-05-17.md" 6000
+            (cd "$tmp" && PATH="$front:$PATH" sh "$base_hook" > "$fakes/o9-base" 2>/dev/null)
+            (cd "$tmp" && PATH="$front:$PATH" sh "$HOOK" > "$fakes/o9-new" 2>/dev/null)
+            o9_n=$((o9_n + 1))
+            if ! cmp -s "$fakes/o9-base" "$fakes/o9-new" || [ ! -s "$fakes/o9-new" ]; then
+              [ -n "$o9" ] || o9="$variant, facts $cf_size, navigation $nav_size, log $log_kind, navegacao.md $legacy_nav: packs differ"
+            fi
+            rm -rf "$tmp"
+          done
+        done
+      done
+    done
+  done
+fi
+r=0
+{ [ -n "$o9" ] || [ "$o9_n" -ne 180 ]; } && r=1
+verdict "O9 differential oracle: with nothing overdue the pack is byte for byte the one of dd1520d ($o9_n shapes)" "$r" "$o9"
 
 rm -rf "$fakes"
 

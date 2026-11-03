@@ -60,7 +60,7 @@ Propose the propagation and carry it out with the person's ok:
 2. **About a key person** → their hub in `people/`, in the right section: dated fact with source in "Facts", signal in "Recent signals" (1 dated line), a reading that changes the previous one in "Current reading" (dated, marking the previous one with "superseded on YYYY-MM-DD by {what superseded it}").
 3. **Project decision or turn** → the project hub in `projects/`.
 4. **Milestone of the day** → 1 block in `memory/{today}.md` pointing to the note (`## [HH:MM] {title} + 2 lines`).
-5. **A priority or active event changed** → propose an update to `CRITICAL_FACTS.md`.
+5. **A priority or active event changed** → propose an update to `CRITICAL_FACTS.md`. A new or moved active event goes in the vocabulary's active event line, `{event} (event YYYY-MM-DD, checked YYYY-MM-DD) → {source path}` (`evento` and `conferido` in a Portuguese folder), with today's date as the last confirmation and this note as the source when the meeting is where it came from.
 
 Golden rule: the detail lives in the note; hub and log point to it. Never duplicate the whole content in two places.
 
