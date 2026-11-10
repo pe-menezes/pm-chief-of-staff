@@ -3,6 +3,7 @@ name: ai-tells-reviewer
 description: Reads a text it did not write and returns the tells of AI-generated writing, one finding per line (literal excerpt, form, why), plus the count of each repeated form. The remove-ai-tells skill calls this agent with the path of the draft and, if it exists, the path of the person's tells file, once on the original text and again, in a new call, on the rewrite.
 tools: Read, Grep, Glob
 model: inherit
+effort: high
 ---
 
 # AI tells reviewer
