@@ -24,6 +24,13 @@
 #       as they are, the reflection, balance and seed lines already in it
 #       (a close-day run alone earlier the same day writes them); it never
 #       deletes them and never overwrites the whole block, with no condition.
+#   BP5 (risk code: the close-day second run writes the block's lines) the
+#       mixed path of one day (close-day alone, then start-day writes the 3,
+#       then close-day again) leaves a block with the 3 numbered, the
+#       reflection and the seed, and no balance line. The second-run rule
+#       says what that run does: it writes the missing balance line once, in
+#       the format of step 5, in 1 line, before the seed line, with no
+#       condition, and the format of step 5 still holds the balance line.
 #   BP3 (risk code: what writes through a link) the discovery rule of
 #       PROMPT.md and PROMPT.pt-BR.md checks .agents itself before any
 #       write: as a link (even a broken one) or as a file, nothing is written
@@ -269,6 +276,58 @@ if [ -z "$bp4_bad" ]; then
   ok "BP4 start-day run again the same day redoes the 3 and keeps the $refl_lbl, $bal_lbl and $seed_lbl lines already in the block as they are, never deleting them"
 else
   fail "BP4 start-day run again the same day" "$bp4_bad"
+fi
+
+# ---------------------------------------------------------------------------
+# BP5 the second-run rule writes the balance line a block with the 3 lacks.
+
+bp5_bad=""
+if [ -z "$refl_lbl" ] || [ -z "$bal_lbl" ] || [ -z "$seed_lbl" ]; then
+  bp5_bad="$bp5_bad [vocabulary: a label cell this case reads is missing]"
+else
+  grep -m1 '^The second-run rule' "$DAY" > "$work/rule5"
+  if [ ! -s "$work/rule5" ]; then
+    bp5_bad="$bp5_bad [close-day has no second-run rule paragraph]"
+  else
+    # The rule, sentence by sentence; the sentence of the block with no
+    # balance line is the one naming that line as missing.
+    awk '{ gsub(/\. /, ".\n"); print }' "$work/rule5" | grep -F -- "no \`$bal_lbl\` line" > "$work/mix"
+    if [ ! -s "$work/mix" ]; then
+      bp5_bad="$bp5_bad [the rule says nothing of a block with no $bal_lbl line]"
+    elif [ "$(wc -l < "$work/mix")" -ne 1 ]; then
+      bp5_bad="$bp5_bad [more than one sentence of the rule speaks of the missing $bal_lbl line]"
+    else
+      m=$(cat "$work/mix")
+      # The block of the mixed path: it holds the 3 numbered.
+      printf '%s\n' "$m" | grep -q 'with the 3 numbered' || bp5_bad="$bp5_bad [the missing $bal_lbl line is not tied to a block with the 3]"
+      # The line is written, in the format of step 5, in 1 line.
+      printf '%s\n' "$m" | grep -q -E '(^|[^a-z])(write|writes|written)([^a-z]|$)' \
+        || bp5_bad="$bp5_bad [the missing $bal_lbl line is not written]"
+      printf '%s\n' "$m" | grep -q 'format of step 5' || bp5_bad="$bp5_bad [the $bal_lbl line does not follow the format of step 5]"
+      printf '%s\n' "$m" | grep -q 'in 1 line' || bp5_bad="$bp5_bad [the $bal_lbl line is not held to 1 line]"
+      # Its place: before the seed line, never at the end of the block.
+      b=$(after "$m" "before")
+      printf '%s\n' "$b" | grep -q -F -- "\`$seed_lbl\` line" \
+        || bp5_bad="$bp5_bad [the $bal_lbl line is not placed before the $seed_lbl line]"
+      printf '%s\n' "$m" | grep -q -i -E 'end of (the|today.s) block|at the end' \
+        && bp5_bad="$bp5_bad [the $bal_lbl line goes at the end of the block]"
+      printf '%s\n' "$m" | grep -q -i -E '(^|[^a-z])(add|adds|append|appends)([^a-z]|$)' \
+        && bp5_bad="$bp5_bad [the $bal_lbl line is appended]"
+      w=$(printf '%s\n' "$m" | grep -o -i -E "$COND4" | head -n 1)
+      [ -z "$w" ] || bp5_bad="$bp5_bad [writing the missing $bal_lbl line carries a condition:$w]"
+    fi
+    # The rule still forbids a second line of any label and a second block.
+    grep -q -i 'never a second line of any label' "$work/rule5" || bp5_bad="$bp5_bad [a label may get a second line]"
+    grep -q -i 'never a second block' "$work/rule5" || bp5_bad="$bp5_bad [a second run may write a second block]"
+  fi
+  # The format the rule points at still holds the balance line.
+  awk '/^## Flow/ { on = 1; next } /^## / { on = 0 } on' "$DAY" | grep -q -F -- "$bal_lbl {N}/3" \
+    || bp5_bad="$bp5_bad [the format of step 5 has no $bal_lbl line]"
+fi
+if [ -z "$bp5_bad" ]; then
+  ok "BP5 a second close-day over a block with the 3 and no $bal_lbl line writes that line once, in the format of step 5, in 1 line, before the $seed_lbl line"
+else
+  fail "BP5 close-day second run over a block with no $bal_lbl line" "$bp5_bad"
 fi
 
 [ "$failures" -eq 0 ]
