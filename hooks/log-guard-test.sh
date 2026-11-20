@@ -24,6 +24,8 @@
 #       object, is not one whole object and passes
 #   L21 a string glued before or after the object is text outside it and
 #       passes
+#   L22 the structure decides, not the JSON grammar: a whole structure with
+#       an invalid escape or a missing comma over the log is refused
 # L10h covers a payload that is not one whole JSON object.
 # Run by hand: sh hooks/log-guard-test.sh < /dev/null
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
@@ -516,6 +518,21 @@ for glued in "\"head\"$w21" "\"head\" $w21" "$w21\"tail\"" "$w21 \"tail\""; do
 done
 if [ -z "$l21" ]; then ok "L21 a string glued before or after the object passes in silence"
 else fail "L21 $l21"
+fi
+
+# L22: the guard checks the structure of the payload, not the whole JSON
+# grammar, because it reads only three string fields. A payload whose
+# structure is whole (strings closed, brackets nested by kind, one object
+# with nothing around it) over the existing log is refused even when its
+# content holds an invalid escape, or a comma is missing between two pairs.
+l22=""
+for gram in "$h20\"\\q\"}}" "$h20\"a\\u12zz\"}}" "$h20\"x\" \"more\":\"y\"}}"; do
+  printf '%s' "$gram" > "$T/in"
+  run_guard "$C"
+  refused || l22="${l22}[$gram] exit $rc; "
+done
+if [ -z "$l22" ]; then ok "L22 a whole structure with an invalid escape or a missing comma is refused"
+else fail "L22 $l22"
 fi
 
 rm -rf "$T"
