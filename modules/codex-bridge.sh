@@ -85,8 +85,11 @@ trap '' XFSZ
 # The last line is the PROVA: cksum of everything before it. A wrapper is
 # only updated when the PROVA matches; any edit, even keeping the MARCA, or
 # the old format without a PROVA, is reported as a conflict.
+# A source with CRLF line ends (a checkout made on Windows) is read with the
+# carriage return taken off each line end, so its frontmatter is found and
+# the wrapper is written in LF; an LF source reads as before.
 wrapper() {
-  fm=$(awk 'NR == 1 { if ($0 != "---") exit; next } /^---$/ { found = 1; exit } { print } END { exit !found }' "$1") || return 1
+  fm=$(awk '{ sub(/\r$/, "") } NR == 1 { if ($0 != "---") exit; next } /^---$/ { found = 1; exit } { print } END { exit !found }' "$1") || return 1
   body=$(printf -- '---\n%s\n---\n%s\n\n%s' "$fm" "$MARCA" "This skill lives in \`.claude/skills/$2/SKILL.md\`, the source in this folder. Read that whole file and follow it; relative paths in it start from its folder. Edits always go to the source: the next bridge run updates the frontmatter here.")
   content="$body
 $PROVA$(printf '%s\n' "$body" | cksum) -->"

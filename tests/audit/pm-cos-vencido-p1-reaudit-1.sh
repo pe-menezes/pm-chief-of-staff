@@ -18,7 +18,9 @@
 # R3 a relative file_path whose first folder name starts with "~" (not
 #    "~/") resolves against the payload cwd, as Claude Code 2.1.309 writes
 #    it, so the existing log under it is refused.
-# R4 the review's exact C3 injections: cat or awk redefined as a shell
+# R4 the review's C3 injections, on the commands that feed the verdict
+#    today (the awk of json_fields and the printf of the word refuse; cat
+#    no longer reads the payload): printf or awk redefined as a shell
 #    function that runs the real command and returns 1 (and awk returning
 #    141, as a broken pipe does) make the guard pass in silence; under sh
 #    and, when present, /bin/dash.
@@ -137,14 +139,14 @@ for s in $SHELLS; do
   review_payload "$C" "memory/$LOG"
   guard "$s" /
   refused || r4="${r4}$s no injection exit $rc; "
-  for inj in 'cat() { command cat; return 1; };' \
+  for inj in 'printf() { command printf "$@"; return 1; };' \
     'awk() { command awk "$@"; return 1; };' \
     'awk() { command awk "$@"; return 141; };'; do
     guard "$s" / "$inj"
     passed || r4="${r4}$s [$inj] exit $rc; "
   done
 done
-if [ -z "$r4" ]; then ok "R4 cat or awk failing after their output make the guard pass in silence ($SHELLS)"
+if [ -z "$r4" ]; then ok "R4 printf or awk failing after their output make the guard pass in silence ($SHELLS)"
 else fail "R4 review C3 injections" "$r4"
 fi
 

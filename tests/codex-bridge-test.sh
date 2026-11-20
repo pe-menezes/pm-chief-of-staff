@@ -309,6 +309,41 @@ touch_case W4 "wrapper body edited with the marker stays"
 touch_case W5 "wrapper metadata edited with the marker stays"
 touch_case W6 "wrapper with the marker and no integrity proof stays"
 
+# W7 a source with CRLF line ends (a checkout made on Windows): the wrapper is
+# written, with no carriage return anywhere in it, and is byte for byte the
+# wrapper of the same source in LF; a second run with the same source
+# rewrites it with no conflict and leaves the same bytes.
+if fresh W7; then
+  build "$folder"
+  twin="$tmp/lf twin"
+  mkdir -p "$twin"
+  build "$twin"
+  printf -- '---\r\nname: start-day\r\ndescription: >\r\n  %s crlf,\r\n  on two lines.\r\n---\r\n\r\n# Start\r\nbody\r\n' "$SENT" > "$folder/.claude/skills/start-day/SKILL.md"
+  printf -- '---\nname: start-day\ndescription: >\n  %s crlf,\n  on two lines.\n---\n\n# Start\nbody\n' "$SENT" > "$twin/.claude/skills/start-day/SKILL.md"
+  mkdir -p "$folder/.agents/skills"
+  run "$fake"
+  w="$folder/.agents/skills/start-day/SKILL.md"
+  (cd "$twin" && PATH="$fake:$PATH" sh "$BRIDGE" >/dev/null 2>&1)
+  rc_twin=$?
+  cr=$(printf '\r')
+  if [ "$rc" -eq 0 ] && [ "$rc_twin" -eq 0 ] && [ -f "$w" ] && [ ! -L "$w" ] \
+    && ! grep -q "$cr" "$w" \
+    && cmp -s "$w" "$twin/.agents/skills/start-day/SKILL.md" \
+    && grep -qF "  $SENT crlf," "$w"; then
+    ok "W7 CRLF source: the wrapper is written in LF, equal to the LF source's"
+  else
+    fail "W7 CRLF source" "exit $rc (LF twin $rc_twin), wrapper: $(ls -A "$folder/.agents/skills" | tr '\n' ' ')"
+  fi
+  before=$(cksum 2>/dev/null < "$w")
+  run "$fake"
+  if [ "$rc" -eq 0 ] && [ -n "$before" ] && [ "$(cksum < "$w")" = "$before" ]; then
+    ok "W7b second run over the CRLF source updates the wrapper with no conflict"
+  else
+    fail "W7b second run over the CRLF source" "exit $rc"
+  fi
+  rm -rf "$tmp"
+fi
+
 # E3 .agents is a link outside with a wrapper generated there: nothing in
 # the target changes, even with the source changed and no links on the
 # system, exit 2.
