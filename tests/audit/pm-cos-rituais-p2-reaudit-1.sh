@@ -6,9 +6,10 @@
 # write in CRITICAL_FACTS.md after a done review.
 # Run by hand: sh tests/audit/pm-cos-rituais-p2-reaudit-1.sh < /dev/null
 # Cases:
-#   RA1 (risk code: date boundary) every line of setup, the two PROMPTs and
-#       close-day that tells the agent to replace the pains review line
-#       after a done review gives the dates of the new line: the event date
+#   RA1 (risk code: date boundary) every line of setup, the two PROMPTs,
+#       close-day and close-week that tells the agent to replace the pains
+#       review line after a done review gives the dates of the new line
+#       (close-week added in the audit backlog front, part 2): the event date
 #       is the nearest of the pains file's review dates, the checked date is
 #       the day of the review, and the next review is 3 months after the one
 #       done unless the person gives another date; none keeps the old
@@ -46,7 +47,7 @@ SWAP_VERB='(replace|troque|troca)'
 # RA1
 e1=""
 n1=0
-for spec in "skills/setup/SKILL.md 2" "PROMPT.md 1" "PROMPT.pt-BR.md 1" "seeds/close-day/SKILL.md 1"; do
+for spec in "skills/setup/SKILL.md 2" "PROMPT.md 1" "PROMPT.pt-BR.md 1" "seeds/close-day/SKILL.md 1" "seeds/close-week/SKILL.md 1"; do
   src=${spec% *}
   want=${spec#* }
   grep -niE "$SWAP_LINE" "$ROOT/$src" | grep -iE "$SWAP_VERB" > "$work/hits"
