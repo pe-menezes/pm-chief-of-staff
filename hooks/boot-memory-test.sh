@@ -18,7 +18,8 @@
 # regular memory/YYYY-MM-DD.md is the latest log). Overdue events: D0 (the
 # test date generator) and O1 to O9 (overdue-events spec, I1 and I2: the
 # mark, the fixed line, the date boundary, the budget, and the differential
-# oracle against the hook of dd1520d).
+# oracle against the hook of dd1520d, a frozen copy in tests/fixtures/
+# checked by sha256, with no git).
 # Run by hand: sh hooks/boot-memory-test.sh
 # Each case builds a folder with mktemp -d, runs the hook inside it in a
 # subshell (the hook reads paths relative to the cwd, as in a real session)
@@ -1070,11 +1071,24 @@ verdict "O8 a line cut by the budget leaves no loose mark ($o8_n cases: $o8_show
 # (legacy lines, future and today's events, impossible dates, fenced events,
 # near misses, or past events with a failing date), the pack is byte for
 # byte the pack of the hook at the base dd1520d, over generated shapes.
-base_hook="$fakes/base-boot-memory.sh"
+# The base is a frozen copy of dd1520d:hooks/boot-memory.sh kept in the
+# repository, so the case runs the same from a shallow clone or an export
+# with no .git; its sha256 is checked here before it is run, so an edit to
+# the copy fails the case instead of moving the oracle.
+base_hook="$REPO/tests/fixtures/boot-memory-dd1520d.sh"
+BASE_SHA=2b4e483a1d373b8eaa448f007f4678e0a049f459ca49fce6fc73e172569ac2fe
+if command -v sha256sum >/dev/null 2>&1; then
+  base_sha=$(sha256sum < "$base_hook" 2>/dev/null)
+elif command -v shasum >/dev/null 2>&1; then
+  base_sha=$(shasum -a 256 < "$base_hook" 2>/dev/null)
+else
+  base_sha=""
+fi
+base_sha=${base_sha%% *}
 o9=""
 o9_n=0
-if ! git -C "$REPO" show dd1520d:hooks/boot-memory.sh > "$base_hook" 2>/dev/null || [ ! -s "$base_hook" ]; then
-  o9="base copy dd1520d:hooks/boot-memory.sh not readable from git"
+if [ "$base_sha" != "$BASE_SHA" ]; then
+  o9="frozen base tests/fixtures/boot-memory-dd1520d.sh missing, changed or not hashable (sha256 [$base_sha])"
 else
   y=$(day_shift 2031-05-17 -1)
   for variant in legacy future impossible fenced pastnodate; do

@@ -17,6 +17,16 @@
 #       "~/") are refused; spellings of another file pass; a relative path
 #       whose first folder starts with "~" resolves against the cwd
 #   L16 a command that fails after printing output makes the guard pass
+#   L17 a payload of about 2.4 MB over the log is refused; cut, it passes
+#   L18 a printf that fails after printing output makes the guard pass
+#   L19 JSON whitespace outside the strings does not change the verdict
+#   L20 a bracket of the wrong kind, or a string left open after the
+#       object, is not one whole object and passes
+#   L21 a string glued before or after the object is text outside it and
+#       passes
+#   L22 the structure decides, not the JSON grammar: a whole structure with
+#       an invalid escape or a missing comma over the log is refused
+# L10h covers a payload that is not one whole JSON object.
 # Run by hand: sh hooks/log-guard-test.sh < /dev/null
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
 
@@ -224,6 +234,31 @@ cos "$B"
 printf '{"tool_name":"Write","tool_input":{"file_path":"%s/memory/%s","content":"x"}}' "$B" "$LOG" > "$T/in"
 run_guard "$T"
 expect "L10g the raw text of an escaped path is not read as the path" passed
+# L10h: a payload that is not one whole JSON object passes, even when the
+# tool_name and the file_path of the existing log are whole in it: cut after
+# the file_path, a string or a key left open, a bracket missing or of the
+# wrong kind, text after the object, or a value that is not an object.
+l10h=""
+h1='{"tool_name":"Write","tool_input":{"file_path":"'"$C/memory/$LOG"'"'
+for cut in "$h1,\"content\":\"abc" "$h1," "$h1" "$h1}" "$h1,\"content\":\"abc\"}" \
+  "$h1,\"cont" "$h1,\"content\":\"abc\\" "$h1,\"content\":[\"abc\"}}" \
+  "$h1,\"content\":\"abc\"}} x" "$h1,\"content\":\"abc\"}}{}" "[$h1,\"content\":\"abc\"}}]" \
+  "$h1,\"content\":\"abc\"}}}" "$h1,\"content\":\"a\\\\\\\"}}" "$h1,\"content\":\"a\\\\\\\\\\\"}}"; do
+  printf '%s' "$cut" > "$T/in"
+  run_guard "$C"
+  passed || l10h="${l10h}[$cut] exit $rc; "
+done
+# The same payload closed is a whole object and is refused, also when its
+# content ends in an escaped backslash or holds an escaped quote and braces.
+for whole in "$h1,\"content\":\"abc\"}}" "$h1,\"content\":\"a\\\\\\\\\"}}" \
+  "$h1,\"content\":\"a \\\"}}]{ b\"}}"; do
+  printf '%s' "$whole" > "$T/in"
+  run_guard "$C"
+  refused || l10h="${l10h}whole [$whole] exit $rc; "
+done
+if [ -z "$l10h" ]; then ok "L10h a payload that is not one whole JSON object passes, the whole one is refused"
+else fail "L10h $l10h"
+fi
 
 # L11: a folder with a log's name passes.
 mkdir -p "$C/memory/2031-05-20.md"
@@ -334,15 +369,18 @@ rc=$?
 expect "L15d a path under ~/ with a home that is not absolute passes" passed
 # L15e: a relative path whose first folder name starts with "~" but not "~/"
 # (here ~cos) is relative, so it resolves against the cwd: over the existing
-# log it is refused, and a new log by the same spelling passes.
-mkdir -p "$T/tilde"
+# log it is refused, and a new log by the same spelling passes. HOME is a
+# folder with no cos/ in it: a guard that read ~cos/ as $HOME/cos/ would
+# find no log there and let the first Write through, so the misreading fails
+# here instead of landing on the Chief of Staff the suite keeps in $T/cos.
+mkdir -p "$T/tilde" "$T/empty home"
 cos "$T/tilde/~cos"
 payload Write "~cos/memory/$LOG" "$T/tilde"
-(cd / && HOME="$T" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+(cd / && HOME="$T/empty home" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
 rc=$?
 expect "L15e a relative ~cos/ path over the existing log is refused" refused
 payload Write "~cos/memory/2031-05-18.md" "$T/tilde"
-(cd / && HOME="$T" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
+(cd / && HOME="$T/empty home" sh "$GUARD" < "$T/in" > "$T/out" 2> "$T/err")
 rc=$?
 expect "L15e a relative ~cos/ path to a new log passes" passed
 
@@ -375,6 +413,126 @@ for c in cat awk tr sed head grep dirname basename; do
 done
 if [ -z "$l16" ]; then ok "L16 a command that fails after printing output makes the guard pass in silence"
 else fail "L16 $l16"
+fi
+
+# L17: a large Write (about 2.4 MB of content, with escaped quotes,
+# backslashes and line breaks) over the existing log is refused, so the
+# payload never travels through the environment or the arguments, whose
+# limit sits near 1 MB on macOS; the same payload cut before its end passes.
+LC_ALL=C awk -v f="$C/memory/$LOG" 'BEGIN {
+  printf "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"%s\",\"content\":\"", f
+  for (i = 0; i < 48000; i++) printf "## [10:00] entry %05d with a \\\"quote\\\", a \\\\ and a break\\n", i % 100000
+  printf "\"}}"
+}' > "$T/big"
+big_size=$(wc -c < "$T/big" | tr -d ' ')
+cp "$T/big" "$T/in"
+run_guard "$C"
+r1=$rc
+refused
+s1=$?
+head -c $((big_size - 2)) "$T/big" > "$T/in"
+run_guard "$C"
+passed
+s2=$?
+if [ "$big_size" -gt 2400000 ] && [ "$s1" -eq 0 ] && [ "$s2" -eq 0 ]; then ok "L17 a payload of $big_size bytes over the log is refused, and cut before its end it passes"
+else fail "L17 large payload of $big_size bytes: whole exit $r1, cut exit $rc"
+fi
+
+# L18: a printf that prints its output and then returns a non-zero status
+# makes the guard pass. A copy of the guard gets, right under its first line,
+# a printf function that runs the real one and, on its K-th call only,
+# returns 1 after the output, leaving a mark. The fixed message on stderr is
+# what the guard does once it has decided, not an input to the decision, so
+# the function leaves that one call alone. A guard whose K-th call failed
+# must pass in silence; one that never made a K-th call refuses as usual.
+l18=""
+for k in 1 2 3 4; do
+  F="$T/failing-printf-$k"
+  mkdir -p "$F"
+  {
+    echo '#!/bin/sh'
+    printf 'printf() {\n  case "$*" in *"Log guard (pm-chief-of-staff)"*) command printf "$@"; return ;; esac\n  __n=0\n  [ -f "%s/count" ] && read __n < "%s/count"\n  __n=$((__n + 1))\n  echo "$__n" > "%s/count"\n  command printf "$@"\n  __s=$?\n  [ "$__n" -eq %s ] || return "$__s"\n  : > "%s/ran"\n  return 1\n}\n' \
+      "$F" "$F" "$F" "$k" "$F"
+    sed '1d' "$GUARD"
+  } > "$F/guard.sh"
+  payload Write "memory/$LOG" "$C"
+  (cd "$C" && sh "$F/guard.sh" < "$T/in" > "$T/out" 2> "$T/err")
+  rc=$?
+  if [ -f "$F/ran" ]; then
+    passed || l18="${l18}printf failed on call $k after its output and the guard exited $rc; "
+  else
+    refused || l18="${l18}printf made no call $k and the guard exited $rc; "
+  fi
+done
+if [ -z "$l18" ]; then ok "L18 a printf that fails after printing output makes the guard pass in silence"
+else fail "L18 $l18"
+fi
+
+# L19: JSON whitespace outside the strings (space, tab, line feed, carriage
+# return) never changes the verdict: a whole object over the existing log is
+# refused when it is indented over several lines, with LF or with CRLF line
+# ends, with a line break after its last brace, and with a space and a tab
+# before its first brace. Each shape is a printf format with %s for the path:
+# \t, \r and \n in the format are the real bytes, \\n is a JSON escape.
+l19=""
+for fmt in \
+  '{\n  "tool_name": "Write",\n  "tool_input": {\n    "file_path": "%s",\n    "content": "## [10:00] x\\n"\n  }\n}' \
+  '{\r\n\t"tool_name" :\t"Write",\r\n\t"tool_input": {\r\n\t\t"file_path": "%s",\r\n\t\t"content": "x"\r\n\t}\r\n}\r\n' \
+  '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}\n' \
+  '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}\r\n' \
+  ' \t{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}' \
+  '{ "tool_name" : "Write" , "tool_input" : { "file_path" : "%s" , "content" : "x" } } \t\r\n'; do
+  printf "$fmt" "$C/memory/$LOG" > "$T/in"
+  run_guard "$C"
+  refused || l19="${l19}[hex $(od -An -tx1 < "$T/in" | tr -s ' \n' ' ' | cut -c1-90)...] exit $rc; "
+done
+if [ -z "$l19" ]; then ok "L19 a whole object with JSON whitespace outside its strings is refused"
+else fail "L19 $l19"
+fi
+
+# L20: the kind of a bracket decides alone. Each payload opens and closes the
+# same number of brackets, but one closes with the wrong kind, so it is not
+# one whole object and passes; a string left open after the object closed
+# passes too.
+l20=""
+h20='{"tool_name":"Write","tool_input":{"file_path":"'"$C/memory/$LOG"'","content":'
+for bad in "$h20\"abc\"]}" "$h20[\"abc\"}]}" "$h20{\"a\":1]}}" "$h20\"abc\"}}\"tail" \
+  "$h20\"abc\"}} \"tail"; do
+  printf '%s' "$bad" > "$T/in"
+  run_guard "$C"
+  passed || l20="${l20}[$bad] exit $rc; "
+done
+if [ -z "$l20" ]; then ok "L20 a bracket of the wrong kind or a string left open after the object passes"
+else fail "L20 $l20"
+fi
+
+# L21: a string glued to the object, before its first brace or after its
+# last one, with or without a space between them, is text outside the
+# object, so the payload is not one whole object and passes in silence.
+l21=""
+w21="$h20\"abc\"}}"
+for glued in "\"head\"$w21" "\"head\" $w21" "$w21\"tail\"" "$w21 \"tail\""; do
+  printf '%s' "$glued" > "$T/in"
+  run_guard "$C"
+  passed || l21="${l21}[$glued] exit $rc; "
+done
+if [ -z "$l21" ]; then ok "L21 a string glued before or after the object passes in silence"
+else fail "L21 $l21"
+fi
+
+# L22: the guard checks the structure of the payload, not the whole JSON
+# grammar, because it reads only three string fields. A payload whose
+# structure is whole (strings closed, brackets nested by kind, one object
+# with nothing around it) over the existing log is refused even when its
+# content holds an invalid escape, or a comma is missing between two pairs.
+l22=""
+for gram in "$h20\"\\q\"}}" "$h20\"a\\u12zz\"}}" "$h20\"x\" \"more\":\"y\"}}"; do
+  printf '%s' "$gram" > "$T/in"
+  run_guard "$C"
+  refused || l22="${l22}[$gram] exit $rc; "
+done
+if [ -z "$l22" ]; then ok "L22 a whole structure with an invalid escape or a missing comma is refused"
+else fail "L22 $l22"
 fi
 
 rm -rf "$T"

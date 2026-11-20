@@ -1,0 +1,3 @@
+# Text files keep LF in every checkout, core.autocrlf included: the plugin's
+# sh scripts and the seeds planted in a person's folder break with CRLF.
+* text=auto eol=lf
