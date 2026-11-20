@@ -19,6 +19,11 @@
 #   L16 a command that fails after printing output makes the guard pass
 #   L17 a payload of about 2.4 MB over the log is refused; cut, it passes
 #   L18 a printf that fails after printing output makes the guard pass
+#   L19 JSON whitespace outside the strings does not change the verdict
+#   L20 a bracket of the wrong kind, or a string left open after the
+#       object, is not one whole object and passes
+#   L21 a string glued before or after the object is text outside it and
+#       passes
 # L10h covers a payload that is not one whole JSON object.
 # Run by hand: sh hooks/log-guard-test.sh < /dev/null
 # Output: one ok or FAIL line per case; exit 0 only when every case passes.
@@ -459,6 +464,58 @@ for k in 1 2 3 4; do
 done
 if [ -z "$l18" ]; then ok "L18 a printf that fails after printing output makes the guard pass in silence"
 else fail "L18 $l18"
+fi
+
+# L19: JSON whitespace outside the strings (space, tab, line feed, carriage
+# return) never changes the verdict: a whole object over the existing log is
+# refused when it is indented over several lines, with LF or with CRLF line
+# ends, with a line break after its last brace, and with a space and a tab
+# before its first brace. Each shape is a printf format with %s for the path:
+# \t, \r and \n in the format are the real bytes, \\n is a JSON escape.
+l19=""
+for fmt in \
+  '{\n  "tool_name": "Write",\n  "tool_input": {\n    "file_path": "%s",\n    "content": "## [10:00] x\\n"\n  }\n}' \
+  '{\r\n\t"tool_name" :\t"Write",\r\n\t"tool_input": {\r\n\t\t"file_path": "%s",\r\n\t\t"content": "x"\r\n\t}\r\n}\r\n' \
+  '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}\n' \
+  '{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}\r\n' \
+  ' \t{"tool_name":"Write","tool_input":{"file_path":"%s","content":"x"}}' \
+  '{ "tool_name" : "Write" , "tool_input" : { "file_path" : "%s" , "content" : "x" } } \t\r\n'; do
+  printf "$fmt" "$C/memory/$LOG" > "$T/in"
+  run_guard "$C"
+  refused || l19="${l19}[hex $(od -An -tx1 < "$T/in" | tr -s ' \n' ' ' | cut -c1-90)...] exit $rc; "
+done
+if [ -z "$l19" ]; then ok "L19 a whole object with JSON whitespace outside its strings is refused"
+else fail "L19 $l19"
+fi
+
+# L20: the kind of a bracket decides alone. Each payload opens and closes the
+# same number of brackets, but one closes with the wrong kind, so it is not
+# one whole object and passes; a string left open after the object closed
+# passes too.
+l20=""
+h20='{"tool_name":"Write","tool_input":{"file_path":"'"$C/memory/$LOG"'","content":'
+for bad in "$h20\"abc\"]}" "$h20[\"abc\"}]}" "$h20{\"a\":1]}}" "$h20\"abc\"}}\"tail" \
+  "$h20\"abc\"}} \"tail"; do
+  printf '%s' "$bad" > "$T/in"
+  run_guard "$C"
+  passed || l20="${l20}[$bad] exit $rc; "
+done
+if [ -z "$l20" ]; then ok "L20 a bracket of the wrong kind or a string left open after the object passes"
+else fail "L20 $l20"
+fi
+
+# L21: a string glued to the object, before its first brace or after its
+# last one, with or without a space between them, is text outside the
+# object, so the payload is not one whole object and passes in silence.
+l21=""
+w21="$h20\"abc\"}}"
+for glued in "\"head\"$w21" "\"head\" $w21" "$w21\"tail\"" "$w21 \"tail\""; do
+  printf '%s' "$glued" > "$T/in"
+  run_guard "$C"
+  passed || l21="${l21}[$glued] exit $rc; "
+done
+if [ -z "$l21" ]; then ok "L21 a string glued before or after the object passes in silence"
+else fail "L21 $l21"
 fi
 
 rm -rf "$T"

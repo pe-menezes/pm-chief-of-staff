@@ -40,9 +40,11 @@ D='[0123456789]'
 # Write passes. Line breaks, carriage returns and tabs become spaces.
 # The payload must be one whole JSON object: no string is left open, and in
 # the text outside the strings the first character is "{", the brackets
-# nest by kind, and the object closes at the end of the input. Any
-# other input (cut short, a string or a key left open, text after the
-# object) exits 1, and the guard passes.
+# nest by kind, and the object closes at the end of the input; JSON
+# whitespace there never counts, and each string counts as text, so a
+# string before the first "{" or after the object is text outside it. Any
+# other input (cut short, a string or a key left open, text or a string
+# after the object) exits 1, and the guard passes.
 # For a whole object it prints three lines, T, P and C followed by the
 # content of the first "KEY" : "string" pair of tool_name, file_path and
 # cwd, with any whitespace around the colon; nothing after the letter when
@@ -61,21 +63,38 @@ json_fields() {
         if (i == 0) return ""
         return substr(r, 1, i - 1)
       }
+      # tailrun: the length of the run of backslashes at the end of x. The
+      # awk of macOS reads the whole of x on every substr call, so a call
+      # per backslash would take time in the square of the run; here a chunk
+      # before the part already counted doubles while it holds only
+      # backslashes and halves when it does not, so a run of any length
+      # costs a few dozen calls.
+      function tailrun(x,   L, k, c) {
+        L = length(x)
+        k = 0
+        c = 1
+        while (k < L) {
+          if (c > L - k) c = L - k
+          if (substr(x, L - k - c + 1, c) !~ /[^\\]/) { k += c; c += c }
+          else if (c == 1) break
+          else c = int(c / 2)
+        }
+        return k
+      }
       { gsub(/[\r\t]/, " "); s = s (NR > 1 ? " " : "") $0 }
       END {
-        # t: the text outside every string. A quote preceded by an odd run
-        # of backslashes is escaped and stays inside the string.
+        # t: the text outside every string, where each string leaves one
+        # quote as its mark, so a string before the first brace or after
+        # the object is text outside the object. A quote preceded by an odd
+        # run of backslashes is escaped and stays inside the string.
         n = split(s, q, "\"")
         t = q[1]
         ins = 0
         for (i = 1; i < n; i++) {
           if (ins) {
-            L = length(q[i])
-            k = 0
-            while (k < L && substr(q[i], L - k, 1) == "\\") k++
-            if (k % 2) continue
+            if (tailrun(q[i]) % 2) continue
             ins = 0
-            t = t q[i + 1]
+            t = t "\"" q[i + 1]
           } else ins = 1
         }
         if (ins) exit 1
