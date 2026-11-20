@@ -10,7 +10,10 @@
 #       close-day and close-week that tells the agent to replace the pains
 #       review line after a done review gives the dates of the new line
 #       (close-week added in the audit backlog front, part 2): the event date
-#       is the nearest of the pains file's review dates, the checked date is
+#       is the nearest of the pains file's review dates, the whole expression
+#       pinned in each place's wording since the fix round of that part (so
+#       "the nearest of the pains file's past review dates" fails), the
+#       checked date is
 #       the day of the review, and the next review is 3 months after the one
 #       done unless the person gives another date; none keeps the old
 #       "that day" / "today" wording for the checked date. Setup must carry
@@ -50,12 +53,19 @@ n1=0
 for spec in "skills/setup/SKILL.md 2" "PROMPT.md 1" "PROMPT.pt-BR.md 1" "seeds/close-day/SKILL.md 1" "seeds/close-week/SKILL.md 1"; do
   src=${spec% *}
   want=${spec#* }
+  # The whole event date expression of each place, in that place's wording,
+  # so a qualifier on the review dates ("past review dates") fails.
+  case "$src" in
+    PROMPT.md) near='the nearest of the review dates in context/pains.md as the event date' ;;
+    PROMPT.pt-BR.md) near='a mais próxima das datas de revisão de contexto/dores.md como data do evento' ;;
+    *) near="the nearest of the pains file's review dates as the event date" ;;
+  esac
   grep -niE "$SWAP_LINE" "$ROOT/$src" | grep -iE "$SWAP_VERB" > "$work/hits"
   found=0
   while IFS= read -r hit; do
     num=${hit%%:*}
     body=${hit#*:}
-    printf '%s\n' "$body" | grep -qiE 'the nearest of the|a mais pr(ó|o)xima das datas' || e1="$e1 [$src:$num: event date not the nearest review date]"
+    printf '%s\n' "$body" | grep -qF -- "$near" || e1="$e1 [$src:$num: event date not the nearest review date]"
     printf '%s\n' "$body" | grep -qiE 'the day of the review as the checked date|o dia da revis(ã|a)o como data de conferido' || e1="$e1 [$src:$num: checked date not the day of the review]"
     printf '%s\n' "$body" | grep -qiE '(the next review 3 months after the one done, unless (the person gives|I give) another date)|(a pr(ó|o)xima revis(ã|a)o 3 meses depois da feita, salvo outra data)' || e1="$e1 [$src:$num: no 3-month cadence with the person's date]"
     printf '%s\n' "$body" | grep -qiE 'that day as the checked date|today as the (checked date|last confirmation)|o dia como data de conferido' && e1="$e1 [$src:$num: old checked-date wording]"

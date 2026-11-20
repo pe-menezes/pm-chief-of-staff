@@ -26,7 +26,7 @@ Builds the day on what is already written: priorities, open tasks, calendar, and
    * Yesterday's `**→ tomorrow:**` seed is the strongest candidate for #1.
    * A meeting is not one of today's 3 (it happens anyway); the 3 are execution.
    * **Calibrate against the calendar**: count the hours that are really free. With less than 2h left, propose 1 move + 1 monitor at most, and say so in the opening. Three ambitious ones on a day with no window guarantee a failure whose cause is calibration.
-5. **Record** at the top of the weekly journal: `## Today's 3: YYYY-MM-DD` + the 3, numbered and anchored. Same day runs again: overwrite the block. New day: create it and leave the previous one in the history.
+5. **Record** at the top of the weekly journal: `## Today's 3: YYYY-MM-DD` + the 3, numbered and anchored. Same day runs again: redo the 3 in today's block and keep, as they are, the `**Reflection:**`, `**Balance:**` and `**→ tomorrow:**` lines already in it (a `close-day` run alone earlier the same day writes them); never delete them. New day: create it and leave the previous one in the history.
 6. **Answer short**: calendar in 1 block · the 3 proposals · 1 to 2 critical questions if a contradiction was detected. Wait for validation before locking in.
 
 ## During the day (update mode)

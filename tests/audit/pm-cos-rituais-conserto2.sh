@@ -12,7 +12,9 @@
 #       seed for tomorrow replace the one line of each, and no label gets a
 #       second line, so the block keeps the ceiling of 1 line per label and
 #       one seed for the next opening. The rule is unconditional: a condition
-#       grafted onto it ("only when the person confirms it") fails the case.
+#       grafted onto it ("only when the person confirms it", "at the
+#       person's choice", "By default", "upon request") fails the case, and
+#       so does one grafted onto the day block clause of the ceiling.
 #       The standalone paragraph sends its second run to the same rule.
 #       Rewritten in the audit backlog front, part 2, when the rule left the
 #       standalone paragraph for its own paragraph covering both modes.
@@ -71,8 +73,14 @@ fi
 # lines in place, never adds lines, with no condition on the rule.
 
 # Words that make the rule conditional or turn it into a question. The rule
-# paragraph and the standalone pointer to it carry none of them.
-COND='(^|[^a-z])(only|if|when|whenever|unless|except|provided|once|after|until|ask|asks|asked|confirm|confirms|confirmed|propose|proposes|may|might|can|could|should|optional|optionally|depending|approve|approves|approved|agree|agrees)([^a-z]|$)'
+# paragraph, the standalone pointer to it and the day block clause of the
+# ceiling carry none of them. Besides the words of a condition, the list holds
+# the words of a choice, a default and a request (A1 of the audit backlog
+# front, part 2: "at the person's choice", "the person decides", "By
+# default", "upon request"), and the person themselves ("person", "they",
+# "their"): the rule is about what the agent writes, so any mention of the
+# person there makes them a gate on it.
+COND='(^|[^a-z])(only|if|when|whenever|unless|except|provided|once|after|until|ask|asks|asked|confirm|confirms|confirmed|propose|proposes|may|might|can|could|should|optional|optionally|depending|approve|approves|approved|agree|agrees|agreed|choice|choose|chooses|chosen|decide|decides|decided|decision|default|defaults|request|requests|requested|upon|wish|wishes|want|wants|prefer|prefers|preference|permission|consent|consents|person|they|their)([^a-z]|$)'
 
 rc2_bad=""
 # The rule: its own paragraph, outside the standalone paragraph and the steps.
@@ -125,6 +133,11 @@ fi
 # The ceiling the second run must keep is still stated for the day block.
 grep '^Ceiling' "$DAY" | grep -F -- "$refl_lbl" | grep -F -- "$bal_lbl" | grep -F -- "$seed_lbl" | grep -q 'in 1 line each' \
   || rc2_bad="$rc2_bad [the day block ceiling no longer holds each label to 1 line]"
+# The day block clause of the ceiling (its first sentence; the rest is about
+# other destinations) passes the same guard as the rule.
+c=$(grep -m1 '^Ceiling' "$DAY" | awk '{ sub(/\. .*/, "."); print }')
+w=$(printf '%s\n' "$c" | grep -o -i -E "$COND" | head -n 1)
+[ -z "$w" ] || rc2_bad="$rc2_bad [the day block ceiling carries a condition:$w]"
 if [ -z "$rc2_bad" ]; then
   ok "RC2 a second close-day the same day, alone or in the pair, joins the reflection into its one line and replaces the balance and the seed, never a second line of a label, with no condition"
 else

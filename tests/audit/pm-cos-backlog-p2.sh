@@ -16,6 +16,14 @@
 #       prospective item whose date has passed: it proposes expiring it with
 #       the folder's expired mark or re-anchoring it with a new date, the
 #       person settles it, and an item with no written date never expires.
+#       Since the fix round of this part, the whole step is read: no other
+#       clause makes an item expire on its own, automatically or by a
+#       deadline ("an item more than 7 days late expires on its own" fails).
+#   BP4 (risk code: what deletes the person's lines) when start-day runs
+#       again the same day, step 5 redoes the 3 in today's block and keeps,
+#       as they are, the reflection, balance and seed lines already in it
+#       (a close-day run alone earlier the same day writes them); it never
+#       deletes them and never overwrites the whole block, with no condition.
 #   BP3 (risk code: what writes through a link) the discovery rule of
 #       PROMPT.md and PROMPT.pt-BR.md checks .agents itself before any
 #       write: as a link (even a broken one) or as a file, nothing is written
@@ -142,6 +150,28 @@ else
     grep -q 'the person settles it' "$work/pro" || bp2_bad="$bp2_bad [the person does not settle it]"
   fi
   grep -q 'no written date never expires' "$work/scan-s" || bp2_bad="$bp2_bad [an item with no written date may expire]"
+  # The whole step, clause by clause (A3 of the audit of this part): the only
+  # clauses that may speak of expiring are the proposal the person settles
+  # and the item that never expires; any other expiry, or a second one inside
+  # those two clauses, makes an item expire without the person deciding.
+  awk -v mark="$expired" '
+    function cut(s, n,   i) {
+      while ((i = index(s, n)) > 0) s = substr(s, 1, i - 1) " " substr(s, i + length(n))
+      return s
+    }
+    {
+      s = $0
+      if (index(s, "propose expiring") && index(s, "the person settles it")) {
+        s = cut(s, "propose expiring"); s = cut(s, mark)
+      }
+      s = cut(s, "never expires")
+      if (tolower(s) ~ /expir/) print
+    }' "$work/scan-s" > "$work/auto"
+  [ -s "$work/auto" ] && bp2_bad="$bp2_bad [a clause of step 3 expires an item without the person settling it: $(head -n 1 "$work/auto")]"
+  # Nor does any wording of an expiry on its own, automatic or by a time
+  # span, or a removal of the item under another verb.
+  w=$(grep -o -i -E '(on its own|by itself|automatic[a-z]*|without (asking|the person)|(^|[^a-z])(a|an|one|two|three|[0-9]+) (days?|weeks?|months?)([^a-z]|$)|deadline|lapses?|(dropped|removed|deleted|discarded|archived|purged)([^a-z]|$))' "$work/scan" | head -n 1)
+  [ -z "$w" ] || bp2_bad="$bp2_bad [step 3 lets an item expire on its own:$w]"
 fi
 if [ -z "$bp2_bad" ]; then
   ok "BP2 start-day step 3 proposes expiring ($expired) or re-anchoring a lapsed dated prospective item, the person settles it, and no written date never expires"
@@ -193,6 +223,52 @@ if [ -z "$bp3_bad" ]; then
   ok "BP3 both PROMPTs check .agents (link, even broken, or file) and then .agents/skills before any write, nothing through them, conflict to the person"
 else
   fail "BP3 .agents before the discovery writes" "$bp3_bad"
+fi
+
+# ---------------------------------------------------------------------------
+# BP4 start-day run again the same day keeps the close-day lines of the block.
+
+# The condition words of BP1, plus those of a choice, a default and a request
+# and the person themselves (the same widening as RC2 in the fix round of
+# this part, without "they", which the kept lines' "as they are" carries).
+COND4='(^|[^a-z])(only|if|when|whenever|unless|except|provided|once|after|until|ask|asks|asked|confirm|confirms|confirmed|propose|proposes|may|might|can|could|should|optional|optionally|depending|approve|approves|approved|agree|agrees|agreed|choice|choose|chooses|chosen|decide|decides|decided|decision|default|defaults|request|requests|requested|upon|wish|wishes|want|wants|prefer|prefers|preference|permission|consent|consents|person)([^a-z]|$)'
+
+bp4_bad=""
+refl_lbl=$(cell "reflection" 3)
+bal_lbl=$(cell "balance" 3)
+bal_lbl=${bal_lbl%% *}
+seed_lbl=$(cell "seed for tomorrow" 3)
+if [ -z "$refl_lbl" ] || [ -z "$bal_lbl" ] || [ -z "$seed_lbl" ]; then
+  bp4_bad="$bp4_bad [vocabulary: a label cell this case reads is missing]"
+else
+  step 5 "$START" > "$work/rec"
+  if [ ! -s "$work/rec" ]; then
+    bp4_bad="$bp4_bad [start-day has no step 5]"
+  else
+    r=$(after "$(cat "$work/rec")" "Same day runs again")
+    # The same-day clause: up to the new-day one.
+    r=$(printf '%s\n' "$r" | awk '{ i = index($0, "New day"); if (i) $0 = substr($0, 1, i - 1); print }')
+    if [ -z "$r" ]; then
+      bp4_bad="$bp4_bad [step 5 says nothing of a run again the same day]"
+    else
+      printf '%s\n' "$r" | grep -q 'the 3' || bp4_bad="$bp4_bad [the run again does not redo the 3]"
+      for l in "$refl_lbl" "$bal_lbl" "$seed_lbl"; do
+        printf '%s\n' "$r" | grep -q -F -- "\`$l\`" || bp4_bad="$bp4_bad [the $l line is not kept]"
+      done
+      printf '%s\n' "$r" | grep -q -E '(^|[^a-z])keeps?([^a-z]|$)' || bp4_bad="$bp4_bad [the labeled lines are not kept]"
+      printf '%s\n' "$r" | grep -q 'as they are' || bp4_bad="$bp4_bad [the kept lines may change]"
+      printf '%s\n' "$r" | grep -q -i 'never delete' || bp4_bad="$bp4_bad [the labeled lines may be deleted]"
+      w=$(printf '%s\n' "$r" | grep -o -i -E '(overwrit|replac|rewrit|delet|remov|clear|eras)[a-z]* (the|today.s) (whole |entire )?block' | head -n 1)
+      [ -z "$w" ] || bp4_bad="$bp4_bad [the run again wipes the block:$w]"
+      w=$(printf '%s\n' "$r" | grep -o -i -E "$COND4" | head -n 1)
+      [ -z "$w" ] || bp4_bad="$bp4_bad [keeping the lines carries a condition:$w]"
+    fi
+  fi
+fi
+if [ -z "$bp4_bad" ]; then
+  ok "BP4 start-day run again the same day redoes the 3 and keeps the $refl_lbl, $bal_lbl and $seed_lbl lines already in the block as they are, never deleting them"
+else
+  fail "BP4 start-day run again the same day" "$bp4_bad"
 fi
 
 [ "$failures" -eq 0 ]
