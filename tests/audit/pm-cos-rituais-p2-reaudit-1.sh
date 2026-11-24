@@ -83,7 +83,7 @@ fi
 # RA2
 e2=""
 n2=0
-for spec in "skills/setup/SKILL.md 2" "seeds/close-week/SKILL.md 1" "seeds/close-day/SKILL.md 1" "PROMPT.md 1" "PROMPT.pt-BR.md 1" "README.md 2" "README.pt-BR.md 2"; do
+for spec in "skills/setup/SKILL.md 2" "seeds/close-week/SKILL.md 1" "seeds/close-day/SKILL.md 1" "PROMPT.md 1" "PROMPT.pt-BR.md 1" "docs/full-guide.md 2" "docs/guia-completo.pt-BR.md 2"; do
   src=${spec% *}
   want=${spec#* }
   grep -niE 'no pain is left open|n(ã|a)o sobra(r)? dor aberta' "$ROOT/$src" > "$work/hits"
