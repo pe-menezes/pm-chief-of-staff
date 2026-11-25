@@ -202,7 +202,7 @@ fi
 # PB3
 e3=""
 n3=0
-for spec in "skills/setup/SKILL.md en" "seeds/close-week/SKILL.md en" "PROMPT.md en" "README.md en" "PROMPT.pt-BR.md pt" "README.pt-BR.md pt"; do
+for spec in "skills/setup/SKILL.md en" "seeds/close-week/SKILL.md en" "PROMPT.md en" "docs/full-guide.md en" "PROMPT.pt-BR.md pt" "docs/guia-completo.pt-BR.md pt"; do
   src=${spec% *}
   col=${spec#* }
   if [ "$col" = en ]; then path=$PAINS_EN; else path=$PAINS_PT; fi
@@ -227,7 +227,7 @@ fi
 # PB4
 e4=""
 n4=0
-for f in "$ROOT/skills/setup/SKILL.md" "$ROOT/PROMPT.md" "$ROOT/PROMPT.pt-BR.md" "$ROOT/README.md" "$ROOT/README.pt-BR.md" "$ROOT"/seeds/*/SKILL.md "$ROOT"/modules/*.md; do
+for f in "$ROOT/skills/setup/SKILL.md" "$ROOT/PROMPT.md" "$ROOT/PROMPT.pt-BR.md" "$ROOT/docs/full-guide.md" "$ROOT/docs/guia-completo.pt-BR.md" "$ROOT"/seeds/*/SKILL.md "$ROOT"/modules/*.md; do
   [ -f "$f" ] || continue
   grep -nE 'at most 5 active events|no m(á|a)ximo 5 eventos ativos' "$f" > "$work/hits"
   while IFS= read -r hit; do

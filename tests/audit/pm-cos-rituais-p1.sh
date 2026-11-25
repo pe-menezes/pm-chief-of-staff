@@ -47,8 +47,8 @@ GATE="$ROOT/modules/write-gate.md"
 CAP="$ROOT/modules/capabilities.md"
 P_EN="$ROOT/PROMPT.md"
 P_PT="$ROOT/PROMPT.pt-BR.md"
-R_EN="$ROOT/README.md"
-R_PT="$ROOT/README.pt-BR.md"
+R_EN="$ROOT/docs/full-guide.md"
+R_PT="$ROOT/docs/guia-completo.pt-BR.md"
 HOOK="$ROOT/hooks/size-gate.sh"
 failures=0
 

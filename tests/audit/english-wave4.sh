@@ -167,7 +167,7 @@ fi
 # the upgrade table of each README is exactly the 0.7.0 to 0.8.0 map of the
 # vocabulary (commands table plus the six legacy seed rows).
 
-docs="$ROOT/README.md $ROOT/README.pt-BR.md $ROOT/PROMPT.md $ROOT/PROMPT.pt-BR.md"
+docs="$ROOT/docs/full-guide.md $ROOT/docs/guia-completo.pt-BR.md $ROOT/PROMPT.md $ROOT/PROMPT.pt-BR.md"
 for t in "$ROOT"/.github/ISSUE_TEMPLATE/*.md; do docs="$docs $t"; done
 aq3_bad=""
 for d in $docs; do
@@ -195,7 +195,7 @@ awk -F'|' '
 legacy seed | awk '{ print $2 " " $1 }' >> "$work/map"
 sort -u "$work/map" -o "$work/map"
 [ "$(wc -l < "$work/map" | tr -d ' ')" -ge 11 ] || aq3_bad="$aq3_bad [vocabulary map has $(wc -l < "$work/map" | tr -d ' ') rows, expected 11]"
-for r in "$ROOT/README.md" "$ROOT/README.pt-BR.md"; do
+for r in "$ROOT/docs/full-guide.md" "$ROOT/docs/guia-completo.pt-BR.md"; do
   awk -F'|' '
     /^\| 0\.7 \| 0\.8 \|/ { on = 1; next }
     on && !/^\|/ { on = 0 }
@@ -217,7 +217,7 @@ slugs() {
   grep -E '^#{1,6} ' "$1" | sed -E 's/^#+ //' | tr 'A-Z' 'a-z' | sed -E 's/[][()?,.:!"`*/&'"'"']//g; s/ /-/g'
 }
 aq4_bad=""
-for r in "$ROOT/README.md" "$ROOT/README.pt-BR.md"; do
+for r in "$ROOT/docs/full-guide.md" "$ROOT/docs/guia-completo.pt-BR.md"; do
   [ -f "$r" ] || { aq4_bad="$aq4_bad [missing $(basename "$r")]"; continue; }
   slugs "$r" > "$work/slugs"
   for a in $(grep -o '](#[^)]*)' "$r" | sed 's/^](#//; s/)$//' | sort -u); do
